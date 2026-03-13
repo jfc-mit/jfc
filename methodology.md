@@ -815,34 +815,45 @@ required, but the following tools and paradigms are preferred. This section
 is maintained by the analysis team and reflects operational knowledge about
 what works well in practice.
 
-<!--
-  TODO: Fill in with your preferred tool stack and paradigms.
-  This is the place for things like:
-  - Preferred I/O library (uproot vs ROOT vs coffea)
-  - Statistical framework (pyhf vs RooFit vs Combine)
-  - Plotting conventions (mplhep with experiment style)
-  - Jet algorithms relevant to your experiment
-  - Specific packages with version pins if needed
-  - Coding paradigms (columnar analysis, event loops, etc.)
-  - Any "use X not Y" preferences
--->
-
 ### 7.1 Preferred Tools
 
 | Capability | Tool | Notes |
 |-----------|------|-------|
 | ROOT file I/O | uproot | Pythonic, no ROOT install required. Use `uproot.open()` to explore, `arrays()` to load. |
 | Array operations | awkward-array, numpy | Columnar analysis — no event loops. awkward for jagged structure, numpy for flat. |
-| Histogramming | hist, boost-histogram | Use `hist` for building and plotting; `boost-histogram` for performance-critical fills. |
+| Histogramming | hist, boost-histogram | Use `hist` for building and plotting; `boost-histogram` for performance-critical fills. Leverage ND histogram axes for systematic variations and cut categories — store variations as axis dimensions rather than separate histograms. |
 | Statistical model | pyhf | HistFactory JSON workspaces. Portable, text-based, version-controllable. |
 | Fitting / limits | pyhf, cabinetry | cabinetry for convenience wrappers (ranking, pulls). pyhf directly for custom fits. |
 | MVA | xgboost, scikit-learn | BDTs via xgboost. scikit-learn for preprocessing, train/test split, metrics. |
 | Hyperparameter opt | optuna | Bayesian optimization. Pin `random_state=42` for reproducibility. |
-| Plotting | matplotlib, mplhep | mplhep for experiment-specific styling (`mplhep.style.ALEPH` etc.). All figures as PDF. |
-| Jet clustering | — | *Specify: e.g., fastjet with Durham algorithm for LEP, anti-kt for LHC* |
-| b-tagging | — | *Specify: experiment-specific algorithm and working points* |
+| Plotting | matplotlib, mplhep | mplhep with `mplhep.style.CMS` as default style sheet. Square/box aspect ratio. All figures as PDF. |
+| Event processing | coffea | Standard workhorse for columnar analysis. Handles chunked I/O, accumulation, and scale-out. Use `PackedSelection` for cutflow management. Preferred over hand-rolled event loops. |
+| Scale-out | coffea + parsl/slurm | coffea with parsl or dask-jobqueue for slurm submission. This is the standard production path for large-scale processing. Local execution is fine for development and small datasets. |
+| Jet clustering | fastjet | Python bindings via `fastjet`. For e+e− (LEP): Durham algorithm (`ee_genkt_algorithm`, p=−1). For pp (LHC): anti-kt. Use e+e− algorithms for e+e− data — pp-era algorithms assume beam remnants. |
+| b-tagging | tiered (see below) | No pre-built tagger for ALEPH. Agent builds taggers during Phase 2 — see tiered tagging guidance below. |
 | Document preparation | LaTeX | pdflatex + bibtex. Markdown acceptable for intermediate artifacts. |
 | Experiment knowledge | RAG (SciTreeRAG) | Retrieval over publication/thesis corpus. See Section 2.2. |
+
+**Tiered tagging and classification.** When building taggers or classifiers
+(b-tagging, tau-ID, quark/gluon, etc.), follow a tiered approach:
+
+1. **Cut-based (cross-check).** Always build a simple cut-based version first
+   using the most discriminating variables (e.g., impact parameter significance,
+   secondary vertex mass for b-tagging). This serves as the baseline and
+   independent cross-check — it should always exist even if a more powerful
+   method is used as the primary.
+2. **BDT (default primary).** A shallow BDT via xgboost on a handful of
+   well-understood inputs is typically the right primary tagger. Fast to train,
+   easy to interpret, robust with limited MC statistics. This is the expected
+   choice for ALEPH/LEP-scale analyses.
+3. **Neural networks (only if justified).** FCNs or GNNs are warranted only
+   when the input space is large enough to benefit (many correlated low-level
+   inputs) and sufficient MC is available for training. At LHC scale with
+   millions of training events and dozens of inputs, this can be transformative.
+   For ALEPH-scale analyses, a BDT will almost always suffice.
+
+The agent defines working points during Phase 2 exploration based on the
+efficiency vs. rejection trade-off in MC, then validates on data in Phase 3.
 
 ### 7.2 Paradigms
 
@@ -868,14 +879,25 @@ data/MC comparisons. Use consistent styling throughout.
 artifact code-reference sections. Scripts should be re-runnable from a clean
 state and produce identical outputs.
 
-<!-- Add or modify paradigms as needed. Examples of things to specify:
-  - Event weighting conventions (how to handle negative weights, normalization)
-  - Luminosity handling (where the number comes from, how it enters the analysis)
-  - Naming conventions for systematic variations (e.g., {source}Up / {source}Down)
-  - Signal normalization (to cross-section × lumi, or to unity for shapes)
-  - Binning strategy preferences (uniform, variable, algorithm-driven)
-  - Correlation model for systematics (what is correlated across processes/regions)
--->
+**Event weighting and MC normalization.** During event processing, the
+processor tracks the sum of MC generator weights (Σw) for each sample. After
+processing, templates are normalized to the target luminosity:
+weight_per_event = σ × L / Σw_generated. This reweighting step is cheap and
+happens after the event loop, not inside it. The resulting yields are a nominal
+estimate — the real process normalizations are calibrated in-situ by fits in
+control regions during Phase 4. For generators with negative weights (NLO), Σw
+is the algebraic sum (positives minus negatives), not the count.
+
+**Systematic variation naming.** Use the convention `{source}Up` /
+`{source}Down` for systematic variation branches or histogram suffixes (e.g.,
+`JES_Up`, `JES_Down`). This is the standard expected by pyhf and cabinetry
+for automatic workspace construction.
+
+**Binning.** Start with uniform binning during exploration. Before fitting,
+rebin to ensure adequate statistics — no bin should have fewer than ~5 expected
+events (summed over all processes) to avoid fit instabilities. Variable binning
+is fine when physically motivated (e.g., finer bins near a mass peak, coarser
+in tails).
 
 ### 7.3 Retrieval
 
@@ -1227,3 +1249,34 @@ Physics Prompt ──────► Phase 1: Strategy ◄───────�
 | 4b: Partial (10%) | 10% observed results, post-fit diagnostics, GoF, draft analysis note |
 | 4c: Full observed | Full observed results, post-fit diagnostics, anomaly assessment |
 | Documentation | Complete analysis note with all sections, figures, citations |
+
+---
+
+## Appendix C: Tool Heuristics (Agent-Maintained)
+
+This appendix is a living document. On first encounter with a tool, the agent
+queries the tool's current documentation, extracts best practices and common
+pitfalls, and records a concise summary here. Subsequent agents (or sessions)
+consult this appendix first and only re-query upstream docs if something is
+out of date or missing.
+
+**Purpose:** Avoid repeated full-doc lookups. Each entry captures what the agent
+learned so the next session starts with working knowledge rather than reading
+the full API surface from scratch. This is analogous to the blessed snippets
+library but for tool-level idioms and gotchas.
+
+**Format:** One subsection per tool. Each entry should include:
+- Version tested against
+- Key idioms and recommended patterns
+- Common pitfalls and how to avoid them
+- Performance notes if relevant
+
+**Maintenance rules:**
+- The agent **must** check this appendix before querying external docs for any
+  tool listed in Section 7.1.
+- If an entry exists and is sufficient, use it — do not re-query.
+- If an entry is missing, incomplete, or the tool version has changed, query
+  the current docs, update the entry, and commit the change.
+- Keep entries concise — heuristics and gotchas, not full API references.
+
+<!-- Agent: populate entries below as you encounter each tool. -->
