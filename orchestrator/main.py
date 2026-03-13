@@ -1,4 +1,4 @@
-"""CLI entry point for the GAD orchestrator."""
+"""CLI entry point for the slopspec orchestrator."""
 
 import argparse
 import asyncio
@@ -14,7 +14,7 @@ console = Console()
 
 def main():
     parser = argparse.ArgumentParser(
-        description="GAD — Get Analysis Done. LLM-driven HEP analysis orchestrator.",
+        description="slopspec — LLM-driven HEP analysis orchestrator.",
     )
     parser.add_argument("config", help="Path to analysis config YAML")
     parser.add_argument(

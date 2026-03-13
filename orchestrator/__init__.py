@@ -1,1 +1,1 @@
-# GAD Orchestrator — LLM-driven HEP analysis pipeline
+# slopspec — LLM-driven HEP analysis pipeline

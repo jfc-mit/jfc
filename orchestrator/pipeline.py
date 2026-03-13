@@ -165,7 +165,7 @@ async def run_pipeline(config: AnalysisConfig) -> None:
     system_prompt = _load_system_prompt(config)
     base = str(config.base_dir)
 
-    console.print(Panel(f"[bold]GAD Pipeline: {config.analysis_name}[/bold]"))
+    console.print(Panel(f"[bold]slopspec: {config.analysis_name}[/bold]"))
 
     # --- Phase 1: Strategy (opus, 3-bot review) ---
     phase1_dir = f"{base}/phase1_strategy"
@@ -313,6 +313,6 @@ async def run_pipeline(config: AnalysisConfig) -> None:
             f"[bold green]Pipeline complete.[/bold green]\n\n"
             f"Total cost: ${cost_tracker.total_usd:.2f}\n"
             f"Sessions: {len(cost_tracker.sessions)}",
-            title="GAD Complete",
+            title="slopspec complete",
         )
     )

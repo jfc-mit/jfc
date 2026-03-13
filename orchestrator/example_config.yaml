@@ -1,8 +1,8 @@
-# GAD analysis config — ZH → ννbb at ALEPH/LEP2
+# slopspec analysis config — ZH → ννbb at ALEPH/LEP2
 #
 # Usage:
-#   pixi run gad orchestrator/example_config.yaml
-#   pixi run gad --dry-run orchestrator/example_config.yaml
+#   pixi run slopspec orchestrator/example_config.yaml
+#   pixi run slopspec --dry-run orchestrator/example_config.yaml
 
 analysis_name: zh_nunubb_aleph
 

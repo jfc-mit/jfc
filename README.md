@@ -58,10 +58,10 @@ pixi install
 export ANTHROPIC_API_KEY=your-key
 
 # Dry run — check config without launching agents
-pixi run gad --dry-run orchestrator/example_config.yaml
+pixi run slopspec --dry-run orchestrator/example_config.yaml
 
 # Run the pipeline
-pixi run gad orchestrator/example_config.yaml
+pixi run slopspec orchestrator/example_config.yaml
 ```
 
 ## Design philosophy

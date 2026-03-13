@@ -1,7 +1,7 @@
 [project]
 name = "slopspec"
 version = "0.1.0"
-description = "GAD — Get Analysis Done. LLM-driven HEP analysis orchestrator."
+description = "slopspec — LLM-driven HEP analysis orchestrator."
 requires-python = ">=3.11"
 dependencies = [
     "claude-agent-sdk>=0.1.0",
@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-gad = "orchestrator.main:main"
+slopspec = "orchestrator.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -28,7 +28,7 @@ slopspec = { path = ".", editable = true }
 
 [tool.pixi.tasks]
 build = "python build_spec.py"
-gad = { cmd = "gad", depends-on = ["build"] }
+slopspec = { cmd = "slopspec", depends-on = ["build"] }
 
 [tool.ruff]
 line-length = 88
