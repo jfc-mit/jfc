@@ -22,7 +22,7 @@ what works well in practice.
 | Jet clustering | fastjet | Python bindings via `fastjet`. For e+e− (LEP): Durham algorithm (`ee_genkt_algorithm`, p=−1). For pp (LHC): anti-kt. Use e+e− algorithms for e+e− data — pp-era algorithms assume beam remnants. |
 | b-tagging | tiered (see below) | No pre-built tagger for ALEPH. Agent builds taggers during Phase 2 — see tiered tagging guidance below. |
 | Dependency mgmt | pixi | All dependencies managed via pixi (conda-forge + pypi). `pixi.toml` / `pyproject.toml` is the single source of truth for the environment. |
-| Logging | rich | All orchestrator and agent logging via rich console. Structured, colored output. |
+| Logging | logging + rich | Python `logging` with `rich.logging.RichHandler`. No bare `print()`. See Section 11 for setup and enforcement. |
 | Document preparation | LaTeX | pdflatex + bibtex. Markdown acceptable for intermediate artifacts. |
 | Experiment knowledge | RAG (SciTreeRAG) | Retrieval over publication/thesis corpus. See Section 2.2. |
 

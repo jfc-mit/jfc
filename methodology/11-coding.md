@@ -48,6 +48,55 @@ variables, unused imports, shadowed names). This is cheap and catches real bugs.
 - **YAGNI.** Do not build CLIs, config systems, or plugin architectures. Write
   scripts. Refactor when (not before) reuse is actually needed.
 
+**Logging, not printing.** All analysis scripts must use Python's `logging`
+module with `rich.logging.RichHandler` — never bare `print()` statements.
+This is not optional.
+
+```python
+import logging
+from rich.logging import RichHandler
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+    handlers=[RichHandler(rich_tracebacks=True)],
+)
+log = logging.getLogger(__name__)
+```
+
+Why this matters:
+- `print()` has no severity levels, no filtering, and no structured output.
+  When an analysis runs for hours, distinguishing warnings from info from
+  debug output is essential.
+- `rich` provides colored, readable console output with automatic tracebacks
+  that are far easier to diagnose than raw stack traces.
+- `logging` integrates with libraries (pyhf, coffea, etc.) — you can suppress
+  noisy library output with `logging.getLogger("pyhf").setLevel(logging.WARNING)`
+  instead of losing it entirely or drowning in it.
+
+Use the standard levels consistently:
+- `log.debug()` — Verbose diagnostic output (loop progress, intermediate
+  values). Off by default.
+- `log.info()` — Meaningful progress milestones: "Loaded 2.89M events",
+  "Selection efficiency: 94.7%", "Fit converged in 12 iterations".
+- `log.warning()` — Something unexpected that doesn't stop execution: empty
+  bins, large correction factors, failed convergence on first attempt.
+- `log.error()` — Something that will affect the result or requires attention.
+
+For long-running processing (event loops, fits), use `rich.progress` bars
+or `rich.console.status` spinners instead of printing dots or percentages.
+
+**Ruff enforcement:** Add `T201` (print-function detection) to the ruff rules
+so that `print()` calls are flagged as lint errors:
+
+```toml
+# in pyproject.toml or ruff.toml
+[tool.ruff.lint]
+extend-select = ["T201"]
+```
+
+This catches stray `print()` at commit time via the pre-commit hook.
+
 **What NOT to do:**
 - Do not write unit tests for every function
 - Do not create mock data fixtures when real data is available
@@ -123,11 +172,12 @@ repos:
     rev: v0.4.0
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [--fix, --extend-select, T201]
       - id: ruff-format
 ```
 
-This is installed once and runs automatically on every commit. No agent
-attention required after setup.
+This is installed once and runs automatically on every commit. The `T201`
+rule flags any bare `print()` calls as lint errors (see Section 11.2). No
+agent attention required after setup.
 
 ---
