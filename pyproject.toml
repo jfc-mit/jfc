@@ -1,0 +1,37 @@
+[project]
+name = "slopspec"
+version = "0.1.0"
+description = "GAD — Get Analysis Done. LLM-driven HEP analysis orchestrator."
+requires-python = ">=3.11"
+dependencies = [
+    "claude-agent-sdk>=0.1.0",
+    "pyyaml>=6.0",
+    "rich>=13.0",
+]
+
+[project.scripts]
+gad = "orchestrator.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64"]
+
+[tool.pixi.dependencies]
+python = ">=3.11"
+
+[tool.pixi.pypi-dependencies]
+slopspec = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+build = "python build_spec.py"
+gad = { cmd = "gad", depends-on = ["build"] }
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
