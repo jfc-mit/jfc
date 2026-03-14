@@ -95,11 +95,22 @@ comparison observations.
 completeness, flags data quality issues, and assesses variable survey
 thoroughness.
 
-**Practical note:** The agent should expect to discover the data format at
+**Data discovery.** The agent should expect to discover the data format at
 runtime — branch naming conventions, tree structures, and storage formats vary
-across experiments and analyses. The agent explores file contents
-programmatically before attempting bulk data access. This discovery process is
-itself documented in the artifact.
+across experiments and analyses. To avoid wasting time and memory:
+
+1. **Metadata first.** Inspect tree names, branch names, and types before
+   loading any event data (e.g., `uproot.open(f).keys()`, branch dtypes).
+2. **Small slice of scalars.** Load ~1000 events of scalar branches first.
+   Do not attempt to load all branches (especially jagged/variable-length)
+   until you know the schema.
+3. **Identify jagged structure.** Determine which branches are variable-length
+   before bulk loading — these require awkward-array handling and consume
+   more memory.
+4. **Document the schema.** The discovered tree/branch structure, event counts,
+   and any format quirks are themselves artifact content.
+
+This discovery process is documented in the artifact.
 
 ---
 
@@ -140,9 +151,28 @@ regions, estimate backgrounds, and validate the background model.
   (simulation-scaled-from-CR, data-driven, or pure simulation with justification)
 - Perform closure tests in validation regions: compare predicted yields
   (extrapolated from CRs, not pure MC) to observation. Document agreement
-  quantitatively.
-- If closure fails, investigate and iterate on the region design or estimation
-  method before proceeding.
+  quantitatively. A closure test passes when agreement is consistent with
+  statistical fluctuations (p-value > 0.05 under the relevant test statistic,
+  typically chi2). A test that fails at p < 0.05 is Category A — investigate
+  and iterate on the region design or estimation method before proceeding.
+
+**Workflow pattern.** Phase 3 is iteration-heavy. Follow this progression:
+
+1. **Setup & prototype.** Build the processing pipeline on a small slice
+   (~1 file or ~1000 events). Verify it runs end-to-end and produces
+   sensible distributions. Register each script as a pixi task.
+2. **Full processing.** Run on the full dataset. Produce data/MC comparisons
+   for every variable entering the observable or selection. For measurements:
+   build the response matrix and correction machinery at this stage.
+3. **Inspect & validate.** Systematically review all produced plots — data/MC
+   agreement per variable, cutflow yields, closure tests. This is where
+   modeling issues must be caught before they propagate to Phase 4.
+
+For measurements, Phase 3 also prepares the inputs that Phase 4a will need
+for systematic evaluation: the nominal response matrix, the selection
+machinery that can be re-run with varied cuts, and any reweighted MC
+samples. The systematic *plan* comes from Phase 1 (and conventions); Phase 3
+builds the *infrastructure*; Phase 4a evaluates the *impact*.
 
 **Output artifact:** `SELECTION.md` — selection definition, cutflow, MVA
 details if applicable, region definitions with purity, background estimates with
@@ -172,7 +202,8 @@ not just parameter tuning within one approach:
 The agent should stop optimizing when:
 - The sensitivity meets the physics goal, **or**
 - At least 3 materially different approaches have been tried, **and**
-- The most recent improvement was marginal (<10% relative), **and**
+- The most recent improvement was marginal (<10% relative to the best
+  achieved so far), **and**
 - The remaining ideas are increasingly speculative
 
 The sensitivity log is included in the artifact and provides evidence to

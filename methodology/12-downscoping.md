@@ -1,10 +1,9 @@
 ## 12. Scope Management and Downscoping
 
-**A finished analysis with a simpler method is always better than an
-unfinished analysis waiting for the ideal method.** When a resource is
-unavailable, the agent downscopes to what is achievable and documents the
-limitation — in the experiment log during execution, and in the final
-analysis note for the record.
+This section details the "downscope, don't block" principle from Section 1.
+When a resource is unavailable, the agent downscopes to what is achievable
+and documents the limitation — in the experiment log during execution, and
+in the final analysis note for the record.
 
 ### 12.1 When to Downscope
 

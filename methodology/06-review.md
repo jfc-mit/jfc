@@ -128,7 +128,8 @@ external completeness (are we evaluating what the field considers standard?).
 #### 6.4.2 Figure and Label Review (all phases producing figures)
 
 Every review that evaluates figures — whether self-review, 1-bot, or 3-bot —
-must include a mechanical pass over all figures checking the following. These
+must include a mechanical pass over all figures checking the following (see
+Appendix D for the plotting template that prevents most of these). These
 are Category A if wrong:
 
 - [ ] **√s and energy labels** match the actual dataset (not copied from a
@@ -233,29 +234,18 @@ work-in-progress.
 ### 6.7 Model Tiering
 
 Not every agent session requires the most capable (and expensive) model.
-The orchestrator assigns model tiers based on task type:
+The principle: use the highest tier for physics reasoning and adversarial
+review, mid tier for code-heavy execution, lowest tier for mechanical tasks.
 
-| Task | Model tier | Rationale |
-|------|-----------|-----------|
-| Strategy execution (Phase 1) | Highest (e.g., Opus) | Physics reasoning, literature synthesis |
-| 3-bot reviewers + arbiter | Highest | Adversarial critique, catching subtle errors |
-| Phase 3 executor (selection iteration) | Mid (e.g., Sonnet) | Code writing, debugging, iterating fast |
-| Phase 2 executor (data exploration) | Mid | I/O plumbing, plotting, mechanical inventory |
-| Phase 4 executor (fits, systematics) | Mid | Statistical modeling is well-scoped; mid tier iterates faster |
-| 1-bot reviewer | Mid | Single-reviewer phases; physics context carried by the artifact |
-| Plot regeneration, reformatting | Lowest (e.g., Haiku) | Mechanical tasks with clear specifications |
-| Smoke tests, linting | Lowest | Boilerplate with clear pass/fail |
+| Task | Model tier |
+|------|-----------|
+| Strategy execution (Phase 1), 3-bot reviewers, arbiter, investigator | Highest (Opus) |
+| Phase 2–4 executors, 1-bot reviewer, calibrations | Mid (Sonnet) |
+| Plot generation, smoke tests, linting | Lowest (Haiku) |
 
-A **top-level configuration switch** controls whether tiering is active:
-- `model_tier: uniform_high` — all sessions use the highest model (for
-  benchmarking or when cost is not a constraint)
-- `model_tier: auto` — use the tiering above (default, cost-efficient):
-  Opus for strategy + reviewers + arbiter, Sonnet for executors + 1-bot
-  review, Haiku for plots/tests
-- `model_tier: uniform_mid` — all sessions use mid tier (budget mode)
-
-This switch exists at the orchestration level, not in the methodology spec,
-so the same spec can be used for cost comparisons across configurations.
+A top-level switch (`model_tier: auto | uniform_high | uniform_mid`)
+controls whether tiering is active. See `orchestration/reviews.md` for the
+operational configuration and YAML schema.
 
 ### 6.8 Cost Controls
 

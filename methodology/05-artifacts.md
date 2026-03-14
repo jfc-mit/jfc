@@ -72,7 +72,12 @@ results are.
    uncertainties
 4. **Validation** — Checks performed and their quantitative outcomes
 5. **Open issues** — What subsequent phases should be aware of
-6. **Code reference** — Where scripts live and how to re-execute
+6. **Code reference** — Where scripts live and how to re-execute. Every
+   result must be traceable to a `pixi run` command. List the exact task
+   names (e.g., `pixi run unfold`, `pixi run systematics`) that produced
+   the results, in execution order. A human or agent debugging the analysis
+   should be able to trace: result → artifact → `pixi run <task>` → script
+   → inputs.
 
 ### Presentation requirements:
 
