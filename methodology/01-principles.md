@@ -24,10 +24,16 @@ writes code, and makes physics judgments within the constraints described here.
   techniques, multiple signal regions, or data-driven background estimates. The
   agent evaluates what is appropriate and documents its reasoning. Omitting an
   unnecessary step is correct; performing it without justification is not.
-- **No encoded physics.** This specification describes methodology, not physics.
-  The agent derives its physics approach from the literature (via retrieval from
-  the experiment's publication corpus) and first principles, not from templates
-  or recipes. HEP is an evolving field; hardcoded physics guidance goes stale.
+- **No encoded physics — but accumulated conventions.** This specification
+  describes methodology, not physics. The agent derives its physics approach
+  from the literature (via retrieval from the experiment's publication corpus)
+  and first principles. However, operational knowledge about specific analysis
+  techniques (e.g., standard systematic sources for unfolded measurements,
+  required validation checks for template fits) is maintained in the
+  `conventions/` directory. These are living documents updated after each
+  analysis — empirically grounded, not speculative. The agent consults
+  applicable conventions during strategy (Phase 1) and systematics (Phase 4a),
+  and updates them with new knowledge gained during the analysis.
 - **Cost-aware execution.** Not every task requires the most capable model.
   The orchestrator assigns model tiers based on task complexity (see Section
   6.6). This is configurable — a top-level switch controls whether to use

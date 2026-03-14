@@ -141,7 +141,65 @@ expensive to debug later.
 is the product, not the code. The physics validation (closure tests, signal
 injection, post-fit diagnostics) IS the test suite for correctness.
 
-### 11.4 Code Reuse Across Analyses
+### 11.4 Reproducibility via Task Graph
+
+The analysis must be reproducible by a human who has never seen the code.
+The standard is: clone the repo, `cd` into the analysis directory,
+`pixi install`, `pixi run all` — and the full analysis executes from raw
+data to final results.
+
+**Every script gets a pixi task.** When you write a script, register it as a
+named task in the analysis's `pixi.toml`. When one script depends on the
+output of another, express that with `depends-on`. The task graph *is* the
+analysis workflow.
+
+```toml
+[tasks]
+py = "python"
+# Each task is independently runnable
+select = "python phase3_selection/scripts/apply_selection.py"
+response = "python phase4_inference/scripts/build_response.py"
+unfold = "python phase4_inference/scripts/unfold.py"
+systematics = "python phase4_inference/scripts/run_systematics.py"
+summary = "python phase4_inference/scripts/build_summary.py"
+plots = "python phase5_documentation/scripts/make_plots.py"
+# Full chain — the reproducibility contract
+all = "python phase3_selection/scripts/apply_selection.py && python phase4_inference/scripts/build_response.py && python phase4_inference/scripts/unfold.py && python phase4_inference/scripts/run_systematics.py && python phase4_inference/scripts/build_summary.py && python phase5_documentation/scripts/make_plots.py"
+```
+
+**Every task runs independently.** An agent fixing the unfolding script runs
+`pixi run unfold` without triggering the full chain. The execution order is
+documented by the `all` task and by a comment block in `pixi.toml`, but
+individual tasks do not enforce upstream dependencies — they read whatever
+intermediate files are on disk.
+
+**`pixi run all` is the reproducibility contract.** It runs the full chain
+in order. The Phase 5 review checks that `pixi run all` works from a clean
+state (no pre-existing intermediate files). If it runs clean, the analysis
+reproduces.
+
+**Why this matters:**
+- A reviewer inspects the task list to understand the analysis flow without
+  reading Python.
+- The execution order is explicit — no hidden assumptions buried in a README.
+- Adding a new systematic branch means adding a task, not editing a shell
+  script.
+- Agents iterate on individual steps without paying the cost of the full
+  chain.
+
+**Rules:**
+- Update `pixi.toml` tasks whenever you add, rename, or remove a script.
+- Task names should be human-readable (`unfold`, not `step4b`).
+- Scripts should be idempotent — running them twice produces the same output.
+  Use deterministic seeds and write outputs to fixed paths.
+- Scripts read inputs from agreed paths and write outputs to agreed paths.
+  The interface between scripts is the filesystem, not function calls.
+
+This replaces the need for Makefiles, shell scripts, or workflow managers.
+pixi tasks are declared in the same file as the dependencies, so the
+environment and workflow are a single artifact.
+
+### 11.5 Code Reuse Across Analyses
 
 Analysis code written for one analysis is a valuable resource for subsequent
 analyses — not as a framework to import, but as working examples to consult.
@@ -162,7 +220,7 @@ The snippets library grows organically. After completing an analysis, useful
 patterns are extracted and added. This is YAGNI in practice — code is
 generalized only after it has proven useful in a real analysis, not before.
 
-### 11.5 Pre-commit Configuration
+### 11.6 Pre-commit Configuration
 
 A minimal `.pre-commit-config.yaml`:
 

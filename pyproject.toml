@@ -4,13 +4,9 @@ version = "0.1.0"
 description = "slopspec — LLM-driven HEP analysis orchestrator."
 requires-python = ">=3.11"
 dependencies = [
-    "claude-agent-sdk>=0.1.0",
     "pyyaml>=6.0",
     "rich>=13.0",
 ]
-
-[project.scripts]
-slopspec = "orchestrator.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -24,14 +20,15 @@ platforms = ["linux-64", "osx-arm64"]
 python = ">=3.11"
 
 [tool.pixi.pypi-dependencies]
-slopspec = { path = ".", editable = true }
+pyyaml = ">=6.0"
+rich = ">=13.0"
 
 [tool.pixi.tasks]
 build = "python build_spec.py"
-slopspec = { cmd = "slopspec", depends-on = ["build"] }
+scaffold = "python scaffold_analysis.py"
 
 [tool.ruff]
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W"]
+select = ["E", "F", "I", "W", "T201"]

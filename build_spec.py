@@ -37,6 +37,9 @@ def main():
     print("Building spec files...")
     concat_dir(HERE / "methodology", HERE / "methodology.md")
     concat_dir(HERE / "orchestration", HERE / "orchestration.md")
+    conventions_dir = HERE / "conventions"
+    if conventions_dir.is_dir() and list(conventions_dir.glob("*.md")):
+        concat_dir(conventions_dir, HERE / "conventions.md")
     print("Done.")
 
 

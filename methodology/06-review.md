@@ -39,19 +39,93 @@ Executor addresses Category A items and re-submits. No arbiter needed.
 producing the artifact. Plan review and code review happen within the session.
 No separate agent invocation.
 
-### 6.3 Review Focus by Phase
+### 6.3 Reviewer Framing
+
+The critical reviewer's job is not to check whether the artifact meets its
+own stated criteria. It is to evaluate whether the artifact would survive
+**external scrutiny** — a journal referee, a collaboration review committee,
+or a competing group doing the same measurement independently.
+
+The key question is not "does this pass its tests?" but "what would a
+knowledgeable referee ask for that isn't here?" This requires the reviewer
+to bring external standards to the evaluation:
+
+- **Conventions:** What does the applicable `conventions/` document require
+  for this analysis technique? Is anything missing?
+- **Reference analyses:** What did published measurements of the same or
+  similar observables do? Is anything they did missing here?
+- **Literature:** Would a query to the RAG corpus surface a standard
+  practice that this analysis omits?
+
+A reviewer that only checks internal consistency will miss the most
+dangerous class of errors: things that are absent. Closure tests passing,
+fits converging, and chi2 values below threshold are necessary but not
+sufficient. The reviewer must also check that the *right things* are being
+tested.
+
+**Concrete operating principle:** Before concluding the review, the reviewer
+must answer: "If a competing group published a measurement of the same
+quantity next month, what would they have that we don't?" If the answer is
+non-empty and unjustified, those are Category A findings.
+
+### 6.4 Review Focus by Phase
 
 | Phase | Review focus |
 |-------|-------------|
-| Strategy | Are backgrounds complete? Is the approach motivated by the literature? |
+| Strategy | Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? Are 2-3 reference analyses identified with their systematic programs tabulated? |
 | Exploration | (Self-review) Are samples complete? Any data quality issues? Do distributions look physical? |
-| Selection & Modeling | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? |
-| 4a: Expected | Is the fit healthy? Are systematics complete? Do signal injection tests pass? |
+| Selection & Modeling | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Are particle-level inputs to the observable validated with data/MC comparisons per object category? |
+| 4a: Expected | Is the fit healthy? Are systematics complete — both internally consistent AND complete relative to conventions and reference analyses? Do signal injection tests pass? |
 | 4b: Partial unblinding | Is the draft note publication-quality? Are 10% results consistent with expectations? Are diagnostics clean? |
 | 4c: Full unblinding | Are post-fit diagnostics healthy? Are anomalies properly characterized? |
-| Documentation | Is the note self-contained, correct, and publication-ready? Figures pass cosmetic review (see 6.3.1)? |
+| Documentation | See 6.4.3 below. |
 
-#### 6.3.1 Figure and Label Review (all phases producing figures)
+#### 6.4.1 Completeness Review (Phases 1 and 4a)
+
+Reviews at Phase 1 (Strategy) and Phase 4a (Expected Results) must include an
+explicit **completeness check** in addition to the standard correctness review.
+The completeness check asks what is *missing*, not just whether what is
+*present* is correct.
+
+**At Phase 1:**
+- Consult the applicable `conventions/` document for the analysis technique
+  (e.g., `conventions/unfolding.md` for an unfolded measurement). Verify that
+  the planned systematic program covers the standard sources listed there.
+  Flag any omission as Category A unless the strategy explicitly justifies
+  the omission.
+- Verify that the strategy identifies 2-3 published reference analyses and
+  tabulates their systematic programs. If this table is missing, flag as
+  Category A.
+
+**At Phase 4a:**
+- Re-check the conventions document against the *implemented* systematic
+  program, not just the planned one. Sources that were planned but dropped
+  during execution must be justified.
+- Produce or verify a **systematic completeness table** comparing this
+  analysis to the reference analyses identified in Phase 1:
+
+  ```
+  | Source           | This analysis | Ref 1 | Ref 2 | Status  |
+  |------------------|---------------|-------|-------|---------|
+  | Hadronization    | Pythia only   | P+H   | P+H+S | MISSING |
+  | ...              |               |       |       |         |
+  ```
+
+  Any row with status MISSING or PARTIAL is Category A unless explicitly
+  justified (e.g., resource unavailable — documented as a limitation, not
+  silently omitted).
+
+- Cross-check the conventions document's "required validation checks"
+  against the artifact. For unfolded measurements, this includes the
+  prior-sensitivity test and the particle-level validation plots.
+
+This completeness review is the primary defense against the failure mode
+where an analysis passes all *internal* consistency checks but omits a
+standard systematic source. Internal consistency (closure tests pass, fits
+converge) is necessary but not sufficient — the review must also check
+external completeness (are we evaluating what the field considers standard?).
+
+#### 6.4.2 Figure and Label Review (all phases producing figures)
 
 Every review that evaluates figures — whether self-review, 1-bot, or 3-bot —
 must include a mechanical pass over all figures checking the following. These
@@ -75,7 +149,63 @@ mechanical pass before or during review. Metadata errors in figures destroy
 reviewer trust disproportionate to their severity, because they signal that
 the author did not look at their own plots.
 
-### 6.4 Iteration and Escalation
+**Known limitation: LLM visual inspection is unreliable.** Current models
+are poor at catching text overlaps, alignment issues, clipped labels, and
+figure sizing problems. To mitigate this:
+
+- **Programmatic checks in plotting scripts.** Where possible, plotting code
+  should validate properties that are hard to see: `assert not ax.get_title()`
+  (no titles), check that axis labels are set, verify figure dimensions match
+  a standard template. These run as part of the plot task and catch issues
+  before review.
+- **Standardized figure function.** Analyses should define a common plotting
+  setup function (figure size, font sizes, axis formatting) used by all
+  scripts, rather than configuring each plot independently. This prevents
+  inconsistency by construction rather than by review.
+- **Human spot-check.** Visual quality (overlaps, readability, aesthetics)
+  should be verified by a human at Phase 5 review rather than relying on
+  LLM visual inspection. The human gate at Phase 4b is a natural checkpoint
+  for this.
+
+#### 6.4.3 Documentation Review (Phase 5)
+
+The Phase 5 review is the last line of defense. It operates on the analysis
+note as a **standalone document** — the reviewer should evaluate it as a
+journal referee would, not as someone who has followed the analysis from
+Phase 1.
+
+**Framing:** The reviewer reads only the analysis note (not experiment logs,
+not phase artifacts, not code). The question is: "Based solely on what is
+written here, am I convinced that this result is correct and complete?"
+
+**What this catches that earlier reviews may not:**
+- A systematic source that was planned in Phase 1 but quietly dropped and
+  never made it into the note
+- Validation evidence that exists in phase artifacts but was not included
+  in the note (e.g., particle-level data/MC plots were made but not shown)
+- Logical gaps: a claim is made (e.g., "the MC accurately models the
+  detector response") without the evidence to support it in the document
+- Quantitative results that don't add up (e.g., efficiencies or event
+  counts that are inconsistent between tables)
+
+**Required checks:**
+- For every systematic source in the uncertainty table: is the method
+  described, is the magnitude reported, and is validation evidence shown?
+- For every comparison to a reference (published data, MC prediction):
+  is a quantitative compatibility metric given, and is the level of
+  agreement or tension interpreted?
+- Does the note contain enough information that an independent analyst
+  could reproduce the measurement? (Selection criteria, binning, unfolding
+  parameters, MC samples, correction procedures.)
+- Consult the applicable `conventions/` document one final time. Is
+  anything required there that is absent from the note?
+- Figures pass the cosmetic checklist (6.4.2).
+
+The cost of this review is additional iteration loops if it finds gaps that
+should have been caught earlier. That cost is acceptable — it is better to
+iterate at Phase 5 than to publish an incomplete result.
+
+### 6.5 Iteration and Escalation
 
 For **3-bot reviews:** the cycle repeats until the arbiter issues PASS. There
 is no hard iteration cap — correctness is the termination condition. In
@@ -89,7 +219,7 @@ Up to 2 iterations before escalation.
 For **self-review:** no formal iteration — the agent corrects issues as it
 finds them during execution.
 
-### 6.5 The Human Gate
+### 6.6 The Human Gate
 
 After Phase 4b's 3-bot review passes, the draft analysis note (including 10%
 observed results, post-fit diagnostics, and goodness-of-fit) is presented to a
@@ -100,7 +230,7 @@ This is equivalent to a collaboration internal review before unblinding. The
 human should receive a professional, publication-quality document — not a
 work-in-progress.
 
-### 6.6 Model Tiering
+### 6.7 Model Tiering
 
 Not every agent session requires the most capable (and expensive) model.
 The orchestrator assigns model tiers based on task type:
@@ -127,7 +257,7 @@ A **top-level configuration switch** controls whether tiering is active:
 This switch exists at the orchestration level, not in the methodology spec,
 so the same spec can be used for cost comparisons across configurations.
 
-### 6.7 Cost Controls
+### 6.8 Cost Controls
 
 To prevent runaway costs from pathological iteration:
 
@@ -154,7 +284,7 @@ human review of cost vs. progress.
 These controls are configurable — aggressive budgets for exploratory runs,
 relaxed budgets for production analyses.
 
-### 6.8 Phase Regression
+### 6.9 Phase Regression
 
 The pipeline is normally forward-only, but a reviewer or executor may discover
 that a fundamental assumption from an earlier phase is wrong — a major

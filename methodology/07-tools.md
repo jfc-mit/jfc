@@ -127,7 +127,161 @@ events (summed over all processes) to avoid fit instabilities. Variable binning
 is fine when physically motivated (e.g., finer bins near a mass peak, coarser
 in tails).
 
-### 7.3 Retrieval
+### 7.3 Scale-Out
+
+Before running any processing script at full scale, the agent must estimate
+the resource requirements and choose the appropriate execution mode. Do not
+default to single-core local execution — estimate first, then decide.
+
+#### Estimation step
+
+Before running a script on the full dataset, check:
+1. **Input size:** `ls -lh` the input files, sum total bytes.
+2. **Per-event cost:** Time the script on a 1000-event slice. Extrapolate to
+   full dataset: `(total_events / 1000) * slice_time`.
+3. **Memory:** Check peak memory on the slice (e.g., `/usr/bin/time -v` or
+   `resource.getrusage`). Multiply by the chunk factor if loading in chunks,
+   or by the full dataset factor if loading all at once.
+
+This takes seconds and prevents the agent from sitting on a login node for
+an hour processing what could have been a 2-minute SLURM job.
+
+#### Decision thresholds
+
+| Estimated wall time | Input size | Execution mode |
+|---------------------|-----------|----------------|
+| < 2 minutes | < 1 GB | **Single-core local.** Just run it. |
+| 2–15 minutes | 1–10 GB | **Multicore local.** `ProcessPoolExecutor` or equivalent. |
+| > 15 minutes | > 10 GB | **SLURM.** `sbatch --wait` or array jobs. |
+
+These are guidelines, not hard rules. If the cluster is idle, SLURM may be
+faster even for small tasks. If the task is embarrassingly parallel across
+files, prefer SLURM array jobs over multicore local.
+
+#### Pattern 1: Multicore local
+
+For tasks that fit on a single node but benefit from parallelism:
+
+```python
+from concurrent.futures import ProcessPoolExecutor
+
+def process_file(path):
+    """Process one ROOT file. Returns a dict of histograms/results."""
+    import uproot, numpy as np
+    with uproot.open(path) as f:
+        # ... processing logic ...
+        return result
+
+files = ["file1.root", "file2.root", "file3.root"]
+with ProcessPoolExecutor(max_workers=4) as pool:
+    results = list(pool.map(process_file, files))
+# Merge results
+```
+
+This works for any processing — uproot, awkward, coffea, plain numpy. No
+framework dependency. Use `os.cpu_count()` or SLURM's `$SLURM_CPUS_PER_TASK`
+to set `max_workers`.
+
+#### Pattern 2: SLURM single job
+
+For a single script that needs more resources than the login node allows.
+The `--wait` flag makes `sbatch` block until done, so the agent treats it
+like a local command:
+
+```bash
+#!/bin/bash
+#SBATCH -p shared          # or serial_requeue for fast scheduling
+#SBATCH -t 01:00:00
+#SBATCH -c 4
+#SBATCH --mem=8G
+#SBATCH -A <account>
+#SBATCH --requeue          # allows preemption for faster scheduling
+#SBATCH -o .slurm_%j.out
+
+cd /path/to/analysis
+pixi run py my_script.py
+```
+
+Submit and wait: `sbatch --wait job.sh`
+
+On clusters with requeue partitions, short jobs typically schedule within
+seconds. This makes SLURM nearly as fast as local execution for anything
+under ~1 hour.
+
+#### Pattern 3: SLURM array jobs
+
+For processing multiple files in parallel — each file gets its own job:
+
+```bash
+#!/bin/bash
+#SBATCH -p shared
+#SBATCH -t 00:30:00
+#SBATCH -c 1
+#SBATCH --mem=4G
+#SBATCH -A <account>
+#SBATCH --array=0-5        # one task per file
+#SBATCH --requeue
+#SBATCH -o .slurm_%A_%a.out
+
+cd /path/to/analysis
+pixi run py process_one_file.py --file-index $SLURM_ARRAY_TASK_ID
+```
+
+The script reads `$SLURM_ARRAY_TASK_ID` to pick its input file from a list.
+All tasks run in parallel on different nodes. Submit and wait for all:
+`sbatch --wait array_job.sh`
+
+This is the preferred pattern for file-parallel processing (e.g., processing
+6 years of data files independently). It scales to hundreds of files with
+no code changes — just adjust `--array=0-N`.
+
+#### Pattern 4: coffea + dask (for event-level processing)
+
+When processing needs to be parallelized *within* files (chunked event
+processing), coffea with dask provides built-in scale-out:
+
+```python
+from coffea import processor
+from coffea.processor import Runner
+
+# Local development
+runner = Runner(executor=processor.FuturesExecutor(workers=4))
+
+# SLURM production
+from dask_jobqueue import SLURMCluster
+cluster = SLURMCluster(
+    cores=4, memory="8GB", walltime="01:00:00",
+    job_extra_directives=["--requeue"],
+)
+cluster.scale(jobs=10)
+from coffea.processor import DaskExecutor
+runner = Runner(executor=DaskExecutor(client=cluster.get_client()))
+```
+
+The processing logic stays the same — only the executor changes. This is the
+right choice when the bottleneck is event-level computation (complex
+selections, jet clustering, MVA inference), not file I/O.
+
+**When to use coffea vs. plain multiprocessing:** If your script loads full
+files with uproot and processes them as arrays, `ProcessPoolExecutor` or
+SLURM arrays are simpler and sufficient. coffea adds value when you need
+chunked processing within large files, histogramming accumulation, or
+systematic variation orchestration.
+
+#### Rules
+
+- **Always estimate before running.** The estimation step is not optional.
+  Log the estimate: `log.info("Estimated wall time: %.0f min for %.1f GB",
+  est_minutes, total_gb)`.
+- **Never wait > 15 minutes on a login node** when SLURM is available. If
+  the estimate exceeds this, submit a batch job.
+- **Prefer the simplest pattern that works.** Single-core < multicore <
+  SLURM single < SLURM array < coffea+dask. Don't use coffea when
+  `ProcessPoolExecutor` suffices. Don't use dask when array jobs suffice.
+- **Log the execution mode.** When a script runs, log whether it used
+  single-core, multicore, or SLURM, and how long it took.
+
+### 7.4 Retrieval
 
 The agent has access to a SciTreeRAG system over the experiment's publication
 corpus (~2,400 ALEPH and DELPHI papers) via MCP tools. The primary tool is
