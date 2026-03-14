@@ -21,8 +21,11 @@ library but for tool-level idioms and gotchas.
 - The agent **must** check this appendix before querying external docs for any
   tool listed in Section 7.1.
 - If an entry exists and is sufficient, use it — do not re-query.
-- If an entry is missing, incomplete, or the tool version has changed, query
-  the current docs, update the entry, and commit the change.
+- If an entry is missing or incomplete, query the current docs and use the
+  result. **Do not modify this file during analysis execution** — it lives
+  in the spec directory. Instead, note the missing/outdated entry in the
+  experiment log. Updates to this appendix happen after the analysis completes,
+  following the same process as `conventions/` updates.
 - Keep entries concise — heuristics and gotchas, not full API references.
 
 <!-- Agent: populate entries below as you encounter each tool. -->

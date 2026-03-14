@@ -82,6 +82,8 @@ include source paper ID and similarity score — cite these in artifacts.
 
 ### Cost Estimates (with tiering)
 
+**Search flow** (full blinding protocol):
+
 | Phase | Sessions (no iteration) | Model mix (auto mode) | Relative cost |
 |-------|------------------------|-----------------------|---------------|
 | Phase 1 | 4 (exec + 3-bot) | 1 opus exec + 3 opus review | ████████ |
@@ -94,11 +96,18 @@ include source paper ID and similarity score — cite these in artifacts.
 | Phase 5 | 4 | 1 sonnet exec + 3 opus review | ███████ |
 | **Total** | **~26-30** | | |
 
+**Measurement flow** (no blinding — skip 4b/4c):
+
+| Phase | Sessions (no iteration) | Model mix (auto mode) | Relative cost |
+|-------|------------------------|-----------------------|---------------|
+| Phases 1-3, calibrations | same as above | | |
+| Phase 4a | 4 | 1 sonnet exec + 3 opus review | ███████ |
+| Phase 5 | 4 | 1 sonnet exec + 3 opus review | ███████ |
+| **Total** | **~20-24** | | |
+
 With `auto` tiering, opus is used for strategy execution (Phase 1) and all
 3-bot review sessions (critical, constructive, arbiter). Sonnet handles all
-other execution and 1-bot reviews. The `uniform_high` switch runs everything
-on opus for benchmarking quality differences. The `uniform_mid` switch runs
-everything on sonnet for budget-constrained analyses.
+other execution and 1-bot reviews.
 
 ## Adapting to Other Agent Systems
 

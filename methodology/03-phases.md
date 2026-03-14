@@ -190,6 +190,24 @@ fidelity. Closure test failures are always Category A.
 This is the longest phase, with three distinct sub-phases separated by
 gates. Each sub-phase produces its own artifact.
 
+**Measurement vs. search flow.** The sub-phase structure below is designed
+for searches with blinding. For **measurements** (corrected spectra, event
+shapes, extracted parameters) where the observable is the result and there
+is nothing to blind:
+
+- **Phase 4a (Expected Results)** is the primary inference phase. It includes
+  systematic evaluation, correction/unfolding, covariance construction, and
+  comparison to references. This is where the measurement is made.
+- **Phase 4b and 4c are skipped** unless the measurement involves a quantity
+  that could bias the analyst (e.g., an anomalous coupling fit where the
+  analyst might tune to a preferred value). For standard corrected spectra,
+  the result is visible throughout — there is nothing to unblind.
+- The **3-bot review gate** still applies at Phase 4a for measurements. The
+  review evaluates systematic completeness, correction validation, and
+  result quality — the same scrutiny, just without the blinding ceremony.
+- The **human gate** applies after Phase 4a review passes: the human sees
+  the measurement result and draft note before proceeding to Phase 5.
+
 #### Phase 4a: Expected Results
 
 **Goal:** Evaluate systematic uncertainties, construct the statistical model,

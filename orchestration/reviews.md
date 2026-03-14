@@ -34,17 +34,11 @@ Phase 5:  Executor → [Critical + Constructive] → Arbiter  (3-bot)
 
 ## Model Tiering
 
-The orchestrator assigns model tiers based on task type. Controlled by a
-top-level switch with two effective tiers — opus (high reasoning) and
-sonnet (fast execution):
+See methodology §6.7 for the policy rationale. The operational config:
 
 ```yaml
 # analysis_config.yaml (or equivalent)
 model_tier: auto  # auto | uniform_high | uniform_mid
-
-# uniform_high: everything opus (max effort, for benchmarking)
-# uniform_mid:  everything sonnet (budget mode)
-# auto:         opus for strategy/reviewers/arbiter, sonnet for execution/1-bot-review
 
 # When model_tier: auto, the orchestrator uses:
 tiers:

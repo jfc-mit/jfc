@@ -106,11 +106,26 @@ Use these — not alternatives. Non-negotiable.
 ## Conventions
 
 Before starting work on a technique (unfolding, template fits, etc.), read
-the applicable file in `conventions/`. Consult at strategy time and at
-systematics time.
+the applicable file in `conventions/`. This is mandatory at two checkpoints:
+
+1. **Phase 1 (Strategy):** Read conventions before writing the systematic
+   plan. Verify your plan covers the standard sources listed there.
+2. **Phase 4a (Inference):** Re-read conventions before finalizing
+   systematics. Check that every required source is implemented, not just
+   planned. Produce a completeness table comparing your sources against
+   conventions AND reference analyses from Phase 1.
+
+If a convention requires something you plan to omit, justify the omission
+explicitly — do not silently skip it.
 
 ## Review expectations
 
 Check both **correctness** (is what's here right?) and **completeness**
 (is anything missing?). The question is not "does this pass its own tests"
 but "would a journal referee accept this."
+
+The end goal of every analysis is a publication-quality analysis note that
+could be submitted to a journal. Every phase contributes to that goal.
+Reviewers should evaluate work against the standard of external scrutiny:
+"If a competing group published a measurement of the same quantity, what
+would they have that we don't?"

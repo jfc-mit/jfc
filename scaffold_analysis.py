@@ -73,11 +73,20 @@ See the project-root CLAUDE.md for tool requirements and coding rules.
 See `conventions/` for technique-specific guidance.
 """
 
+# Common preamble prepended to every phase CLAUDE.md
+PHASE_PREAMBLE = """\
+> **End goal.** This analysis produces a publication-quality analysis note
+> for journal submission. Every phase contributes to that goal. Work should
+> meet the standard of external scrutiny — a journal referee, a collaboration
+> review committee, or a competing group doing the same measurement.
+"""
+
 # Per-phase CLAUDE.md templates
 PHASE_TEMPLATES = {
     "phase1_strategy": """\
 # Phase 1: Strategy
 
+{preamble}
 You are developing the analysis strategy for a **{analysis_type}** analysis.
 
 ## Required deliverables
@@ -109,6 +118,7 @@ This phase gets 3-bot review. The reviewer will check:
     "phase2_exploration": """\
 # Phase 2: Exploration
 
+{preamble}
 You are exploring the data and MC samples.
 
 ## Required deliverables
@@ -129,6 +139,7 @@ You are exploring the data and MC samples.
     "phase3_selection": """\
 # Phase 3: Selection and Modeling
 
+{preamble}
 You are developing the event selection and correction model.
 
 ## Required deliverables
@@ -149,6 +160,7 @@ This phase gets 1-bot review. The reviewer will check:
     "phase4_inference": """\
 # Phase 4: Inference
 
+{preamble}
 You are building the statistical model and computing results.
 
 ## Required deliverables
@@ -180,6 +192,7 @@ This phase gets 3-bot review. Reviewers will check:
     "phase5_documentation": """\
 # Phase 5: Documentation
 
+{preamble}
 You are producing the final analysis note.
 
 ## Reviewer framing
@@ -280,6 +293,7 @@ def scaffold(analysis_dir: Path, analysis_type: str, technique: str | None):
         "name": analysis_dir.name,
         "analysis_type": analysis_type,
         "technique_line": f"Technique: {technique}" if technique else "",
+        "preamble": PHASE_PREAMBLE,
         **technique_blocks,
     }
 

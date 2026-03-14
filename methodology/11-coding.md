@@ -50,7 +50,7 @@ variables, unused imports, shadowed names). This is cheap and catches real bugs.
 
 **Logging, not printing.** All analysis scripts must use Python's `logging`
 module with `rich.logging.RichHandler` — never bare `print()` statements.
-This is not optional.
+Standard setup:
 
 ```python
 import logging
@@ -64,38 +64,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 ```
 
-Why this matters:
-- `print()` has no severity levels, no filtering, and no structured output.
-  When an analysis runs for hours, distinguishing warnings from info from
-  debug output is essential.
-- `rich` provides colored, readable console output with automatic tracebacks
-  that are far easier to diagnose than raw stack traces.
-- `logging` integrates with libraries (pyhf, coffea, etc.) — you can suppress
-  noisy library output with `logging.getLogger("pyhf").setLevel(logging.WARNING)`
-  instead of losing it entirely or drowning in it.
-
-Use the standard levels consistently:
-- `log.debug()` — Verbose diagnostic output (loop progress, intermediate
-  values). Off by default.
-- `log.info()` — Meaningful progress milestones: "Loaded 2.89M events",
-  "Selection efficiency: 94.7%", "Fit converged in 12 iterations".
-- `log.warning()` — Something unexpected that doesn't stop execution: empty
-  bins, large correction factors, failed convergence on first attempt.
-- `log.error()` — Something that will affect the result or requires attention.
-
-For long-running processing (event loops, fits), use `rich.progress` bars
-or `rich.console.status` spinners instead of printing dots or percentages.
-
-**Ruff enforcement:** Add `T201` (print-function detection) to the ruff rules
-so that `print()` calls are flagged as lint errors:
-
-```toml
-# in pyproject.toml or ruff.toml
-[tool.ruff.lint]
-extend-select = ["T201"]
-```
-
-This catches stray `print()` at commit time via the pre-commit hook.
+Ruff's `T201` rule (enabled in `pyproject.toml`) flags `print()` calls as
+lint errors. This is enforced at commit time via the pre-commit hook.
 
 **What NOT to do:**
 - Do not write unit tests for every function

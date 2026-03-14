@@ -177,6 +177,9 @@ run_1bot_review() {
 }
 
 # --- Main pipeline ---
+# Supports two flows:
+#   analysis_type=search:      full blinding protocol (4a → 4b → human → 4c → 5)
+#   analysis_type=measurement: no blinding (4a → human → 5)
 
 run_agent --name "$(pick_session_name)" --model opus \
   --output "phase1_strategy/exec" "execute phase 1"
@@ -215,24 +218,30 @@ wait
 run_agent --name "$(pick_session_name)" --model sonnet \
   --output "phase4_inference/4a_expected/exec" "execute phase 4a"
 run_3bot_review "phase4_inference/4a_expected" || {
-  echo "Phase 4a review did not pass. Cannot proceed to partial unblinding."
+  echo "Phase 4a review did not pass."
   exit 1
 }
 git merge phase4a_expected
 
-# Phase 4b — 3-bot review then human gate
-run_agent --name "$(pick_session_name)" --model sonnet \
-  --output "phase4_inference/4b_partial/exec" "partial unblinding"
-run_3bot_review "phase4_inference/4b_partial" || exit 1
-present_for_human_review "phase4_inference/4b_partial"
-wait_for_human_decision  # APPROVE / REQUEST CHANGES / HALT
-git merge phase4b_partial
+if [ "$analysis_type" = "search" ]; then
+  # Search flow: partial unblinding → human gate → full unblinding
+  run_agent --name "$(pick_session_name)" --model sonnet \
+    --output "phase4_inference/4b_partial/exec" "partial unblinding"
+  run_3bot_review "phase4_inference/4b_partial" || exit 1
+  present_for_human_review "phase4_inference/4b_partial"
+  wait_for_human_decision  # APPROVE / REQUEST CHANGES / HALT
+  git merge phase4b_partial
 
-# Phase 4c + 5 after human approval
-run_agent --name "$(pick_session_name)" --model sonnet \
-  --output "phase4_inference/4c_observed/exec" "full unblinding"
-run_1bot_review "phase4_inference/4c_observed" || exit 1
-git merge phase4c_observed
+  run_agent --name "$(pick_session_name)" --model sonnet \
+    --output "phase4_inference/4c_observed/exec" "full unblinding"
+  run_1bot_review "phase4_inference/4c_observed" || exit 1
+  git merge phase4c_observed
+else
+  # Measurement flow: result is already visible — skip 4b/4c
+  # Human gate still applies after 4a review passes
+  present_for_human_review "phase4_inference/4a_expected"
+  wait_for_human_decision  # APPROVE / REQUEST CHANGES / HALT
+fi
 
 run_agent --name "$(pick_session_name)" --model sonnet \
   --output "phase5_documentation/exec" "execute phase 5"
