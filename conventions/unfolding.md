@@ -196,7 +196,7 @@ quantity:
   matrix by the reco-level data/MC ratio probes shape mismodeling but does
   not replace a genuine alternative-generator comparison. It's a useful
   cross-check, not a substitute.
-- **Covariance condition number.** A very large condition number (>10^8)
+- **Covariance condition number.** A very large condition number (>10^10)
   means the inverse is numerically unstable. Consider regularizing the
   covariance or restricting the chi2 calculation to a well-conditioned
   sub-matrix.

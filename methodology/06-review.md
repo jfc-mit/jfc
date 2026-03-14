@@ -22,15 +22,19 @@ All reviews — regardless of intensity — use the same classification:
 |-------|------------|-----------|
 | Phase 1: Strategy | **3-bot** (critical + constructive + arbiter) | Sets direction for everything. Physics errors propagate. Cheap phase, so review cost is well spent. |
 | Phase 2: Exploration | **Self-review** | Mostly mechanical (sample inventory, distributions). High execution iteration as the agent discovers data formats. Errors caught downstream in Phase 3. |
-| Phase 3: Selection & Modeling | **1-bot** (single critical reviewer) | Physics mistakes become quantitative here. One external eye on closure tests and background modeling. High execution iteration — don't bottleneck it. |
-| Phase 4a: Expected results | **3-bot** | Gates partial unblinding. The fit model, systematics, and expected results must be bulletproof. Full tribunal. |
+| Phase 3: Selection & Modeling | **1-bot** (single critical reviewer) | Physics mistakes become quantitative here. One external eye on closure tests and background/correction modeling. High execution iteration — don't bottleneck it. |
+| Phase 4a: Expected results | **3-bot** | Gates the human review. The fit model, systematics, and expected results must be bulletproof. Full tribunal. |
 | Phase 4b: Partial unblinding | **3-bot** | The draft analysis note and 10% results must be polished before presenting to a human. The human should see a professional product, not a rough draft. |
 | Phase 4c: Full unblinding | **1-bot** | Sanity check on post-fit diagnostics. Methodology already human-approved. |
 | Phase 5: Documentation | **3-bot** | The final product submitted for collaboration review. Worth the full treatment. |
 
 **3-bot review** = critical reviewer ("bad cop") + constructive reviewer
-("good cop") + arbiter, as described in Section 4.2. Reviewers run in
-parallel; arbiter reads both and issues PASS / ITERATE / ESCALATE.
+("good cop") + arbiter. The critical reviewer's goal is to find flaws —
+both in what is present and in what is absent. The constructive reviewer's
+goal is to strengthen the analysis — clarity, additional validation, improved
+presentation. Reviewers run in parallel (they cannot see each other's work);
+the arbiter reads both reviews and the original artifact, adjudicates
+disagreements, and issues PASS / ITERATE / ESCALATE.
 
 **1-bot review** = single critical reviewer. Issues classified A/B/C.
 Executor addresses Category A items and re-submits. No arbiter needed.
@@ -76,6 +80,19 @@ must explicitly answer these questions:
 If any answer is "no" or "non-empty" without justification, those are
 Category A findings. The arbiter must not issue PASS until all three are
 resolved.
+
+**Structural limitation of LLM-only review.** Bot reviewers share training
+distributions and, consequently, blind spots. They catch structural errors
+effectively — missing sections, incomplete systematic tables, inconsistencies
+between the artifact and conventions. They are weaker on domain-specific
+physics that falls outside their training or that requires genuine novel
+reasoning (e.g., a subtle interaction between ISR treatment and the
+particle-level definition that no indexed paper discusses). Conventions and
+reference analyses partially mitigate this by providing external anchors the
+reviewer can check against mechanically, but the mitigation is bounded by
+the completeness of those documents. The human gate is the irreducible
+quality floor — it exists precisely to catch what the bot review cannot,
+and must not be treated as a formality.
 
 ### 6.4 Review Focus by Phase
 
@@ -227,26 +244,37 @@ iterate at Phase 5 than to publish an incomplete result.
 
 ### 6.5 Iteration and Escalation
 
-For **3-bot reviews:** the cycle repeats until the arbiter issues PASS. There
-is no hard iteration cap — correctness is the termination condition. In
-practice, the orchestrator emits warnings after 3 iterations as a signal that
-the issues may require human input. The arbiter should ESCALATE rather than
-continue indefinitely.
+For **3-bot reviews:** the cycle repeats until the arbiter issues PASS.
+Correctness is the termination condition. The orchestrator emits warnings
+after 3 iterations and a strong warning after 5 as signals that the issues
+may require human input. A configurable hard cap (default 10) forces
+escalation if reached — this is a safety net, not the intended termination
+condition. The arbiter should ESCALATE rather than loop indefinitely.
 
 For **1-bot reviews:** the executor addresses Category A items and re-submits.
-Up to 2 iterations before escalation.
+These typically converge in 1–2 iterations; the orchestrator warns after 2 and
+escalates to a human after 3. Issues surviving 3 rounds of single-reviewer
+feedback likely need a fundamentally different approach or human judgment, not
+another iteration of the same fix cycle.
 
 For **self-review:** no formal iteration — the agent corrects issues as it
 finds them during execution.
 
 ### 6.6 The Human Gate
 
-After Phase 4b's 3-bot review passes, the draft analysis note (including 10%
-observed results, post-fit diagnostics, and goodness-of-fit) is presented to a
-human. The human sees the complete package and either approves full unblinding,
-requests changes, or halts the analysis.
+The human gate is the point where the analysis pauses for human review. Its
+timing depends on the analysis type:
 
-This is equivalent to a collaboration internal review before unblinding. The
+- **Search flow:** After Phase 4b's 3-bot review passes, the draft analysis
+  note (including 10% observed results, post-fit diagnostics, and
+  goodness-of-fit) is presented. The human approves full unblinding, requests
+  changes, or halts the analysis.
+- **Measurement flow:** After Phase 4a's 3-bot review passes, the draft
+  analysis note (including the corrected result, systematic evaluation, and
+  reference comparisons) is presented. The human approves proceeding to
+  Phase 5 documentation, requests changes, or halts.
+
+In both cases, this is equivalent to a collaboration internal review. The
 human should receive a professional, publication-quality document — not a
 work-in-progress.
 
@@ -270,13 +298,15 @@ operational configuration and YAML schema.
 
 To prevent runaway costs from pathological iteration:
 
-**Review iteration warnings:** The orchestrator emits a warning after **3**
-review iterations and a strong warning after **5**. These are soft thresholds,
-not hard caps — correctness remains the termination condition. If the arbiter
-cannot reach PASS, it should ESCALATE rather than loop indefinitely. In
-interactive mode, the orchestrator surfaces the warning to the human for
-guidance. In batch mode, the warning is logged and the arbiter is prompted to
-consider ESCALATE.
+**Review iteration warnings:** For **3-bot reviews**, the orchestrator emits a
+warning after **3** iterations and a strong warning after **5**. For **1-bot
+reviews**, the orchestrator warns after **2** and escalates to a human after
+**3** (1-bot issues that survive 3 rounds likely need a different approach or
+human judgment). These are soft thresholds — correctness remains the
+termination condition. A configurable hard cap (`max_review_iterations`,
+default 10) forces escalation if reached. In interactive mode, the
+orchestrator surfaces warnings to the human for guidance. In batch mode,
+warnings are logged and the arbiter is prompted to consider ESCALATE.
 
 **Execution iteration budget:** Phases 2 and 3 (high iteration) should have a
 configurable execution budget (e.g., maximum N executor iterations or M tokens).
@@ -342,9 +372,10 @@ The orchestrator dispatches fixes automatically — no human gate for regression
 
 #### Timing
 
-Regression only triggers before the **human gate** — Phase 4c for searches,
-Phase 4a for measurements. Once the human approves proceeding to final
-documentation, discovered issues become Phase 5 iteration items or
+Regression only triggers before the **human gate** — through Phase 4b for
+searches (the human gate is between 4b and 4c), through Phase 4a for
+measurements (the human gate follows the 4a review). Once the human
+approves proceeding, discovered issues become Phase 5 iteration items or
 documented observations, not regression triggers.
 
 **Regression vs. documentation fix.** Not every issue found in review

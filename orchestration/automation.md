@@ -146,7 +146,7 @@ run_1bot_review() {
   i=0
   while [ $i -lt $max_review_iterations ]; do
     i=$((i + 1))
-    if [ $i -gt 3 ]; then
+    if [ $i -gt 2 ]; then
       echo "WARNING: 1-bot review iteration $i for $dir"
     fi
 
@@ -162,7 +162,16 @@ run_1bot_review() {
       return 0
     fi
 
-    # Category A issues found — iterate
+    # Category A issues found — escalate after 3 iterations
+    if [ $i -ge 3 ]; then
+      echo "ESCALATING: 1-bot review not converging after $i iterations for $dir"
+      present_for_human_review "$dir"
+      wait_for_human_input
+      # Human may resolve and signal continue, or halt
+      continue
+    fi
+
+    # Iterate
     exec_name=$(pick_session_name)
     write_iteration_inputs_1bot "$dir" "$i" "$exec_name"
     run_agent --name "$exec_name" --model $exec_model \

@@ -76,8 +76,10 @@ review if threshold exceeded.
 ```yaml
 cost_controls:
   max_review_iterations: 10      # Hard cap on review cycles (prevents infinite loops)
-  review_warn_threshold: 3       # Soft warn after this many iterations
-  review_strong_warn_threshold: 5 # Strongly warn
+  review_warn_threshold: 3       # Soft warn after this many iterations (3-bot)
+  review_strong_warn_threshold: 5 # Strongly warn (3-bot)
+  onebot_warn_threshold: 2       # Soft warn for 1-bot reviews
+  onebot_escalate_threshold: 3   # Force human escalation for 1-bot reviews
   phase2_max_iterations: 20
   phase3_max_iterations: 30
   total_budget_warn: 500000  # tokens, or dollar amount

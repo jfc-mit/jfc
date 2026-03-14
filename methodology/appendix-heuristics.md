@@ -37,24 +37,25 @@ library but for tool-level idioms and gotchas.
 **Key idioms:**
 - Use `mplhep.style.use("CMS")` for the default style sheet. This sets fonts,
   tick sizes, and figure aesthetics. It does NOT add experiment labels.
-- Experiment labels are added explicitly via `mplhep.cms.label(...)`,
-  `mplhep.atlas.label(...)`, etc. These functions have kwargs to control every
-  piece of text:
-  - `label=''` — the status text (e.g., "Preliminary", "Internal", or empty)
-  - `rlabel='sqrt(s) = 91 GeV'` — the right-side label (energy, lumi, etc.)
-  - `loc=0` — position preset
-  - `data=True/False` — whether to show "data" qualifier
+- Experiment labels are added via `mplhep.label.exp_label(...)` — the generic
+  function that works for any experiment. See Appendix D for the full template
+  and parameter reference (`exp`, `text`, `llabel`, `rlabel`, `data`, `com`,
+  `lumi`, etc.).
 - **Do NOT** hack around unwanted label text by patching rcParams or removing
-  matplotlib text objects after the fact. The label functions expose all
-  the controls you need as kwargs. Read `help(mplhep.cms.label)`.
-- For ALEPH-era analyses using CMS style: call
-  `mplhep.cms.label(label='', rlabel='ALEPH LEP1 data', data=True)` to get
-  clean labeling without CMS branding.
+  matplotlib text objects after the fact. The `exp_label` function exposes all
+  the controls you need as kwargs. Read `help(mplhep.label.exp_label)`.
+- For ALEPH analyses using CMS style: call
+  `mplhep.label.exp_label(exp='ALEPH', data=True, rlabel=r'$\sqrt{s} = 91.2$ GeV')`
+  to get clean labeling without CMS branding.
 
 **Common pitfalls:**
-- Using `hep.style.use('ATLAS')` then trying to suppress "ATLAS" text
-  post-hoc. Just use the style for aesthetics and the label function for text.
+- Using experiment-specific functions (e.g., `mplhep.cms.label`) instead of
+  the generic `mplhep.label.exp_label`. The generic function works for any
+  experiment; experiment-specific functions add unwanted branding.
 - Forgetting `rlabel=''` and getting a default "(13 TeV)" watermark from CMS
   style. Always set `rlabel` explicitly.
+- When `data=False`, mplhep auto-adds "Simulation" as text. Setting `llabel`
+  on top of this causes stacking. Either use `data=False` alone, or set
+  `data=True, llabel="MC Simulation"` to fully control the left side.
 
 **Performance:** No concerns — plotting is never the bottleneck.

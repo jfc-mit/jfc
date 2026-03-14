@@ -50,8 +50,8 @@ effects to produce a particle-level result.
 
 Any analysis that constructs a response matrix from simulation and applies a
 correction procedure (IBU, SVD, TUnfold, OmniFold, bin-by-bin correction
-factors) to transform a detector-level distribution into a generator-level
-(particle-level) truth distribution.
+factors) to transform a detector-level distribution into a particle-level
+result.
 
 ---
 
@@ -61,7 +61,7 @@ Before anything else, define the particle-level target precisely:
 
 - What particles are included (stable hadrons, charged-only, with/without
   neutrinos, etc.)
-- What phase space (fiducial vs. full, any generator-level cuts)
+- What phase space (fiducial vs. full, any particle-level cuts)
 - Treatment of ISR/FSR photons
 - Treatment of hadron decays (lifetime threshold, e.g. c*tau > 10 mm)
 
@@ -95,7 +95,7 @@ Required deliverables before proceeding:
 - Diagonal fraction (fraction of events staying in the same bin)
 - Column normalization (should sum to 1 if properly constructed)
 - Condition number (if matrix inversion is involved)
-- Efficiency as a function of truth-level observable
+- Efficiency as a function of the particle-level observable
 
 ---
 
@@ -117,9 +117,10 @@ The selection criterion should be:
 
 **Additionally:** verify that the result is not prior-dominated in any bin.
 Repeat the unfolding with a flat (uniform) prior at the nominal
-regularization. If any bin within the measurement region changes by more
-than 20%, the regularization is insufficient for that bin — increase
-iterations, merge bins, or exclude the bin.
+regularization. If any bin's corrected value changes by more than 20%
+relative (i.e., |flat − nominal| / nominal > 0.20), the regularization is
+insufficient for that bin — increase iterations, merge bins, or exclude
+the bin.
 
 Rationale: closure and stress tests use the correct (or nearly correct)
 prior. They can pass even when the regularization is too weak to overcome a
@@ -177,6 +178,17 @@ limitation.
 | ISR treatment | Correct for ISR or define measurement as ISR-inclusive; document the choice | Affects the particle-level definition |
 | Heavy flavor | Vary b-quark mass or fragmentation if the observable is sensitive | Flavor composition affects the response |
 
+### Normalized vs. absolute measurements
+
+Systematic sources that affect only the overall normalization (luminosity,
+total cross-section, trigger efficiency) cancel in **normalized** shape
+measurements (e.g., (1/N) dN/dx) but remain relevant for **absolute**
+cross-sections (e.g., dσ/dx). When planning the systematic program, the
+agent must identify which type of measurement is being performed and
+include or exclude normalization-only sources accordingly. Document the
+reasoning — a reviewer will check that normalization sources are not
+silently omitted from an absolute measurement.
+
 ---
 
 ## Covariance matrix
@@ -227,7 +239,7 @@ quantity:
   matrix by the reco-level data/MC ratio probes shape mismodeling but does
   not replace a genuine alternative-generator comparison. It's a useful
   cross-check, not a substitute.
-- **Covariance condition number.** A very large condition number (>10^8)
+- **Covariance condition number.** A very large condition number (>10^10)
   means the inverse is numerically unstable. Consider regularizing the
   covariance or restricting the chi2 calculation to a well-conditioned
   sub-matrix.

@@ -77,8 +77,9 @@ The review structure for the pre-unblinding assessment:
    PASS / ITERATE / ESCALATE decision.
 
 This cycle repeats until the arbiter issues a PASS with no unresolved Category A
-items. There is no iteration limit on this cycle — it runs until the analysis
-is right. (In practice, if it hasn't converged after 3-4 rounds, the issues are
+items. Correctness is the termination condition, not an iteration count. (The
+orchestrator imposes a configurable hard cap as a safety net — see Section 6.8.
+In practice, if the cycle hasn't converged after 3-4 rounds, the issues are
 likely fundamental enough to require human input, and the arbiter should
 escalate.)
 
