@@ -30,6 +30,13 @@ producing a set of plots, finishing a closure test, updating the artifact.
 Commits within a phase are the checkpoints; if the agent crashes at step 12 of
 15, it can resume from the last commit.
 
+**Session boundaries.** When a session is getting long (many iterations,
+extensive debugging), commit all work, append findings to the experiment log,
+and produce an intermediate artifact with an "Open issues" section listing
+what remains. The next session reads the experiment log and intermediate
+artifact to continue. Do not attempt to do everything in a single session —
+clean handoffs between sessions are better than context-exhausted work.
+
 **Branch strategy:** Each phase works on a branch (`phase1_strategy`,
 `phase2_exploration`, etc.). The branch is merged to main when the phase's
 review passes. This keeps main clean — it always reflects reviewed work.
@@ -156,6 +163,14 @@ reproduces.
   script.
 - Agents iterate on individual steps without paying the cost of the full
   chain.
+
+**Script decomposition.** If a script's estimated runtime (extrapolated from
+a Phase 2 timing slice) exceeds ~5 minutes, split it into stages with
+intermediate outputs saved to disk. Each stage gets its own pixi task.
+Example: separate `build_response` (construct the response matrix) from
+`unfold` (run IBU) from `bootstrap` (500 replicas for stat uncertainties).
+This makes debugging faster, enables partial re-runs, and keeps individual
+tasks within the scale-out thresholds.
 
 **Rules:**
 - Update `pixi.toml` tasks whenever you add, rename, or remove a script.

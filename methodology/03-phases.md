@@ -236,8 +236,15 @@ is nothing to blind:
 - The **3-bot review gate** still applies at Phase 4a for measurements. The
   review evaluates systematic completeness, correction validation, and
   result quality — the same scrutiny, just without the blinding ceremony.
+- For measurements, Phase 4a must also produce `ANALYSIS_NOTE_DRAFT.md` —
+  a near-complete analysis note (same structure as the search-flow draft
+  described in Phase 4b below). The result is already final; only Phase 5
+  polishing remains. A non-blocking subagent (lowest tier) should compile
+  the draft to LaTeX/PDF in parallel with the review cycle, so the human
+  gate receives a rendered document.
 - The **human gate** applies after Phase 4a review passes: the human sees
-  the measurement result and draft note before proceeding to Phase 5.
+  the draft analysis note (as PDF) and measurement result before proceeding
+  to Phase 5.
 
 #### Phase 4a: Expected Results
 
@@ -312,7 +319,9 @@ Phase 5. This is not a summary — it is the comprehensive AN with all
 sections, cross-checks, systematic descriptions, and appendices, using 10%
 observed results as placeholders for the final numbers. Only the full-data
 results and their interpretation are missing. The Phase 5 step then updates
-numbers, not structure.
+numbers, not structure. A non-blocking subagent (lowest tier) should compile
+the draft to LaTeX/PDF in parallel with the review cycle, so the human gate
+receives a rendered document.
 
 **Review:** 3-bot review (Section 6.2) on the draft analysis note. The
 critical and constructive reviewers evaluate the note as collaboration
@@ -450,6 +459,11 @@ to read the AN alone — without access to code, experiment logs, or phase
 artifacts — and understand every choice that was made, reproduce every number
 in the results, and evaluate whether the conclusions are supported. If a
 choice requires reading the code to understand, the AN has a gap.
+
+**LaTeX compilation.** The working format during development is markdown.
+The Phase 5 executor (or a dedicated lower-tier subagent) converts the
+final note to LaTeX, compiles to PDF, and verifies that all figures render
+correctly. The LaTeX source and compiled PDF are both deliverables.
 
 **Output artifact:** `ANALYSIS_NOTE.md` (or `.tex` + compiled PDF) plus
 `results/` directory containing machine-readable data tables.

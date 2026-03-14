@@ -63,7 +63,7 @@ Use these — not alternatives. Non-negotiable.
 | Array operations | `awkward-array`, `numpy` | Event loops, pandas |
 | Histogramming | `hist`, `boost-histogram` | ROOT TH1, numpy.histogram (for filling) |
 | Plotting | `matplotlib` + `mplhep` | ROOT TCanvas, plotly |
-| Statistical model | `pyhf` | RooFit, RooStats, custom likelihood code |
+| Statistical model | `pyhf` (binned), `zfit` (unbinned) | RooFit, RooStats, custom likelihood code |
 | Jet clustering | `fastjet` (Python) | manual clustering |
 | Event processing | `coffea` (columnar) | Event-by-event loops |
 | Logging | `logging` + `rich` | `print()` — never use bare print |
@@ -124,8 +124,9 @@ Check both **correctness** (is what's here right?) and **completeness**
 (is anything missing?). The question is not "does this pass its own tests"
 but "would a journal referee accept this."
 
-The end goal of every analysis is a publication-quality analysis note that
-could be submitted to a journal. Every phase contributes to that goal.
-Reviewers should evaluate work against the standard of external scrutiny:
-"If a competing group published a measurement of the same quantity, what
-would they have that we don't?"
+The end goal of every analysis is a publication-quality analysis note
+suitable for submission to a top-tier journal. Every phase contributes to
+that goal. Reviewers should evaluate work against the standard of external
+scrutiny: "Would a journal referee send this back? If a competing group
+published a measurement of the same quantity, what would they have that
+we don't?"

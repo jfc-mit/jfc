@@ -323,10 +323,18 @@ The orchestrator dispatches fixes automatically — no human gate for regression
 
 #### Timing
 
-Regression only triggers before Phase 4c (full unblinding). Once the human
-gate approves full unblinding, discovered issues become documented observations
-in the final note, not regression triggers. The analysis is past the point
-where re-running earlier phases is meaningful — the observed result exists.
+Regression only triggers before the **human gate** — Phase 4c for searches,
+Phase 4a for measurements. Once the human approves proceeding to final
+documentation, discovered issues become Phase 5 iteration items or
+documented observations, not regression triggers.
+
+**Regression vs. documentation fix.** Not every issue found in review
+requires regression. The distinction:
+- **Physics issue** (wrong systematic treatment, missing background, flawed
+  correction) → regression trigger. Re-run earlier phases.
+- **Presentation issue** (axis label wrong, figure unclear, caption sparse,
+  missing cross-reference) → Phase 5 iteration. Fix in the documentation
+  without re-running earlier phases.
 
 #### Upstream feedback (non-blocking)
 

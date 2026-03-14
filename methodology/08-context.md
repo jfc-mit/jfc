@@ -40,9 +40,9 @@ selection depends on the role:
 | Phase 3 executor | Sections 3 (Phase 3), 5, 7, 11 |
 | Phase 4 executor | Sections 3 (Phase 4), 4, 5, 7, 11 |
 | Phase 5 executor | Sections 3 (Phase 5), 5 |
-| 3-bot reviewer | Sections 6, applicable phase from 3, appendix checklist |
-| 1-bot reviewer | Section 6, applicable phase from 3 |
-| Arbiter | Section 6 |
+| 3-bot reviewer | Sections 6, applicable phase from 3, applicable conventions, appendix checklist |
+| 1-bot reviewer | Section 6, applicable phase from 3, applicable conventions |
+| Arbiter | Section 6, applicable conventions |
 | Plot subagent | Appendix D (Plotting Template) |
 
 The CLAUDE.md files (project-root and per-phase) are always loaded

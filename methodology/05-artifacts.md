@@ -83,7 +83,16 @@ results are.
 
 Artifacts are markdown documents with embedded figure references (paths to
 PDF/PNG files in the phase's `figures/` directory). Every quantitative claim
-must be supported by a figure or table:
+must be supported by a figure or table.
+
+**Figure captions must be self-contained.** A reader should understand what
+a figure shows — what is plotted, what the axes are, what the different
+curves/markers represent, and what conclusion to draw — from the caption
+alone, without reading the surrounding text. Sparse captions like "Thrust
+distribution" are insufficient. Write: "Corrected normalized thrust
+distribution (1/N) dN/dτ compared to Pythia 6.4 (Lund string, tune X).
+Error bars show statistical uncertainties; the shaded band shows the total
+systematic uncertainty. The ratio panel shows data/MC."
 
 - **Data/MC comparisons:** overlaid distributions with ratio panels
 - **Cutflows:** tables with per-cut yields, efficiencies, and S/B ratios
@@ -118,6 +127,13 @@ should be able to evaluate the analysis from these alone.
 Phases also produce data files, figures, and scripts in phase-specific
 subdirectories. Scripts are referenced from the artifact's code reference
 section for reproducibility.
+
+**Intermediate data files** (`.npz`, `.json`, pyhf workspaces, trained
+models) must include a brief README or docstring in the artifact explaining:
+what the file contains, how to load it (e.g., `np.load("results.npz")`
+with key names listed), and which pixi task produced it. A human or
+downstream agent encountering `results_phase3.npz` should know what's
+inside without reading the script that produced it.
 
 Additionally, any phase may produce these supplementary artifact types:
 

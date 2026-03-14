@@ -14,6 +14,7 @@ what works well in practice.
 | Histogramming | hist, boost-histogram | Use `hist` for building and plotting; `boost-histogram` for performance-critical fills. Leverage ND histogram axes for systematic variations and cut categories — store variations as axis dimensions rather than separate histograms. |
 | Statistical model | pyhf | HistFactory JSON workspaces. Portable, text-based, version-controllable. |
 | Fitting / limits | pyhf, cabinetry | cabinetry for convenience wrappers (ranking, pulls). pyhf directly for custom fits. |
+| Unbinned fits | zfit | For unbinned likelihood fits (mass fits, PDF fitting). Use when binned HistFactory is insufficient. |
 | MVA | xgboost, scikit-learn | BDTs via xgboost. scikit-learn for preprocessing, train/test split, metrics. |
 | Hyperparameter opt | optuna | Bayesian optimization. Pin `random_state=42` for reproducibility. |
 | Plotting | matplotlib, mplhep (≥1.1) | Use a built-in `mplhep.style` if one exists for the experiment. If not, build a custom style using mplhep's generic style primitives (e.g., `mplhep.style.CMS` as a base, overriding experiment name, logo, fonts). mplhep ≥1.1 exposes the building blocks for constructing experiment styles programmatically. **Never use another experiment's style unmodified.** No figure titles — use captions. See Section 5 for full figure standards. All figures as PDF. |
@@ -97,6 +98,14 @@ composable (AND masks for combined selections).
 **Workspace as artifact.** The statistical model (pyhf JSON workspace) is a
 version-controlled artifact, not ephemeral in-memory state. Write it to disk.
 Validate it. Commit it. Downstream steps read the workspace file.
+
+**Fit reproducibility.** A human must be able to re-run every fit in the
+analysis. Each fit gets its own pixi task (e.g., `pixi run fit`,
+`pixi run limits`). The workspace file, input histograms, and fit script
+are committed together. The fit script reads the workspace from disk and
+writes results (pulls, impacts, limits) to disk. A human opening the
+analysis should be able to run `pixi run fit` and reproduce the published
+numbers without reading any agent conversation history.
 
 **Plots are evidence.** Every claim in an artifact should have a corresponding
 figure or table. Plots are not decoration — they are the primary evidence that
