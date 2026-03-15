@@ -113,6 +113,8 @@ of them requires explicit justification.
 | Prior dependence | Alternative priors (reweighted truth, flat) | Tests sensitivity to assumed shape |
 | Alternative method | At least one independent unfolding method | Cross-check of the full procedure |
 
+**BBB validity criterion:** Bin-by-bin correction factors are a valid alternative method only when the response matrix diagonal fraction exceeds ~70% across the fit range. When diagonal fractions are lower (significant bin migrations), BBB is structurally incorrect and must be treated as a cross-check only — computed and reported, but excluded from the systematic budget. In this regime, a proper alternative (SVD, TUnfold, or matrix inversion with regularization) is required for the systematic. If no valid alternative is available, document this as a limitation in the analysis note.
+
 ### Generator model (hadronization / fragmentation)
 
 | Source | What to vary | Rationale |

@@ -143,6 +143,22 @@ This is a hard gate — see methodology Section 3.0.
 - Append findings to experiment_log.md as you go. An empty experiment log
   at the end of this phase is a process failure.
 - Self-review only — no external reviewer. Be thorough.
+
+## Plotting
+
+Import the shared plotting utility for all figures:
+```python
+from common.plotting import create_figure, create_ratio_figure, save_figure, add_experiment_label
+```
+
+Do NOT use raw `plt.subplots()` or custom `figsize`. The utility enforces
+the required figure size (10x10), style, and save conventions. Violations
+are Category A review findings.
+
+Reference figures in the artifact using markdown image syntax:
+```markdown
+![Detailed caption describing what is plotted.](figures/filename.pdf)
+```
 """,
     "phase3_selection": """\
 # Phase 3: Selection and Modeling
@@ -165,6 +181,22 @@ You MUST produce `exec/SELECTION.md` before Phase 4 begins.
 This is a hard gate — see methodology Section 3.0.
 
 {technique_block_phase3}
+## Plotting
+
+Import the shared plotting utility for all figures:
+```python
+from common.plotting import create_figure, create_ratio_figure, save_figure, add_experiment_label
+```
+
+Do NOT use raw `plt.subplots()` or custom `figsize`. The utility enforces
+the required figure size (10x10), style, and save conventions. Violations
+are Category A review findings.
+
+Reference figures in the artifact using markdown image syntax:
+```markdown
+![Detailed caption describing what is plotted.](figures/filename.pdf)
+```
+
 ## Review
 
 This phase gets 1-bot review. The reviewer will check:
@@ -206,6 +238,22 @@ See methodology Section 3.0 for the gate protocol.
    Any MISSING source without justification is a blocker.
 
 {technique_block_phase4}
+## Plotting
+
+Import the shared plotting utility for all figures:
+```python
+from common.plotting import create_figure, create_ratio_figure, save_figure, add_experiment_label
+```
+
+Do NOT use raw `plt.subplots()` or custom `figsize`. The utility enforces
+the required figure size (10x10), style, and save conventions. Violations
+are Category A review findings.
+
+Reference figures in the artifact using markdown image syntax:
+```markdown
+![Detailed caption describing what is plotted.](figures/filename.pdf)
+```
+
 ## Review
 
 This phase gets 3-bot review. Reviewers will check:
@@ -254,6 +302,24 @@ The AN is the complete record — not a summary. Minimum expectations:
 A measurement analysis with ~5 systematics, ~3 cross-checks, ~6 cuts, and
 ~18 bins should produce ~50-100 rendered pages. Under 30 pages means
 detail is missing.
+
+## Plotting
+
+Import the shared plotting utility for all figures:
+```python
+from common.plotting import create_figure, create_ratio_figure, save_figure, add_experiment_label
+```
+
+Do NOT use raw `plt.subplots()` or custom `figsize`. The utility enforces
+the required figure size (10x10), style, and save conventions. Violations
+are Category A review findings.
+
+Reference figures in the artifact using markdown image syntax:
+```markdown
+![Detailed caption describing what is plotted.](figures/filename.pdf)
+```
+
+To build the final PDF, run `pixi run build-pdf` (task defined in pixi.toml).
 
 ## Review
 
@@ -355,6 +421,29 @@ def scaffold(analysis_dir: Path, analysis_type: str, technique: str | None):
         if template and not claude_path.exists():
             claude_path.write_text(template.format(**fmt))
             print(f"  wrote {claude_path}")
+
+    # scripts/common/ — shared plotting utilities
+    common_dir = analysis_dir / "scripts" / "common"
+    common_dir.mkdir(parents=True, exist_ok=True)
+    template_common = HERE / "templates" / "scripts" / "common"
+    for src in [template_common / "plotting.py", template_common / "__init__.py"]:
+        dst = common_dir / src.name
+        if not dst.exists():
+            if src.exists():
+                dst.write_text(src.read_text())
+                print(f"  wrote {dst}")
+            else:
+                print(f"  WARNING: {src} not found, skipping")
+
+    # phase5_documentation/exec/build_pdf.py from template
+    build_pdf_src = HERE / "templates" / "build_pdf.py"
+    build_pdf_dst = analysis_dir / "phase5_documentation" / "exec" / "build_pdf.py"
+    if not build_pdf_dst.exists():
+        if build_pdf_src.exists():
+            build_pdf_dst.write_text(build_pdf_src.read_text())
+            print(f"  wrote {build_pdf_dst}")
+        else:
+            print(f"  WARNING: {build_pdf_src} not found, skipping build_pdf.py")
 
     # Analysis-local pixi.toml from template
     pixi_path = analysis_dir / "pixi.toml"

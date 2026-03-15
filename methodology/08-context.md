@@ -36,10 +36,10 @@ selection depends on the role:
 | Role | Methodology sections |
 |------|---------------------|
 | Phase 1 executor | Sections 1, 2, 3 (Phase 1), 5, 7 |
-| Phase 2 executor | Sections 3 (Phase 2), 5, 7 |
-| Phase 3 executor | Sections 3 (Phase 3), 5, 7, 11 |
-| Phase 4 executor | Sections 3 (Phase 4), 4, 5, 7, 11 |
-| Phase 5 executor | Sections 3 (Phase 5), 5 |
+| Phase 2 executor | Sections 3 (Phase 2), 5, 7, Appendix D |
+| Phase 3 executor | Sections 3 (Phase 3), 5, 7, 11, Appendix D |
+| Phase 4 executor | Sections 3 (Phase 4), 4, 5, 7, 11, Appendix D |
+| Phase 5 executor | Sections 3 (Phase 5), 5, Appendix D |
 | 3-bot reviewer | Sections 6, applicable phase from 3, applicable conventions, appendix checklist |
 | 1-bot reviewer | Section 6, applicable phase from 3, applicable conventions |
 | Arbiter | Section 6, applicable conventions |

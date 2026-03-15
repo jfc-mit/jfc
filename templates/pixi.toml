@@ -13,6 +13,7 @@ platforms = ["linux-64", "osx-arm64"]
 [dependencies]
 python = ">=3.11"
 pandoc = ">=3.0"
+pandoc-crossref = ">=0.3"
 
 # --- Core stack (always needed) ---
 [pypi-dependencies]
