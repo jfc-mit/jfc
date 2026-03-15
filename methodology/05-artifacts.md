@@ -42,6 +42,9 @@ The experiment log is:
   with ycut=0.008 (see experiment log for alternatives explored)"
 - **Persists across agent sessions within a phase** — if the executor iterates
   10 times, all 10 sessions append to the same log
+- **Never empty at the end of a phase.** An empty experiment log at the end
+  of Phase 2 or later means the agent did not document its exploration
+  process. This is a review finding.
 
 The experiment log is especially valuable for Phases 2–3 where iteration is
 high. It prevents agents from re-trying failed approaches and gives humans
@@ -54,6 +57,18 @@ start of a session ("what has been tried so far?") and when deciding what to try
 next ("have we already explored this direction?"). The log is not loaded into
 every agent invocation's input; it is consulted as needed and appended to after
 meaningful work. This prevents the log from consuming context budget as it grows.
+
+**When to write:** Append an entry after every material decision, discovery, or
+failed attempt. Concrete triggers:
+- Discovering the structure of a data file (branches, tree names, event counts)
+- Choosing a parameter value (cut threshold, number of iterations, bin edges)
+  and the reasoning behind it
+- Encountering and resolving a bug or unexpected behavior
+- Trying an approach that didn't work (and why)
+- Making a design decision that affects downstream phases
+
+If the agent completes a phase without appending to the experiment log, the
+phase should be considered incomplete.
 
 ### 5.2 The Primary Artifact
 

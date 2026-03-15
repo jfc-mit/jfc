@@ -1,5 +1,10 @@
 ## 6. Review Protocol
 
+**Review is mandatory, not aspirational.** Every phase has a defined review
+type. The review must be performed before the next phase begins. Skipping
+review — even under context pressure — is a process failure that produces
+analyses with compounding gaps. See Section 3.0 for the gate protocol.
+
 Review intensity is proportional to stakes. Heavyweight review is reserved for
 gate points where errors are costly. Phases with high execution iteration
 (data exploration, selection) use lightweight review to avoid bottlenecking
@@ -241,6 +246,38 @@ written here, am I convinced that this result is correct and complete?"
 The cost of this review is additional iteration loops if it finds gaps that
 should have been caught earlier. That cost is acceptable — it is better to
 iterate at Phase 5 than to publish an incomplete result.
+
+### 6.4.4 Single-Session Review via Subagents
+
+When the analysis runs in a single session, reviews are implemented by
+spawning dedicated reviewer subagents (see Section 3.0.1 for the full
+orchestrator protocol). The reviewer subagent reads the phase artifact from
+disk and applies the review criteria.
+
+**Minimum review checklist (all phases):**
+
+| Phase | Minimum checks |
+|-------|---------------|
+| Strategy | Conventions consulted? Reference analyses tabulated? Systematic plan covers standard sources? |
+| Exploration | Sample inventory complete? Data quality checked? Experiment log updated? |
+| Selection | Every cut motivated by a plot? Per-category data/MC validation done? Cutflow complete? |
+| Inference (4a) | Systematic completeness table vs references? Prior-sensitivity check done? Alternative method run? Covariance matrix produced? |
+| Inference (4b/4c) | Results consistent with expectations? Post-fit diagnostics clean? |
+| Documentation | Per-systematic subsections present? Per-cross-check subsections present? Math renders? `results/` directory populated? Figures pass cosmetic checklist (6.4.2)? |
+
+**Fallback: self-review.** If subagent spawning is unavailable, the
+orchestrator performs review itself. In this case it must:
+- Read the artifact from disk (not from conversation memory)
+- Apply the review criteria explicitly (using this table)
+- Write findings to `phase*/review/REVIEW_NOTES.md`
+- Even if no issues are found, write "Self-review performed: [checklist
+  items verified]" — the absence of a review record is indistinguishable
+  from a skipped review
+
+Self-review is inherently weaker than subagent review because the author
+and reviewer share context and biases. To partially compensate, focus on
+**completeness** (what's missing?) rather than correctness (is what's here
+right?), since completeness failures are the dominant failure mode.
 
 ### 6.5 Iteration and Escalation
 

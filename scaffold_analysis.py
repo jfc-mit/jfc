@@ -131,11 +131,17 @@ You are exploring the data and MC samples.
 - Variable ranking for discrimination power
 - Preselection cutflow
 
+## Output artifact
+
+You MUST produce `exec/EXPLORATION.md` before Phase 3 begins.
+This is a hard gate — see methodology Section 3.0.
+
 ## Rules
 
 - Prototype on small subsets (~1000 events). Do not process full data to
   "see what's there."
-- Append findings to experiment_log.md as you go.
+- Append findings to experiment_log.md as you go. An empty experiment log
+  at the end of this phase is a process failure.
 - Self-review only — no external reviewer. Be thorough.
 """,
     "phase3_selection": """\
@@ -152,6 +158,11 @@ Read the strategy first — it determines what this phase must deliver.
 - Cutflow table with data and MC yields
 - For searches: background estimation, control/validation regions, closure tests
 - For measurements: correction chain (response matrix, unfolding, closure tests)
+
+## Output artifact
+
+You MUST produce `exec/SELECTION.md` before Phase 4 begins.
+This is a hard gate — see methodology Section 3.0.
 
 {technique_block_phase3}
 ## Review
@@ -173,6 +184,15 @@ You are building the statistical model and computing results.
 - Systematic uncertainty evaluation
 - Validation diagnostics
 - Comparison to reference measurements
+
+## Output artifacts
+
+Phase 4 has sub-phases, each with its own artifact (hard gates):
+- 4a: `exec/INFERENCE_EXPECTED.md` — expected results, systematics, validation
+- 4b: `exec/INFERENCE_PARTIAL.md` — partial data results + draft AN
+- 4c: `exec/INFERENCE_OBSERVED.md` — full observed results
+
+See methodology Section 3.0 for the gate protocol.
 
 ## Completeness requirements (critical)
 
@@ -219,6 +239,21 @@ result is correct and complete?"
 - Conventions check (final):
 {conventions_block}
   Is anything required there that is absent from the note?
+
+## Depth requirements
+
+The AN is the complete record — not a summary. Minimum expectations:
+- One subsection per systematic source (not just a summary table)
+- One subsection per cross-check with quantitative result
+- Per-cut event selection with individual distributions and efficiencies
+- Full covariance matrix in appendix (table, not just figure)
+- Machine-readable `results/` directory (CSV/JSON for spectrum, covariance)
+- LaTeX math throughout (`$\\alpha_s$` not `alpha_s`)
+- `pixi.toml` must have an `all` task for full reproducibility
+
+A measurement analysis with ~5 systematics, ~3 cross-checks, ~6 cuts, and
+~18 bins should produce ~50-100 rendered pages. Under 30 pages means
+detail is missing.
 
 ## Review
 

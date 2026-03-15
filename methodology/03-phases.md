@@ -4,6 +4,175 @@ The analysis proceeds through five phases. Dependencies between phases are
 sequential — each phase consumes artifacts from prior phases. Within a phase,
 work may be parallelized at the agent's discretion.
 
+### 3.0 Artifact and Review Gates
+
+**Every phase boundary is a hard gate.** The agent must not begin Phase N+1
+until Phase N has produced its required artifact AND the required review has
+been performed. This applies regardless of execution mode (orchestrated
+multi-agent or single-session).
+
+**The gate protocol:**
+1. Phase executor produces the phase artifact (written to disk as markdown)
+2. Phase executor updates the experiment log with what was done
+3. The required review is performed (see Section 6)
+4. Review findings are addressed (Category A items resolved)
+5. Only then does the next phase begin
+
+**Artifact existence is a precondition.** If Phase 2 has no `EXPLORATION.md`
+on disk, Phase 3 must not start. If Phase 4 has no `INFERENCE_EXPECTED.md`,
+Phase 4b must not start. The artifact is both the handoff document and the
+proof that the phase was completed with appropriate rigor.
+
+**Why this is a hard rule:** Without artifact gates, agents compress or skip
+phases to reach results faster. The result is an analysis with no audit trail,
+no intermediate review, and gaps that compound. The artifacts exist to force
+the agent to consolidate what it knows before moving on — the act of writing
+the artifact surfaces gaps that coding alone does not.
+
+Skipping a phase artifact is never acceptable, even under context pressure.
+If context limits are approaching, the agent should write the artifact for the
+current phase, commit, and stop — not rush through remaining phases without
+artifacts.
+
+### 3.0.1 Single-Session Execution via Subagent Delegation
+
+When a single agent session runs the full analysis, it operates as a **thin
+orchestrator** that delegates work to subagents. The orchestrator's context
+stays small; the heavy work happens in subagent contexts that are discarded
+after each phase. This is the primary defense against context exhaustion.
+
+**Architecture:** The main session (orchestrator) never writes analysis code
+or produces figures itself. It spawns subagents for execution and review,
+reads their summaries, makes phase-transition decisions, and commits. Each
+subagent reads upstream artifacts from disk — not from the parent's context.
+
+**The orchestrator loop for each phase:**
+
+```
+for each phase in [1, 2, 3, 4a, 4b, 4c, 5]:
+
+  1. EXECUTE — spawn a phase executor subagent with:
+     - The physics prompt
+     - The phase CLAUDE.md (read from disk, pass in prompt)
+     - Paths to upstream artifacts (the subagent reads them from disk)
+     - The experiment log path (subagent appends to it)
+     - The conventions document path (for phases that need it)
+     - Explicit instruction to write the phase artifact to disk
+
+  2. REVIEW — spawn a reviewer subagent with:
+     - Path to the phase artifact just written
+     - The review criteria for this phase (from Section 6.4)
+     - The conventions document path
+     - Instruction to write REVIEW_NOTES.md in the phase directory
+
+  3. CHECK — orchestrator reads the review findings (short).
+     If Category A issues exist:
+       - Spawn a fix agent with the artifact + findings
+       - Re-review after fix
+     If no Category A issues: proceed.
+
+  4. COMMIT — orchestrator commits the phase's work.
+
+  5. ADVANCE — proceed to next phase.
+```
+
+**Why subagents solve context exhaustion:**
+- The Phase 2 executor agent processes 40 MC files, debugs ROOT branch
+  names, produces 12 figures. This consumes 50k+ tokens of context. When it
+  finishes and returns a 500-token summary, all that bulk is gone. The
+  orchestrator's context grows by 500 tokens, not 50k.
+- By Phase 5, the orchestrator has accumulated only ~5k tokens of phase
+  summaries. It has full context budget to spawn the AN-writing agent with a
+  detailed prompt.
+- If the orchestrator itself hits context limits despite staying thin, the
+  committed artifacts + experiment log on disk are a complete checkpoint.
+  A new session can read them and resume from the last committed phase.
+
+**Subagent prompt templates:**
+
+*Phase executor prompt (adapt per phase):*
+```
+You are executing Phase N of a HEP analysis. Read the methodology and
+follow it exactly.
+
+Analysis directory: analyses/<name>/
+Phase CLAUDE.md: <path> (read this first)
+Upstream artifacts to read from disk: <list of paths>
+Experiment log: <path> (append your findings as you work)
+Conventions: <path> (consult for systematic requirements)
+
+Your deliverables:
+1. Scripts in phase*/scripts/ that produce all required figures and results
+2. The phase artifact: phase*/exec/<ARTIFACT_NAME>.md
+3. Updated experiment_log.md with material decisions and discoveries
+4. Updated pixi.toml tasks for any new scripts
+
+Write the artifact LAST, after all scripts run and results are on disk.
+The artifact summarizes and references the results — it is not a plan.
+
+[Insert physics prompt here]
+```
+
+*Reviewer prompt (adapt per phase):*
+```
+You are reviewing Phase N of a HEP analysis. You are a critical reviewer —
+your job is to find what is MISSING, not just check what is present.
+
+Read the artifact: <path>
+Read the conventions: <path>
+Read the reference analyses in the strategy: <path to STRATEGY.md>
+
+Apply the review focus from methodology Section 6.4 for this phase.
+Check the artifact against the checklist in methodology Appendix B.
+
+For each finding, classify as:
+  (A) Must resolve — blocks advancement
+  (B) Should address — weakens but doesn't invalidate
+  (C) Suggestion — style, clarity
+
+Write your findings to: phase*/review/REVIEW_NOTES.md
+
+The key question: "What would a knowledgeable referee ask for that
+isn't here?"
+```
+
+*3-bot review (for phases requiring it):*
+Spawn three reviewer agents in parallel:
+1. Critical reviewer — "find everything wrong or missing"
+2. Constructive reviewer — "what would make this stronger"
+3. Arbiter — reads both reviews, issues PASS / ITERATE / ESCALATE
+
+The arbiter's verdict determines whether the phase advances.
+
+**What the orchestrator does NOT do:**
+- Read full scripts or data files (subagents do this)
+- Debug code (subagents do this)
+- Produce figures (subagents do this)
+- Write analysis prose (subagents do this)
+
+The orchestrator reads: CLAUDE.md files, phase summaries returned by
+subagents, review findings, and the experiment log when deciding next steps.
+It writes: commit messages and (if needed) the physics prompt passed to
+subagents.
+
+**Fallback: self-review.** If agent spawning is unavailable or impractical,
+the orchestrator may perform review itself. In this case it must still:
+- Read the artifact from disk (not from conversation memory)
+- Apply the review criteria explicitly (Section 6.4)
+- Write findings to REVIEW_NOTES.md
+- This is strictly weaker than subagent review and should be a last resort
+
+**Anti-pattern:** Running straight from Phase 1 to Phase 5 in a single pass,
+producing only the strategy document and the final analysis note, with no
+intermediate artifacts, no experiment log entries, and no reviews. This is
+the failure mode the orchestrator pattern exists to prevent.
+
+**Anti-pattern:** The orchestrator doing the phase work itself instead of
+delegating. If the orchestrator is writing analysis scripts, it is not
+orchestrating — it is executing, and its context will fill up.
+
+---
+
 ### Analysis Types
 
 The spec supports two analysis types. The physics prompt must declare which
@@ -499,6 +668,31 @@ to read the AN alone — without access to code, experiment logs, or phase
 artifacts — and understand every choice that was made, reproduce every number
 in the results, and evaluate whether the conclusions are supported. If a
 choice requires reading the code to understand, the AN has a gap.
+
+**Depth calibration:** The AN is not a summary — it is the complete record.
+Concrete minimum expectations:
+
+- **Systematics section:** One subsection per source. A summary table alone
+  is insufficient. Each source gets: description, method, impact figure,
+  per-bin table. If the analysis has 5 systematic sources, there are 5
+  subsections plus a summary.
+- **Cross-checks section:** One subsection per cross-check. "Bin-by-bin
+  cross-check confirms the result" is a one-liner, not a subsection. A
+  subsection shows the comparison plot, states the chi2, and interprets
+  the level of agreement.
+- **Event selection:** Every cut gets its own paragraph with a figure
+  reference showing the distribution before and after the cut. A two-row
+  cutflow table ("before" and "after all cuts") is not a cutflow — it
+  must show each cut individually with per-cut and cumulative efficiencies.
+- **Appendices:** Full per-bin systematic tables, covariance/correlation
+  matrices (as tables, not just figures), extended cutflow, auxiliary
+  distributions. The appendices will typically be longer than the main
+  text.
+
+As a rough calibration: a measurement analysis with 5 systematic sources,
+3 cross-checks, 6 selection cuts, and 18 result bins should produce an AN
+of approximately 50–100 pages when rendered. If the AN is under 30 rendered
+pages, it is almost certainly missing required detail.
 
 **LaTeX compilation.** The working format during development is markdown.
 The Phase 5 executor (or a dedicated lower-tier subagent) converts the

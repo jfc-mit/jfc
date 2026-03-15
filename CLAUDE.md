@@ -107,6 +107,44 @@ is fine for simpler cases.
   ```
   Update `pixi.toml` tasks whenever you add or rename a script.
 
+## Execution model: orchestrator + subagents
+
+When running an analysis in a single session, you are the **orchestrator**.
+You do NOT write analysis code yourself. You delegate to subagents:
+
+1. **Spawn executor subagent** for each phase (does the coding, writes artifact)
+2. **Spawn reviewer subagent** (reads artifact from disk, writes findings)
+3. **Check findings**, fix Category A issues via another subagent if needed
+4. **Commit** the phase's work
+5. **Advance** to next phase
+
+Your context stays small — you hold summaries, not execution traces.
+See methodology Section 3.0.1 for the full protocol and prompt templates.
+
+## Phase gates — non-negotiable
+
+Every phase must produce its **written artifact** on disk before the next
+phase begins. No exceptions.
+
+| Phase | Required artifact | Review type |
+|-------|-------------------|-------------|
+| 1 | `phase1_strategy/exec/STRATEGY.md` | 3-bot (or self) |
+| 2 | `phase2_exploration/exec/EXPLORATION.md` | Self |
+| 3 | `phase3_selection/exec/SELECTION.md` | 1-bot (or self) |
+| 4a | `phase4_inference/exec/INFERENCE_EXPECTED.md` | 3-bot (or self) |
+| 4b | `phase4_inference/exec/INFERENCE_PARTIAL.md` | 3-bot (or self) |
+| 4c | `phase4_inference/exec/INFERENCE_OBSERVED.md` | 1-bot (or self) |
+| 5 | `phase5_documentation/exec/ANALYSIS_NOTE.md` | 3-bot (or self) |
+
+**Review before advancing.** After each artifact, spawn a reviewer subagent
+(preferred) or self-review. Write findings to `phase*/review/REVIEW_NOTES.md`.
+
+**Experiment log.** Append to `experiment_log.md` throughout. An empty
+experiment log at the end of a phase is a process failure.
+
+**`all` task.** `pixi.toml` must have an `all` task that runs the full
+analysis chain. Update it whenever scripts are added.
+
 ## Conventions
 
 Before starting work on a technique (unfolding, template fits, etc.), read

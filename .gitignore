@@ -6,3 +6,6 @@ orchestration.md
 # Python
 __pycache__/
 *.pyc
+
+# Completed analyses (prior runs)
+analyses/

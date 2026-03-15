@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(analyses/thrust_alphas/**)",
+      "Edit(analyses/thrust_alphas/**)",
+      "Write(analyses/thrust_alphas/**)",
+      "Read(analyses/thrust_measurement/**)",
+      "Edit(analyses/thrust_measurement/**)",
+      "Write(analyses/thrust_measurement/**)",
+      "Read(**/.env)",
+      "Read(**/node_modules/**)"
+    ]
+  }
+}

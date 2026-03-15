@@ -72,4 +72,20 @@ The orchestrating agent is responsible for keeping context lean:
 - **Supplementary files:** Full tables, workspaces, trained models. Referenced
   from the artifact, consulted only when needed.
 
+### 8.5 Artifacts Before Speed
+
+When context pressure mounts (approaching context limits, long session),
+the agent must prioritize writing the current phase's artifact over rushing
+to start the next phase. A completed Phase 3 with a written `SELECTION.md`
+artifact is far more valuable than a half-finished Phase 4 with no
+intermediate artifacts.
+
+- The artifact is the checkpoint. Code on disk without a written artifact is
+  recoverable but expensive — the next session must re-derive the reasoning.
+- **Never skip an artifact to "save context."** Writing an artifact costs
+  fewer tokens than re-doing the work it documents.
+- If the session must stop, commit the current phase's work (artifact +
+  scripts + experiment log) and stop cleanly. The next session reads the
+  artifacts and resumes.
+
 ---
