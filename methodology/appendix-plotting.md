@@ -99,6 +99,12 @@ plt.close(fig)
   in long scripts.
 - **Figure sizes.** 10x10 base for single plots. Scale proportionally for
   subplots. Ratio plots use `height_ratios=[3, 1]`.
+- **PDF rendering size.** Figures are rendered at `0.5\textwidth` (half page
+  width) in the compiled analysis note PDF. The 10x10 matplotlib figure size
+  produces clean, readable plots at this rendered size. Do not make figures
+  full-width unless they are genuinely complex (e.g., large correlation
+  matrices, multi-panel comparisons). Half-width allows two figures
+  side-by-side and keeps the note compact.
 - **Prefer mplhep functions** (`mh.histplot`, `mh.hist2dplot`) over raw
   matplotlib `ax.hist` / `ax.pcolormesh`. They handle binning, styling,
   and error bars correctly for HEP conventions.

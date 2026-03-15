@@ -111,6 +111,7 @@ def main():
         "-V", "geometry:margin=1in",
         "-V", "documentclass:article",
         "-V", "fontsize:11pt",
+        "-V", r"header-includes:\usepackage{graphicx}\setkeys{Gin}{width=0.5\textwidth,keepaspectratio}",
         "--number-sections",
         "--toc",
         "--toc-depth=3",

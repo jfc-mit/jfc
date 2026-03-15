@@ -695,9 +695,17 @@ of approximately 50–100 pages when rendered. If the AN is under 30 rendered
 pages, it is almost certainly missing required detail.
 
 **LaTeX compilation.** The working format during development is markdown.
-The Phase 5 executor (or a dedicated lower-tier subagent) converts the
-final note to LaTeX, compiles to PDF, and verifies that all figures render
-correctly. The LaTeX source and compiled PDF are both deliverables.
+Conversion to PDF uses **pandoc** (≥3.0, installed via pixi as a conda-forge
+dependency) with pdflatex as the PDF engine. This is a programmatic step —
+do not use an LLM agent to convert markdown to LaTeX manually. The
+`build_pdf.py` script in the analysis's `phase5_documentation/exec/`
+directory handles the conversion, including:
+- Collecting referenced figures into a local `figures/` directory (symlinks)
+- Converting inline figure references to markdown image syntax
+- Setting default figure width to `0.5\textwidth` for half-page-width figures
+- Running `pandoc → PDF` with `--number-sections --toc`
+
+The compiled PDF is a deliverable.
 
 **Output artifact:** `ANALYSIS_NOTE.md` (or `.tex` + compiled PDF) plus
 `results/` directory containing machine-readable data tables.

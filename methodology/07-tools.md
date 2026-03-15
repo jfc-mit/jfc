@@ -24,7 +24,7 @@ what works well in practice.
 | b-tagging | tiered (see below) | No pre-built tagger for ALEPH. Agent builds taggers during Phase 2 — see tiered tagging guidance below. |
 | Dependency mgmt | pixi | All dependencies managed via pixi (conda-forge + pypi). `pixi.toml` / `pyproject.toml` is the single source of truth for the environment. |
 | Logging | logging + rich | Python `logging` with `rich.logging.RichHandler`. No bare `print()`. See Section 11 for setup and enforcement. |
-| Document preparation | LaTeX | pdflatex + bibtex. Markdown acceptable for intermediate artifacts. |
+| Document preparation | pandoc (≥3.0) + pdflatex | Markdown for development, pandoc for PDF conversion. Install pandoc via pixi (`[dependencies] pandoc = ">=3.0"`). Do NOT use an LLM to convert markdown to LaTeX — pandoc handles this programmatically. Default figure width: `0.5\textwidth`. |
 | Experiment knowledge | RAG (SciTreeRAG) | Retrieval over publication/thesis corpus. See Section 2.2. |
 
 **Tiered tagging and classification.** When building taggers or classifiers
