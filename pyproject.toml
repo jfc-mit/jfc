@@ -16,8 +16,7 @@ pyyaml = ">=6.0"
 rich = ">=13.0"
 
 [tool.pixi.tasks]
-build = "python build_spec.py"
-scaffold = "python scaffold_analysis.py"
+scaffold = "python src/scaffold_analysis.py"
 
 [tool.ruff]
 line-length = 88

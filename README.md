@@ -1,89 +1,143 @@
-# slopspec
+# reslop
 
-A specification for LLM-driven High Energy Physics (HEP) collider analyses.
+LLM-driven HEP analysis framework. An orchestrator agent delegates work to
+subagents through five sequential phases, producing a publication-quality
+analysis note.
 
-Give an LLM agent a physics question, a data sample, and this spec — it runs
-the analysis end-to-end, from strategy through statistical inference to a
-draft analysis note. No bespoke framework, just prose guidelines that agents
-interpret using standard scikit-hep tooling.
+## Quick start
+
+```bash
+pixi run scaffold analyses/my_analysis --type measurement
+cd analyses/my_analysis
+# Edit .analysis_config → set data_dir=/path/to/data, add allow= lines
+pixi install
+claude   # pass your physics prompt
+```
+
+## How it works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     ORCHESTRATOR                             │
+│  Never writes code. Holds: prompt, summaries, verdicts only  │
+└─────┬───────────────────────────────────────────────────────┘
+      │
+      ▼
+ ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+ │ Phase 1  │──▶│ Phase 2  │──▶│ Phase 3  │──▶│ Phase 4a │──▶│ Phase 5  │
+ │ Strategy │   │ Explore  │   │ Selection│   │ Inference│   │ Document │
+ │ (3-bot)  │   │ (self)   │   │ (1-bot)  │   │ (3-bot)  │   │ (4-bot)  │
+ └──────────┘   └──────────┘   └──────────┘   └────┬─────┘   └──────────┘
+                                                    │
+                                              HUMAN GATE
+                                          (measurements)
+```
+
+Each phase runs the same loop:
+
+```
+  1. EXECUTE ── spawn executor subagent (enters plan mode first)
+  2. REVIEW ─── spawn reviewer(s) per review type
+  3. CHECK:
+       Regression trigger? → Investigator → fix origin + downstream → resume
+       A or B items?       → fix agent + fresh reviewer → re-review (loop)
+       Only C items?       → PASS, executor applies Cs before commit
+  4. COMMIT
+  5. HUMAN GATE (after 4a for measurements / after 4b for searches)
+  6. ADVANCE
+```
+
+### Phases
+
+| Phase | Review | Key deliverable |
+|-------|--------|-----------------|
+| **1. Strategy** | 3-bot | Technique selection, systematic plan, reference analysis table, conventions enumeration |
+| **2. Exploration** | Self | Sample inventory, data quality, variable ranking, preselection cutflow |
+| **3. Selection** | 1-bot | Event selection, correction chain or background model, closure tests |
+| **4a. Inference** | 3-bot | Systematic completeness table, covariance matrix, reference comparisons |
+| **5. Documentation** | 4-bot | Analysis note (pandoc markdown → PDF, 50-100 pages), machine-readable results |
+
+Measurements skip Phases 4b/4c (nothing to blind). Searches add 4b (10%
+unblinding) and 4c (full unblinding) with a human gate between them.
+
+### Review classification
+
+| Cat | Meaning | Action |
+|-----|---------|--------|
+| **A** | Would cause rejection | Fix + re-review + fresh reviewer |
+| **B** | Weakens the analysis | Same — must be zero before PASS |
+| **C** | Style / clarity | Arbiter PASses; executor applies before commit |
+
+Fresh reviewer added each iteration cycle. Limits: 3-bot warn at 6, strong
+warn at 10. 1-bot warn at 4, escalate at 6.
+
+### Phase regression
+
+Any review can trigger regression when a physics issue is traceable to an
+earlier phase. Most common after Phase 4a/4b and Phase 5 reviews.
+
+```
+Reviewer finds physics issue from Phase M < current Phase N
+  → Investigator traces impact → REGRESSION_TICKET.md
+  → Fix cycle: re-run Phase M, re-run affected downstream, skip unaffected
+  → Resume review at Phase N
+```
+
+### Phase 5: 4-bot review
+
+```
+Critical (referee) + Constructive + Rendering (reads compiled PDF) + Arbiter
+```
+
+The rendering reviewer runs `pixi run build-pdf` and uses the Read tool to
+visually inspect the PDF for figure rendering, math compilation, layout, and
+cross-references.
 
 ## Key concepts
 
-**Phases.** The analysis proceeds through 5 phases: Strategy, Exploration,
-Selection, Inference (with staged unblinding), and Documentation. Each phase
-produces a self-contained artifact. No shared conversation history — the
-artifact is the interface between phases.
+**Technique decided at Phase 1, not scaffold time.** The scaffolder only
+takes `--type measurement|search`. The strategy phase selects the technique
+(unfolding, template fit, etc.), which activates technique-specific
+requirements in later phases.
 
-**Review.** Every phase is reviewed before proceeding. Critical gates (strategy,
-pre-unblinding, documentation) get a 3-agent review: a critic, an advocate,
-and an arbiter. Lighter phases get a single reviewer or self-review. Reviewers
-are told to think like journal referees — checking both correctness (is what's
-here right?) and completeness (is anything missing?).
+**Conventions.** Domain knowledge in `src/conventions/` (symlinked into each
+analysis). Mandatory reads at Phases 1, 4a, and 5. Updated after analysis
+completion.
 
-**Conventions.** Domain knowledge about specific analysis techniques lives in
-`conventions/`. These are living documents maintained across analyses — what
-systematics are standard for unfolded measurements, what validation is
-required before building a response matrix, what pitfalls to avoid. The spec
-says *what* must happen; conventions say *how* it's typically done right.
+**Feasibility evaluation.** When hitting a limitation (missing MC, etc.),
+agents must: state it → evaluate feasibility → estimate cost → decide
+(attempt if it affects the core result, document if minor or infeasible) →
+log the reasoning.
 
-**CLAUDE.md.** Non-negotiable rules (required tools, coding practices, review
-expectations) loaded into every agent session automatically.
+**Isolation.** A PreToolUse hook checks every file access against
+`.analysis_config` (which lists `data_dir` and `allow=` paths). Symlinks
+within the analysis dir (like `conventions/`) are allowed via logical path
+checking.
 
-## Repository structure
+**Pixi everywhere.** Each analysis has its own `pixi.toml` with deps and
+tasks. `pixi run all` is the reproducibility contract. `pixi run build-pdf`
+compiles the analysis note via pandoc.
+
+## Directory structure
 
 ```
-methodology/              # The spec (source of truth, split by section)
-  01-principles.md          Scope and design principles
-  02-inputs.md              Physics prompt + RAG corpus
-  03-phases.md              Phases 1-5 (Strategy -> Documentation)
-  04-blinding.md            Blinding protocol + staged unblinding
-  05-artifacts.md           Artifact format (logs, reports, feedback)
-  06-review.md              Review protocol (framing, focus, completeness checks)
-  07-tools.md               Preferred tool stack + paradigms
-  08-context.md             Context management across phases
-  09-multichannel.md        Multi-channel analysis handling
-  10-scaling.md             Scaling to multiple agents
-  11-coding.md              Version control and coding practices
-  12-downscoping.md         Scope management + future directions
-  appendix-*.md             Dependency graph, checklists, tool heuristics
-
-orchestration/            # How to run it (session management, automation)
-
-conventions/              # Domain knowledge per analysis technique
-  README.md                 Role and maintenance model
-  unfolding.md              Unfolded measurements (systematics, validation, pitfalls)
-
-analyses/                 # Actual analyses run with this spec
-
-CLAUDE.md                 # Always-loaded rules for every agent session
-build_spec.py             # Concatenates split files -> methodology.md, etc.
-pyproject.toml            # pixi + dependencies
+reslop/
+  src/                        Spec infrastructure
+    methodology/              Methodology spec (human reference)
+    orchestration/            Session management (human reference)
+    conventions/              Domain knowledge (symlinked into analyses)
+    templates/                CLAUDE.md and pixi.toml templates
+    scaffold_analysis.py      Scaffolder
+  analyses/                   Each is its own git repo
+    <name>/
+      CLAUDE.md               ~570 lines — self-contained instructions
+      pixi.toml               Environment + task graph
+      .analysis_config        data_dir + allow paths for isolation hook
+      conventions/ → src/conventions/
+      phase{1..5}_*/          Phase dirs with CLAUDE.md, exec/, scripts/, figures/, review/
 ```
 
-`pixi run build` concatenates the split files into `methodology.md`,
-`orchestration.md`, and `conventions.md` for agent consumption.
+## Requirements
 
-## Design principles
-
-- **Prose over code.** Agents interpret guidelines, not execute templates.
-- **Artifacts over memory.** Each phase reads upstream reports, not prior
-  conversations.
-- **Standard tools.** uproot, awkward-array, hist, coffea, pyhf, mplhep —
-  the scikit-hep ecosystem. No custom frameworks.
-- **Conventions over silence.** Accumulated domain knowledge is written down
-  in `conventions/`, not assumed. Agents consult conventions; reviewers check
-  against them.
-- **Completeness over consistency.** Internal consistency (closure tests pass)
-  is necessary but not sufficient. Reviews also check external completeness
-  (are we doing what the field considers standard?).
-- **Blinding by default.** Asimov-only until the agent gate passes, then
-  staged unblinding (10% data, then full) with a human gate before the
-  final step.
-- **Downscope, don't block.** Missing resources? Use a simpler method,
-  document the limitation, flag it for future work.
-
-## Status
-
-Tested against ALEPH/LEP archived data (thrust measurement). Conventions
-and review protocol updated based on post-mortem comparison with an
-independent analysis of the same data. Expect continued evolution.
+- [pixi](https://pixi.sh) for environment management
+- [Claude Code](https://claude.ai/claude-code) as the agent runtime
