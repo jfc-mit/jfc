@@ -1,0 +1,24 @@
+pwflag Category Coverage Summary
+============================================================
+Input: 1 data file (1994P1) + 1 MC file (001), passesAll applied.
+
+Flag   Description                                Data frac%   MC frac%
+----------------------------------------------------------------------
+0      Good charged tracks (primary)                 60.4759    59.6889
+1      Charged tracks (reduced quality)               2.3109     2.2899
+2      Charged tracks (further reduced quality)       1.6209     1.4643
+3      Charged tracks (pathological / very few)       0.0429     0.0291
+4      Neutral calorimeter clusters                  25.2396    26.0187
+5      Additional neutral objects                    10.3098    10.5090
+
+1% threshold for mandatory plotting: 1%
+
+Flags above threshold (plots produced): [0, 1, 2, 4, 5]
+
+Particle counts per category (data / MC):
+  pwflag=0: data  7,381,753 particles in   410,998 events | MC  325,679 particles in   18,131 events
+  pwflag=1: data    239,055 particles in   167,293 events | MC   10,662 particles in    7,438 events
+  pwflag=2: data     86,772 particles in    74,789 events | MC    3,536 particles in    3,068 events
+  pwflag=3: data        732 particles in       729 events | MC       24 particles in       24 events
+  pwflag=4: data  3,158,165 particles in   409,885 events | MC  147,744 particles in   18,099 events
+  pwflag=5: data  1,212,479 particles in   387,107 events | MC   51,009 particles in   16,863 events

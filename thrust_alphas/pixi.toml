@@ -42,10 +42,13 @@ explore-inspect = "python phase2_exploration/scripts/02_inspect_sample.py"
 explore-distributions = "python phase2_exploration/scripts/03_distributions.py"
 explore-mc-truth = "python phase2_exploration/scripts/04_mc_truth_response.py"
 explore-all = "python phase2_exploration/scripts/01_discover_structure.py && python phase2_exploration/scripts/02_inspect_sample.py && python phase2_exploration/scripts/03_distributions.py && python phase2_exploration/scripts/04_mc_truth_response.py"
-# --- Analysis tasks: add as you write scripts ---
-# Each script gets an independently runnable task.
-# The "all" task chains the full sequence — this is the reproducibility contract.
-# Example:
-#   select = "python phase3_selection/scripts/apply_selection.py"
-#   unfold = "python phase4_inference/scripts/unfold.py"
-#   all = "python phase3_selection/scripts/apply_selection.py && python phase4_inference/scripts/unfold.py"
+# --- Phase 3: Selection and Modeling ---
+select = "python phase3_selection/scripts/apply_selection.py"
+response = "python phase3_selection/scripts/build_response.py"
+closure = "python phase3_selection/scripts/run_closure.py"
+datamc = "python phase3_selection/scripts/data_mc_validation.py"
+validate-pwflags = "python phase3_selection/scripts/validate_pwflag_categories.py"
+prototype = "python phase3_selection/scripts/prototype_chain.py"
+phase3-all = "python phase3_selection/scripts/apply_selection.py && python phase3_selection/scripts/build_response.py && python phase3_selection/scripts/run_closure.py && python phase3_selection/scripts/data_mc_validation.py && python phase3_selection/scripts/validate_pwflag_categories.py && python phase3_selection/scripts/prototype_chain.py"
+# --- Full analysis chain (update as phases are added) ---
+all = "python phase3_selection/scripts/apply_selection.py && python phase3_selection/scripts/build_response.py && python phase3_selection/scripts/run_closure.py && python phase3_selection/scripts/data_mc_validation.py && python phase3_selection/scripts/validate_pwflag_categories.py && python phase3_selection/scripts/prototype_chain.py"

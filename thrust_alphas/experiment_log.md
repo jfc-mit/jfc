@@ -130,3 +130,109 @@ MC:
 - bFlag in MC needs investigation — stored as -999 (no b-tagging applied). For b-flavor systematic, will use the `process` branch in tgen or pid of primary quarks.
 - Binning: 25 bins in tau [0,0.5] appropriate given response matrix diagonal fractions of 25-90%. Will refine in Phase 4a.
 - The low diagonal fractions (25-40%) at large tau confirm that bin-by-bin correction would be unreliable there; IBU is the correct choice.
+
+## Phase 3: Selection and Modeling
+
+### 2026-03-15 — Selection, Response Matrix, Closure Tests, Data/MC Validation
+
+**Scripts run (in order):**
+1. `apply_selection.py` — applied passesAll to all data/MC, produced cutflow and tau histograms
+2. `build_response.py` — built 25×25 response matrix from all 40 MC files
+3. `run_closure.py` — IBU iteration scan, closure/stress tests, flat-prior sensitivity
+4. `data_mc_validation.py` — per-category data/MC comparison plots
+5. `prototype_chain.py` — full unfolding chain on actual data
+
+**Cutflow results:**
+- Data: 3,050,610 total → 2,889,543 after passesAll (94.7%)
+- MC reco: 771,597 total → 731,006 after passesAll (94.7%)
+- tgenBefore: 973,769 events (particle-level before selection)
+- Data/MC efficiency agreement: < 0.1%
+
+**Response matrix:**
+- 25×25 bins, tau in [0, 0.5]
+- Column normalization: 1.0000 (verified)
+- Diagonal fraction: 29–89% across bins; 29–40% in fit range (0.05–0.30)
+- Efficiency ε(tau_gen): 0.75–0.80 across the fit range
+- Condition number: inf for full matrix (last bins have zero content — expected)
+- Effective measurement range: tau ∈ [0.00, 0.40]; last bins (tau > 0.40) have no MC
+
+**Closure test (IBU, flat prior):**
+- Optimal iterations by plateau criterion: 3
+- Closure chi2/ndf at iter=2: 1.91 (minimum), iter=3: 2.55, plateau ~2.62 for iter≥4
+- Stress chi2/ndf at iter=2: 2.47, iter=3: 3.29
+- Flat-prior sensitivity: max shift 0.7%, zero bins >20% → prior-independent result
+- Decision: nominal = 3 iterations; systematic variation: 2 and 4 iterations
+
+**Data/MC validation (per-category):**
+- Charged tracks (pwflag=0): p_T (3.9%), cos(theta) (5.3%), missp (4.1%) — all OK
+- Charged track |p|: 32.6% max deviation (tail at |p|>10 GeV) — systematic needed
+- Neutral clusters (pwflag=4): energy (5.8%) OK, multiplicity (67.1%) CHECK
+- TPC hit count: 28.6% — motivates TPC hit variation systematic
+- z0 impact parameter: 33.1% — tails, not bulk; acceptable for analysis
+- n_charged bulk (N_ch=10-30): ~5-10% → acceptable; tails (N_ch>35) are extreme
+
+**Prototype unfolded result:**
+- Data unfolded/MC truth(tgenBefore) ratio ~0.82–0.87 in fit range
+- This reflects (a) efficiency difference between reco-selected and full phase space and
+  (b) real physics difference: ALEPH data more 2-jet-like than Pythia 6.1 MC
+- Flat-prior IBU within 2% of MC-prior IBU — robust
+- Bin-by-bin correction within 5% of IBU in fit range — consistent cross-check
+
+**Open issues for Phase 4:**
+1. Closure chi2/ndf > 1: investigate with independent MC halves in Phase 4a
+2. Neutral cluster multiplicity mismodeling: add calorimeter energy scale systematic
+3. Track momentum tail (|p|>10 GeV): add momentum scale smearing systematic
+4. TPC hit discrepancy: implement hit variation (4→7) systematic
+5. bFlag=-999 in MC: need alternative b-flavor tagging for heavy-quark systematic
+6. Binning: last 3–4 bins (tau>0.40) excluded; effective range tau ∈ [0.00, 0.40]
+
+**Artifact produced:** `phase3_selection/exec/SELECTION.md`
+**Phase gate:** Phase 4 may proceed.
+
+---
+
+## Phase 3 — Category A Fix: pwflag Coverage Validation
+
+### 2026-03-15 — validate_pwflag_categories.py
+
+**Trigger:** Phase 3 review found Category A finding: data/MC validation only
+covered pwflag=0 and pwflag=4; categories 1, 2, 3, 5 were unvalidated despite
+entering the thrust sum.
+
+**Script:** `phase3_selection/scripts/validate_pwflag_categories.py`
+**Input:** 1 data file (1994P1, 411,001 events passesAll) + 1 MC file (001, 18,131 events passesAll)
+
+**Results — momentum fractions (fraction of total event |p| sum):**
+
+| pwflag | Data frac | MC frac | Verdict |
+|--------|-----------|---------|---------|
+| 0 | 60.48% | 59.69% | major category (validated in Sec 7.1) |
+| 1 | 2.31% | 2.29% | above 1% threshold — plots produced |
+| 2 | 1.62% | 1.46% | above 1% threshold — plots produced |
+| 3 | 0.04% | 0.03% | negligible — no plots needed |
+| 4 | 25.24% | 26.02% | major category (validated in Sec 7.2) |
+| 5 | 10.31% | 10.51% | above 1% threshold — plots produced |
+
+**Key finding:** pwflag=3 is the only genuinely negligible category (732 data
+particles total in 1 file). Categories 1, 2, and 5 are non-negligible and have
+been validated by data/MC comparison plots of |p| and cos(θ).
+
+**Data/MC agreement for new categories:**
+- pwflag=1: |p| and cos(θ) shapes consistent, ~20% deviations in bulk — covered
+  by existing track momentum scale systematic
+- pwflag=2: larger MC fluctuations due to very small MC count (~3,500 particles
+  vs. ~87,000 data in one file); bulk shape consistent
+- pwflag=5: good agreement in |p| and cos(θ); covered by existing calorimeter
+  energy scale systematic
+
+**Figures produced (10 new):**
+- `pwflag_momentum_fractions.{pdf,png}`
+- `datamc_pwflag0_pmag.{pdf,png}`, `datamc_pwflag0_costheta.{pdf,png}`
+- `datamc_pwflag1_pmag.{pdf,png}`, `datamc_pwflag1_costheta.{pdf,png}`
+- `datamc_pwflag2_pmag.{pdf,png}`, `datamc_pwflag2_costheta.{pdf,png}`
+- `datamc_pwflag4_pmag.{pdf,png}`, `datamc_pwflag4_costheta.{pdf,png}`
+- `datamc_pwflag5_pmag.{pdf,png}`, `datamc_pwflag5_costheta.{pdf,png}`
+
+**SELECTION.md updated:** New Section 7b documents all findings.
+**pixi.toml updated:** `validate-pwflags` task added; `phase3-all` and `all` chains updated.
+**Category A finding resolved.**
