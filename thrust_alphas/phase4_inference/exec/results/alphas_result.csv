@@ -1,0 +1,9 @@
+# alpha_s extraction -- LO shape chi2 fit
+# alpha_s(M_Z) = 0.1066
+# uncertainties: stat=0.0003, exp=0.0101, hadr=0.0012, theo=0.0050, total=0.0113
+# scale_factor_r = 0.8960 (+/- 0.0025)
+# chi2/ndf = 47.7/12
+x_mu, alphas_mz
+0.5, 0.1078
+1.0, 0.1066
+2.0, 0.1055

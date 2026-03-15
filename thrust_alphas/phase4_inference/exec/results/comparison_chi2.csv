@@ -1,0 +1,5 @@
+# Comparison of our thrust distribution to references
+reference, chi2, ndf, chi2_per_ndf, pvalue, method
+Pythia6.1, 67.9, 13, 5.219, 0.0000, full_covariance
+ALEPH2004_approx, 28.0, 12, 2.332, 0.0056, diagonal_approx
+ArchivedALEPH_approx, 22.6, 12, 1.880, 0.0318, diagonal_approx
