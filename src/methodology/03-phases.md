@@ -66,6 +66,8 @@ for each phase in [1, 2, 3, 4a, 4b, 4c, 5]:
      - Instruction to write REVIEW_NOTES.md in the phase directory
 
   3. CHECK — orchestrator reads the review findings (short).
+     If regression trigger found:
+       - Enter Phase Regression protocol (see Section 6.8)
      If Category A issues exist:
        - Spawn a fix agent with the artifact + findings
        - Re-review after fix
@@ -136,11 +138,13 @@ The key question: "What would a knowledgeable referee ask for that
 isn't here?"
 ```
 
-*3-bot review (for phases requiring it):*
-Spawn three reviewer agents in parallel:
-1. Critical reviewer — "find everything wrong or missing"
-2. Constructive reviewer — "what would make this stronger"
-3. Arbiter — reads both reviews, issues PASS / ITERATE / ESCALATE
+*4-bot review (for phases requiring it):*
+Spawn four reviewer agents (first three in parallel):
+1. Physics reviewer — "is the physics correct and complete?" (receives
+   only the physics prompt and artifact, no methodology or conventions)
+2. Critical reviewer — "find everything wrong or missing"
+3. Constructive reviewer — "what would make this stronger"
+4. Arbiter — reads all reviews, issues PASS / ITERATE / ESCALATE
 
 The arbiter's verdict determines whether the phase advances.
 
@@ -170,6 +174,16 @@ the failure mode the orchestrator pattern exists to prevent.
 **Anti-pattern:** The orchestrator doing the phase work itself instead of
 delegating. If the orchestrator is writing analysis scripts, it is not
 orchestrating — it is executing, and its context will fill up.
+
+**Health monitoring.** The orchestrator should:
+- **Commit before spawning** each subagent, so work is checkpointed.
+- **Check progress** every ~5 minutes for long-running subagents (where the
+  agent framework supports non-blocking progress checks).
+- **Respawn stalled agents** — if a subagent has not committed in >10 minutes
+  and shows no progress, terminate and respawn from the last commit.
+- When the agent framework supports **background/non-blocking agent spawning**,
+  the orchestrator should use it for long-running subagents. This allows
+  monitoring and respawning without blocking the orchestrator's context.
 
 ---
 
@@ -261,6 +275,12 @@ establish the foundation for event selection.
   for signal and principal backgrounds, rank by separation power
 - Establish baseline event yields after preselection
 
+**PDF build test.** At the end of Phase 2, run a stub PDF build (`pixi run
+build-pdf`) to verify the toolchain works — pandoc, xelatex, pandoc-crossref,
+and citeproc are all installed and functional. Create a minimal
+`phase5_documentation/exec/ANALYSIS_NOTE.md` stub with a title and one figure
+reference. Fix any build issues now, not in Phase 5 when the full AN is ready.
+
 **Output artifact:** `EXPLORATION.md` — sample inventory, data quality summary,
 variable ranking with distributions, preselection cutflow, and data/MC
 comparison observations.
@@ -288,7 +308,7 @@ This discovery process is documented in the artifact.
 
 ---
 
-### Phase 3: Selection and Modeling
+### Phase 3: Processing
 
 **Goal:** Implement the analysis approach defined in the Phase 1 strategy.
 For searches: define the selection, design control and validation regions,
@@ -309,7 +329,11 @@ executes the plan, it does not redesign it.
   optimize the classifier. Document feature importance and working point choice.
 - If cut-based: optimize cut values with a figure of merit and document N-1
   distributions.
-- Produce the final signal region definition and cutflow with efficiencies
+- Produce the final signal region definition and cutflow with efficiencies.
+  **Cutflow counts must be monotonically non-increasing** — if any cut
+  increases the event count, something is structurally wrong (e.g., a cut
+  applied to the wrong mask, a weight applied incorrectly). This is
+  Category A if violated.
 - **Every cut must be motivated by a plot.** The artifact must include, for
   each selection cut, the distribution of the cut variable showing signal and
   background. The plot should make visually clear why this cut value was chosen
@@ -358,6 +382,12 @@ pipeline — not yet the final measurement (systematic evaluation is Phase 4a).
 - Prototype the full chain on data to verify it runs without errors. The
   corrected spectrum at this stage is a working result, not the final
   measurement.
+- **Binning must be justified.** Every binning choice (for histograms,
+  response matrices, fit templates) must be motivated by one or more of:
+  detector resolution (bin width ≥ resolution), statistical precision
+  (sufficient events per bin), physics features (bin boundaries at physical
+  thresholds). "Default numpy bins" or arbitrary round numbers are not
+  justifications. Document the reasoning in the artifact.
 - Prepare inputs for Phase 4a systematic evaluation: nominal response matrix,
   selection machinery that can be re-run with varied cuts, alternative MC
   samples if available.
@@ -425,35 +455,11 @@ Category A.
 
 ---
 
-### Phase 4: Systematic Uncertainties and Statistical Inference
+### Phase 4: Statistical Analysis
 
 This is the longest phase, with three distinct sub-phases separated by
-gates. Each sub-phase produces its own artifact.
-
-**Measurement vs. search flow.** The sub-phase structure below is designed
-for searches with blinding. For **measurements** (corrected spectra, event
-shapes, extracted parameters) where the observable is the result and there
-is nothing to blind:
-
-- **Phase 4a (Expected Results)** is the primary inference phase. It includes
-  systematic evaluation, correction/unfolding, covariance construction, and
-  comparison to references. This is where the measurement is made.
-- **Phase 4b and 4c are skipped** unless the measurement involves a quantity
-  that could bias the analyst (e.g., an anomalous coupling fit where the
-  analyst might tune to a preferred value). For standard corrected spectra,
-  the result is visible throughout — there is nothing to unblind.
-- The **3-bot review gate** still applies at Phase 4a for measurements. The
-  review evaluates systematic completeness, correction validation, and
-  result quality — the same scrutiny, just without the blinding ceremony.
-- For measurements, Phase 4a must also produce `ANALYSIS_NOTE_DRAFT.md` —
-  a near-complete analysis note (same structure as the search-flow draft
-  described in Phase 4b below). The result is already final; only Phase 5
-  polishing remains. A non-blocking subagent (lowest tier) should compile
-  the draft to LaTeX/PDF in parallel with the review cycle, so the human
-  gate receives a rendered document.
-- The **human gate** applies after Phase 4a review passes: the human sees
-  the draft analysis note (as PDF) and measurement result before proceeding
-  to Phase 5.
+gates. Each sub-phase produces its own artifact. **Both measurements and
+searches follow the same 4a → 4b → 4c structure.**
 
 #### Phase 4a: Expected Results
 
@@ -480,6 +486,15 @@ and compute expected results using Asimov data only.
 - Perform signal injection tests: inject signal at known strengths and verify
   the fit recovers them
 
+*Goodness-of-fit:*
+- Compute chi2/ndf for all fits and comparisons. Report the value and
+  interpret it (chi2/ndf ~ 1 is good; >>1 indicates mismodeling; <<1
+  indicates overestimated uncertainties or overfitting).
+- For measurements with binned results: use the saturated model as the
+  reference for GoF. Generate toys under the null hypothesis and compute
+  the p-value. Report the toy distribution alongside the observed test
+  statistic.
+
 *Expected results:*
 - Compute expected results (limits, significance, or measurement precision)
 - Produce pre-unblinding fit diagnostics
@@ -500,24 +515,30 @@ signal injection test outcomes.
   matrix. If no theory prediction is available, justify why and compare to
   published measurements instead.
 
-**Review:** 3-bot review (Section 6.2). For searches, this gates partial
-unblinding. For measurements, this gates the human review before Phase 5.
+**Review:** 4-bot review (Section 6.2). This gates the 10% data validation
+(Phase 4b).
 The cycle repeats until the arbiter issues PASS.
 
-#### Phase 4b: Partial Unblinding (10% Data)
+#### Phase 4b: 10% Data Validation
 
-**Goal:** Reality-check the analysis with a small data subsample.
+**Goal:** Reality-check the analysis with a small data subsample and produce
+the draft analysis note.
 
-**Inputs:** Phase 4a artifact, statistical model, 10% SR data subsample.
+**Inputs:** Phase 4a artifact, statistical model, 10% data subsample.
 
 **The agent must:**
-- Select 10% of SR data using a fixed random seed
-- Run the full fit on this subsample
+- Select 10% of data using a fixed random seed
+- Run the full analysis chain (fit, correction, or extraction) on this subsample
 - Evaluate goodness-of-fit, nuisance parameter pulls, impact ranking
 - Compare observed and expected results (should be compatible within the large
   statistical uncertainties)
 - Document any discrepancies and their explanations
 - If problems are found, fix them and re-run (without seeing additional data)
+
+**For searches:** This is a partial unblinding — 10% of the signal region data.
+**For measurements:** This is a consistency validation — compare the 10% result
+to the expected result from Phase 4a. Agreement validates the correction chain
+and systematic evaluation on real data before committing to the full dataset.
 
 **Output artifact:** `INFERENCE_PARTIAL.md` — 10% observed results, post-fit
 diagnostics, comparison to expected, and assessment of analysis health.
@@ -528,28 +549,30 @@ Phase 5. This is not a summary — it is the comprehensive AN with all
 sections, cross-checks, systematic descriptions, and appendices, using 10%
 observed results as placeholders for the final numbers. Only the full-data
 results and their interpretation are missing. The Phase 5 step then updates
-numbers, not structure. A non-blocking subagent (lowest tier) should compile
+numbers, not structure. A non-blocking subagent should compile
 the draft to LaTeX/PDF in parallel with the review cycle, so the human gate
 receives a rendered document.
 
-**Review:** 3-bot review (Section 6.2) on the draft analysis note. The
-critical and constructive reviewers evaluate the note as collaboration
-reviewers would. The arbiter must PASS before the note goes to a human.
-The point: the human should receive a polished product, not a rough draft.
+**Review:** 4-bot review (Section 6.2) on the draft analysis note. The
+physics, critical, and constructive reviewers evaluate the note as
+collaboration reviewers would. The arbiter must PASS before the note goes to
+a human. The point: the human should receive a polished product, not a rough
+draft.
 
-**Human gate:** After the arbiter passes, the draft note, unblinding
-checklist, and all phase artifacts are presented for human review (Section
-4.3). The analysis pauses until the human approves full unblinding.
+**Human gate:** After the arbiter passes, the draft note and all phase
+artifacts are presented for human review (Section 4.3 for searches, or
+equivalent for measurements). The analysis pauses until the human approves
+proceeding to full data.
 
-#### Phase 4c: Full Unblinding
+#### Phase 4c: Full Data
 
-**Goal:** Compute final observed results on the full dataset.
+**Goal:** Compute final results on the full dataset.
 
-**Inputs:** Phase 4a+4b artifacts, statistical model, full SR data, human
+**Inputs:** Phase 4a+4b artifacts, statistical model, full data, human
 approval.
 
 **The agent must:**
-- Run the full fit on the complete dataset
+- Run the full analysis chain on the complete dataset
 - Produce post-fit diagnostics: nuisance parameter pulls, impact ranking,
   correlation matrix, goodness-of-fit
 - Compare to 10% results (consistency check) and expected results
@@ -560,7 +583,7 @@ approval.
 **Output artifact:** `INFERENCE_OBSERVED.md` — full observed results, post-fit
 diagnostics, interpretation, and comparison to partial and expected results.
 
-**Review:** Standard results + writeup review (Section 6).
+**Review:** 1-bot review (Section 6.2). Methodology already human-approved.
 
 ---
 
@@ -644,7 +667,7 @@ found a gap.
 10. **Conclusions** — Summary of the result, its precision, the dominant
     limitations, and the physics interpretation.
 
-11. **Future directions** — Concrete roadmap per Section 12.6.
+11. **Future directions** — Concrete roadmap per Section 12.7.
 
 12. **Appendices** — Supporting material that would interrupt the main flow:
     full systematic tables per bin, auxiliary distributions, extended cutflow
@@ -693,6 +716,13 @@ As a rough calibration: a measurement analysis with 5 systematic sources,
 3 cross-checks, 6 selection cuts, and 18 result bins should produce an AN
 of approximately 50–100 pages when rendered. If the AN is under 30 rendered
 pages, it is almost certainly missing required detail.
+
+**Bibliography.** Citations use pandoc's `[@key]` syntax with a
+`references.bib` BibTeX file in the analysis note directory. Populate
+`references.bib` as sources are cited — every retrieved paper, every
+published measurement used for comparison, every theory prediction. The
+`build-pdf` task includes `--citeproc` to process citations automatically.
+BibTeX entries can be obtained from INSPIRE-HEP or the RAG corpus metadata.
 
 **LaTeX compilation.** The working format during development is markdown.
 Conversion to PDF uses **pandoc** (≥3.0, installed via pixi as a conda-forge

@@ -43,7 +43,7 @@ rich = ">=13.0"
 
 [tasks]
 py = "python"
-build-pdf = "cd phase5_documentation/exec && pandoc ANALYSIS_NOTE.md -o ANALYSIS_NOTE.pdf --pdf-engine=xelatex -V geometry:margin=1in -V documentclass:article -V fontsize:11pt --number-sections --toc -V header-includes='\\usepackage{graphicx}\\setkeys{Gin}{width=0.5\\textwidth,keepaspectratio}'"
+build-pdf = "cd phase5_documentation/exec && pandoc ANALYSIS_NOTE.md -o ANALYSIS_NOTE.pdf --pdf-engine=xelatex -V geometry:margin=1in -V documentclass:article -V fontsize:11pt --number-sections --toc --filter pandoc-crossref --citeproc -V header-includes='\\usepackage{graphicx}\\setkeys{Gin}{width=0.45\\linewidth,keepaspectratio}'"
 # --- Analysis tasks: add as you write scripts ---
 # Each script gets an independently runnable task.
 # The "all" task chains the full sequence — this is the reproducibility contract.

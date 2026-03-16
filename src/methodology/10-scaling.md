@@ -1,4 +1,4 @@
-## 10. Scaling to Multiple Agents
+## 10. Parallelism
 
 This specification is written for a single agent executing phases sequentially.
 For parallel execution:
@@ -37,9 +37,8 @@ Sub-agents within a phase:
 - Receive **explicit, bounded inputs** — the executor writes an input
   specification, the sub-agent reads it and writes output files.
 - Share the phase's **experiment log** — sub-agents append to the same log.
-- Use **appropriate model tiers** — BDT training and plot generation can use
-  mid or low-tier models; the executor coordinating them uses the phase's
-  assigned tier.
+- Use **dedicated sub-agents** — BDT training and plot generation can use
+  dedicated sub-agents; the executor coordinates them.
 
 The executor should not sub-delegate *judgment* — decisions about which
 backgrounds to include, what selection approach to use, or whether closure

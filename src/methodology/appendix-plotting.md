@@ -24,7 +24,7 @@ fig, ax = plt.subplots(figsize=(10, 10))
 #     gridspec_kw={"height_ratios": [3, 1]},
 #     sharex=True,
 # )
-# fig.subplots_adjust(hspace=0.0)
+# fig.subplots_adjust(hspace=0)  # REQUIRED — no gap between main and ratio
 
 # --- Your plotting code ---
 
@@ -39,7 +39,7 @@ fig, ax = plt.subplots(figsize=(10, 10))
 
 # --- Labels (required on EVERY axes in multi-panel figures) ---
 mh.label.exp_label(
-    exp="",          # e.g. "ALEPH", "CMS"
+    exp="<EXPERIMENT>",  # MANDATORY — set to your experiment, e.g. "ALEPH", "CMS"
     text="",         # e.g. "Preliminary" (leave "" for final)
     loc=0,
     data=False,      # True when real data is used (suppresses "Simulation")
@@ -65,19 +65,22 @@ plt.close(fig)
 
 - **Style:** Always `mh.style.use("CMS")` as the base. Experiment branding
   comes from `exp_label`, not the style.
-- **Font sizes are LOCKED.** Do not pass `fontsize=` to ANY matplotlib call
-  (`set_xlabel`, `set_ylabel`, `set_title`, `tick_params`, `annotate`,
-  `text`). The CMS stylesheet sets all font sizes correctly for the 10x10
-  figure size. The ONLY exception is `ax.legend(fontsize="x-small")`. Any
-  script that sets a custom font size is a Category A review finding.
+- **Font sizes are LOCKED.** Do not pass absolute numeric `fontsize=` values
+  to ANY matplotlib call (`set_xlabel`, `set_ylabel`, `set_title`,
+  `tick_params`, `annotate`, `text`). The CMS stylesheet sets all font sizes
+  correctly for the 10x10 figure size. Relative string sizes (`'small'`,
+  `'x-small'`, `'xx-small'`) are allowed where needed (e.g., dense legends,
+  annotation text). Any script that sets a numeric font size is a Category A
+  review finding.
 - **Legend font size.** Always pass `fontsize="x-small"` to `ax.legend(...)`.
 - **Aspect.** Keep figures with square aspect. For 2D plots with colorbars,
   you MUST use one of these to prevent the colorbar from squashing the plot:
   - `mh.hist2dplot(H, cbarextend=True)` — preferred, handles it automatically
   - `cax = mh.utils.make_square_add_cbar(ax)` then `fig.colorbar(im, cax=cax)`
   - `cax = mh.utils.append_axes(ax, extend=True)` then `fig.colorbar(im, cax=cax)`
-  Never just do `fig.colorbar(im)` or `plt.colorbar()` — these steal space
-  from the axes and break the square aspect.
+  Never just do `fig.colorbar(im)`, `fig.colorbar(im, ax=ax, shrink=...)`,
+  or `plt.colorbar()` — these steal space from the axes and break the
+  square aspect.
 - **No titles.** Never `ax.set_title()`. Captions go in the analysis note.
   Instead additional info can go into `ax.legend(title="...")`. And when
   truly necessary it can go into `mh.utils.add_text(text, ax=ax)`
@@ -107,20 +110,56 @@ plt.close(fig)
   `height_ratios=[3, 1]`. For 2×2 subplots, use `figsize=(20, 20)`. The
   rule is: 10 inches per subplot column, 10 inches per subplot row.
   **Any script that uses a custom figsize is a Category A review finding.**
-- **PDF rendering size.** Figures are rendered at `0.5\textwidth` (half page
-  width) in the compiled analysis note PDF. The 10x10 matplotlib figure size
-  produces clean, readable plots at this rendered size. Do not make figures
-  full-width unless they are genuinely complex (e.g., large correlation
-  matrices, multi-panel comparisons). Half-width allows two figures
-  side-by-side and keeps the note compact.
+- **PDF rendering size.** Single figures are rendered at `0.45\linewidth`
+  in the compiled analysis note PDF. Grid/multi-panel figures use
+  `\linewidth` (full width). The 10x10 matplotlib figure size produces
+  clean, readable plots at `0.45\linewidth`. The default in the pandoc
+  preamble is `0.45\linewidth`; override with pandoc-crossref attributes
+  when a figure genuinely needs full width (e.g., large correlation
+  matrices, multi-panel comparisons).
+- **Ratio plot hspace.** `fig.subplots_adjust(hspace=0)` is non-negotiable
+  for ratio plots. Any visible gap between the main panel and ratio panel
+  is a Category A review finding.
+- **Log scale.** Use `ax.set_yscale("log")` when the y-axis range spans
+  more than 2 orders of magnitude. Linear scale is appropriate otherwise.
 - **Prefer mplhep functions** (`mh.histplot`, `mh.hist2dplot`) over raw
   matplotlib `ax.hist` / `ax.pcolormesh`. They handle binning, styling,
   and error bars correctly for HEP conventions.
 - **Deterministic.** `np.random.seed(42)` if any randomness is involved.
 
+### Error propagation for derived quantities
+
+When plotting derived quantities (ratios, normalized distributions,
+efficiencies), uncertainties must be propagated manually — matplotlib does
+not do this automatically.
+
+**Common formulas:**
+- **Normalized distribution** `(1/N) dN/dx`: `yerr[i] = sqrt(n[i]) / (N * dx[i])` where `N = sum(n)` and `dx[i]` is the bin width. For Poisson counts, `sqrt(n[i])` is the per-bin uncertainty.
+- **Ratio** `R = A/B`: `sigma_R = R * sqrt((sigma_A/A)^2 + (sigma_B/B)^2)` (uncorrelated errors)
+- **Efficiency** `ε = k/n`: use Clopper-Pearson (binomial) intervals, not Gaussian propagation. `scipy.stats.binom` provides these.
+- **Bin-width-normalized** `dN/dx`: `yerr[i] = sqrt(n[i]) / dx[i]`
+
+Always pass `yerr=` explicitly to `mh.histplot()` or `ax.errorbar()` for
+derived quantities. Relying on `mh.histplot` auto-errors is only correct
+for raw counts.
+
+### Captions
+
+See §5.2 for caption requirements. Captions must be self-contained: state
+what is plotted, identify all curves/markers/bands, and state the key
+conclusion. Sparse captions are Category A.
+
+### Subfigures and figure grouping
+
+Group related figures into grids rather than presenting them as separate
+figures. Use letter labels (`(a)`, `(b)`, etc.) with `ax.text(0.05, 0.95,
+"(a)", transform=ax.transAxes, fontsize="small", va="top")` in each panel.
+Write a single caption describing all sub-panels. This keeps the note
+compact and makes comparisons easier for the reader.
+
 ### Delegation to plotting subagent
 
-Plotting should be delegated to a lightweight (Haiku-tier) subagent. When
+Plotting should be delegated to a dedicated subagent. When
 spawning a plotting subagent, the parent agent must include in the prompt:
 
 1. **This entire appendix** (copy the template and rules above into the

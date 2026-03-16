@@ -22,7 +22,17 @@ If either fails, fix it before requesting review.
 ## Analysis note structure
 
 The AN must be written as **pandoc-compatible markdown** (see root CLAUDE.md
-for syntax rules). It must contain at minimum:
+for syntax rules).
+
+**Cross-references and citations:**
+- Every figure MUST have a label: `![Caption](figures/name.pdf){#fig:name}`
+- Reference figures as `@fig:name` (produces "fig. X"). At sentence start:
+  `Figure @fig:name`. Never use `[-@fig:...]`.
+- Citations use `[@key]` syntax with `references.bib` in the exec directory.
+  Populate the bib file as you add citations. `build-pdf` uses `--citeproc`.
+- Tables: `{#tbl:name}` and `@tbl:name`. Equations: `{#eq:name}` and `@eq:name`.
+
+It must contain at minimum:
 
 1. **Introduction** — physics motivation, observable definition, prior
    measurements with citations
@@ -87,15 +97,18 @@ TOC, and half-page-width figures.
 
 ## Review
 
-Phase 5 uses **4-bot review** — the extended review that is the primary
+Phase 5 uses **5-bot review** — the extended review that is the primary
 bug-catching mechanism for the entire analysis:
 
-1. **Critical reviewer** — reads the AN as a journal referee would. Finds
+1. **Physics reviewer** — receives ONLY the physics prompt and the AN.
+   Reviews as a senior collaboration member (ARC/L2 convener): "Is this
+   physics correct? Is it complete? Would I approve this?"
+2. **Critical reviewer** — reads the AN as a journal referee would. Finds
    physics errors, methodological gaps, missing evidence. Does NOT consult
    experiment logs or phase artifacts — only the note itself.
-2. **Constructive reviewer** — identifies what would strengthen the analysis.
+3. **Constructive reviewer** — identifies what would strengthen the analysis.
    Proposes concrete improvements.
-3. **Rendering reviewer** — runs `pixi run build-pdf`, then uses the Read
+4. **Rendering reviewer** — runs `pixi run build-pdf`, then uses the Read
    tool to open the compiled PDF (`phase5_documentation/exec/ANALYSIS_NOTE.pdf`)
    for visual inspection. Checks:
    - Do all figures render (not broken/missing)?
@@ -103,7 +116,7 @@ bug-catching mechanism for the entire analysis:
    - Is the layout readable (no overlapping text, no clipped figures)?
    - Are all cross-references and figure numbers resolved?
    - Are page breaks sensible (no orphaned headings, no half-empty pages)?
-4. **Arbiter** — reads all three reviews, classifies findings, issues
+5. **Arbiter** — reads all four reviews, classifies findings, issues
    PASS / ITERATE / ESCALATE.
 
 ### Regression triggers

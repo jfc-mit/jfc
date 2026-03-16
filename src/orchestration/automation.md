@@ -9,12 +9,6 @@ what matter.
 ```bash
 # --- Configuration ---
 
-# exec_model is derived from the model_tier setting in analysis_config.yaml:
-#   auto:         sonnet for phases 2-4 execution, opus for phase 1
-#   uniform_high: opus everywhere
-#   uniform_mid:  sonnet everywhere
-exec_model=${EXEC_MODEL:-sonnet}
-
 # Hard cap on review iterations. Correctness is the real termination condition
 # (arbiter PASS or reviewer finding no Category A issues), but this prevents
 # infinite loops if something goes pathologically wrong.
@@ -44,20 +38,20 @@ run_regression_check() {
     echo "REGRESSION detected in $dir — origin: $origin_phase"
     echo "$(date): $dir -> $origin_phase" >> regression_log.md
 
-    # Investigator (opus) produces a scoped regression ticket
-    run_agent --name "$(pick_session_name)" --model opus \
+    # Investigator produces a scoped regression ticket
+    run_agent --name "$(pick_session_name)" \
       --output "$origin_phase/REGRESSION_TICKET.md" \
       "Investigate regression trigger from $dir."
 
     # Fix the origin phase
-    run_agent --name "$(pick_session_name)" --model $exec_model \
+    run_agent --name "$(pick_session_name)" \
       --output "$origin_phase/exec" \
       "Fix regression described in $origin_phase/REGRESSION_TICKET.md"
 
     # Re-review at the original tier for that phase
     tier=$(get_review_tier "$origin_phase")
-    if [ "$tier" = "3bot" ]; then
-      run_3bot_review "$origin_phase"
+    if [ "$tier" = "4bot" ]; then
+      run_4bot_review "$origin_phase"
     else
       run_1bot_review "$origin_phase"
     fi
@@ -83,7 +77,7 @@ check_upstream_feedback() {
 
 # Returns 0 on PASS, 1 on regression, 2 on escalation/max-iterations.
 # Callers should check the return code before proceeding to the next phase.
-run_3bot_review() {
+run_4bot_review() {
   dir=$1
   i=0
   while [ $i -lt $max_review_iterations ]; do
@@ -95,15 +89,17 @@ run_3bot_review() {
       echo "STRONG WARNING: review iteration $i for $dir"
     fi
 
-    # Critical and constructive reviewers run in parallel (independent)
-    run_agent --name "$(pick_session_name)" --model opus \
+    # Physics, critical, and constructive reviewers run in parallel (independent)
+    run_agent --name "$(pick_session_name)" \
+      --output "$dir/review/physics" "physics review" &
+    run_agent --name "$(pick_session_name)" \
       --output "$dir/review/critical" "critical review" &
-    run_agent --name "$(pick_session_name)" --model opus \
+    run_agent --name "$(pick_session_name)" \
       --output "$dir/review/constructive" "constructive review" &
     wait
 
-    # Arbiter reads both reviews and the artifact
-    run_agent --name "$(pick_session_name)" --model opus \
+    # Arbiter reads all reviews and the artifact
+    run_agent --name "$(pick_session_name)" \
       --output "$dir/review/arbiter" "arbitrate"
     decision=$(extract_decision "$dir/review/arbiter")
 
@@ -122,7 +118,7 @@ run_3bot_review() {
         # iteration's inputs and outputs coexist on disk.
         exec_name=$(pick_session_name)
         write_iteration_inputs "$dir" "$i" "$exec_name"
-        run_agent --name "$exec_name" --model $exec_model \
+        run_agent --name "$exec_name" \
           --output "$dir/exec" "iterate v$((i+1))"
         ;;
       ESCALATE)
@@ -134,7 +130,7 @@ run_3bot_review() {
   done
 
   # Fell through — hit the hard cap
-  echo "ERROR: 3-bot review reached $max_review_iterations iterations for $dir"
+  echo "ERROR: 4-bot review reached $max_review_iterations iterations for $dir"
   present_for_human_review "$dir"
   wait_for_human_input
   return 2
@@ -150,7 +146,7 @@ run_1bot_review() {
       echo "WARNING: 1-bot review iteration $i for $dir"
     fi
 
-    run_agent --name "$(pick_session_name)" --model sonnet \
+    run_agent --name "$(pick_session_name)" \
       --output "$dir/review/critical" "critical review"
 
     if ! review_has_category_a "$dir/review/critical"; then
@@ -174,7 +170,7 @@ run_1bot_review() {
     # Iterate
     exec_name=$(pick_session_name)
     write_iteration_inputs_1bot "$dir" "$i" "$exec_name"
-    run_agent --name "$exec_name" --model $exec_model \
+    run_agent --name "$exec_name" \
       --output "$dir/exec" "iterate v$((i+1))"
   done
 
@@ -190,19 +186,19 @@ run_1bot_review() {
 #   analysis_type=search:      full blinding protocol (4a → 4b → human → 4c → 5)
 #   analysis_type=measurement: no blinding (4a → human → 5)
 
-run_agent --name "$(pick_session_name)" --model opus \
+run_agent --name "$(pick_session_name)" \
   --output "phase1_strategy/exec" "execute phase 1"
-run_3bot_review "phase1_strategy" || exit 1
+run_4bot_review "phase1_strategy" || exit 1
 git merge phase1_strategy
 
-run_agent --name "$(pick_session_name)" --model sonnet \
+run_agent --name "$(pick_session_name)" \
   --output "phase2_exploration/exec" "execute phase 2"
 # Self-review only — no external review
 git merge phase2_exploration
 
 # Phase 3 — per channel (parallel execution, sequential review)
 for channel in nunu llbb; do
-  run_agent --name "$(pick_session_name)" --model sonnet \
+  run_agent --name "$(pick_session_name)" \
     --output "phase3_selection/channel_$channel/exec" \
     "execute phase 3 ($channel)" &
 done
@@ -210,50 +206,43 @@ wait
 for channel in nunu llbb; do
   run_1bot_review "phase3_selection/channel_$channel" || exit 1
 done
-run_agent --name "$(pick_session_name)" --model sonnet \
+run_agent --name "$(pick_session_name)" \
   --output "phase3_selection/exec" "consolidate channels"
 git merge phase3_selection
 
 # Shared calibrations (can run in parallel with phases 2-3)
 for cal in btag jet_corrections; do
-  run_agent --name "$(pick_session_name)" --model sonnet \
+  run_agent --name "$(pick_session_name)" \
     --output "calibrations/$cal" "calibration: $cal" &
 done
 # Calibrations must complete before Phase 4a — calibration artifacts
 # (scale factors, corrections) are required inputs for inference.
 wait
 
-# Phase 4a — agent gate (3-bot review must PASS to proceed)
-run_agent --name "$(pick_session_name)" --model sonnet \
+# Phase 4a — agent gate (4-bot review must PASS to proceed)
+run_agent --name "$(pick_session_name)" \
   --output "phase4_inference/4a_expected/exec" "execute phase 4a"
-run_3bot_review "phase4_inference/4a_expected" || {
+run_4bot_review "phase4_inference/4a_expected" || {
   echo "Phase 4a review did not pass."
   exit 1
 }
 git merge phase4a_expected
 
-if [ "$analysis_type" = "search" ]; then
-  # Search flow: partial unblinding → human gate → full unblinding
-  run_agent --name "$(pick_session_name)" --model sonnet \
-    --output "phase4_inference/4b_partial/exec" "partial unblinding"
-  run_3bot_review "phase4_inference/4b_partial" || exit 1
-  present_for_human_review "phase4_inference/4b_partial"
-  wait_for_human_decision  # APPROVE / REQUEST CHANGES / HALT
-  git merge phase4b_partial
+# Unified flow: both measurements and searches use 4b + 4c
+run_agent --name "$(pick_session_name)" \
+  --output "phase4_inference/4b_partial/exec" "10% data validation"
+run_4bot_review "phase4_inference/4b_partial" || exit 1
+present_for_human_review "phase4_inference/4b_partial"
+wait_for_human_decision  # APPROVE / REQUEST CHANGES / HALT
+git merge phase4b_partial
 
-  run_agent --name "$(pick_session_name)" --model sonnet \
-    --output "phase4_inference/4c_observed/exec" "full unblinding"
-  run_1bot_review "phase4_inference/4c_observed" || exit 1
-  git merge phase4c_observed
-else
-  # Measurement flow: result is already visible — skip 4b/4c
-  # Human gate still applies after 4a review passes
-  present_for_human_review "phase4_inference/4a_expected"
-  wait_for_human_decision  # APPROVE / REQUEST CHANGES / HALT
-fi
+run_agent --name "$(pick_session_name)" \
+  --output "phase4_inference/4c_observed/exec" "full data"
+run_1bot_review "phase4_inference/4c_observed" || exit 1
+git merge phase4c_observed
 
-run_agent --name "$(pick_session_name)" --model sonnet \
+run_agent --name "$(pick_session_name)" \
   --output "phase5_documentation/exec" "execute phase 5"
-run_3bot_review "phase5_documentation" || exit 1
+run_4bot_review "phase5_documentation" || exit 1
 git merge phase5_documentation
 ```

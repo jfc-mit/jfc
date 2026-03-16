@@ -1,4 +1,4 @@
-# Phase 3: Selection and Modeling
+# Phase 3: Processing
 
 > **End goal.** This analysis produces a publication-quality analysis note
 > for journal submission. Every phase contributes to that goal. Work should
@@ -25,6 +25,15 @@ produce, what the artifact structure will be. Execute after the plan is set.
 You MUST produce `exec/SELECTION.md` before Phase 4 begins.
 This is a hard gate — the artifact is both the handoff document and the
 proof that the phase was completed with appropriate rigor.
+
+## RAG queries (mandatory)
+
+Query the experiment corpus for:
+1. Published selection criteria for similar analyses
+2. Known correction factors or efficiency maps
+3. Background estimation techniques used in reference analyses
+
+Cite sources in the artifact.
 
 ## Technique-specific requirements
 
@@ -66,8 +75,8 @@ classifies findings as:
 - **(C) Suggestion** — style, clarity. Applied before commit, not re-reviewed
 
 The executor addresses Category A and B items and re-submits. No arbiter
-needed. A fresh reviewer is added each iteration. Warn after 4 iterations,
-escalate after 6.
+needed. A fresh reviewer is added each iteration. Warn after 2 iterations,
+escalate after 3.
 
 The reviewer will check:
 - Is every cut motivated by a plot?

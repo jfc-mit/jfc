@@ -25,6 +25,14 @@ You MUST produce `exec/EXPLORATION.md` before Phase 3 begins.
 This is a hard gate — the artifact is both the handoff document and the
 proof that the phase was completed with appropriate rigor.
 
+## RAG queries (mandatory)
+
+Query the experiment corpus for:
+1. Standard object definitions for this experiment (lepton ID, jet clustering, etc.)
+2. Known data quality issues or detector effects relevant to the observables
+
+Cite sources in the artifact.
+
 ## Rules
 
 - Prototype on small subsets (~1000 events). Do not process full data to
@@ -56,6 +64,16 @@ Reference figures in the artifact using:
 ```markdown
 ![Detailed caption describing what is plotted.](figures/filename.pdf)
 ```
+
+## PDF build test
+
+At the end of this phase, run a stub PDF build to verify the toolchain:
+1. Create a minimal `phase5_documentation/exec/ANALYSIS_NOTE.md` with a
+   title, one section heading, and one figure reference
+2. Run `pixi run build-pdf`
+3. Fix any issues (missing packages, broken pandoc flags) now
+
+This catches toolchain problems early — not in Phase 5.
 
 ## Review
 

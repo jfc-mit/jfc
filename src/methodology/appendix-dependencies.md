@@ -1,6 +1,6 @@
 ## Appendix A: Phase Dependency Graph
 
-### Search flow (full blinding protocol)
+### Unified flow (both measurements and searches)
 
 ```
                          Experiment Corpus
@@ -24,46 +24,25 @@ Physics Prompt ──────► Phase 1: Strategy ◄───────�
                                 ▼                     issue found)
                        Phase 4a: Expected Results           │   │
                                 │                           │   │
-                        ★ AGENT GATE ★ (3-bot) ─────────────┘   │
+                        ★ AGENT GATE ★ (4-bot) ─────────────┘   │
                                 │                               │
-                       Phase 4b: Partial Unblinding (10%)       │
+                       Phase 4b: 10% Data Validation            │
                                 │                               │
-                        ★ 3-BOT REVIEW ★ ──────────────────────┘
+                        ★ 4-BOT REVIEW ★ ──────────────────────┘
                                 │
                         ★ HUMAN GATE ★
                         (draft note + 10% results → human)
                                 │
-                       Phase 4c: Full Unblinding
+                       Phase 4c: Full Data
                                 │
                                 ▼
                        Phase 5: Documentation
 ```
 
-### Measurement flow (no blinding)
-
-```
-Physics Prompt ──────► Phase 1: Strategy
-                                │
-                                ▼
-                       Phase 2: Exploration
-                                │
-                                ▼
-                       Phase 3: Selection & Correction
-                                │
-                                ▼
-                       Phase 4a: Inference + Systematics
-                                │
-                        ★ AGENT GATE ★ (3-bot)
-                                │
-                        ★ HUMAN GATE ★
-                        (result + draft note → human)
-                                │
-                                ▼
-                       Phase 5: Documentation
-```
-
-Measurements skip Phases 4b/4c — the result is visible throughout and
-there is nothing to unblind. The 3-bot review and human gate still apply
-at Phase 4a. See §3 (Phase 4) for details.
+Both measurements and searches follow the same phase structure. For
+searches, Phase 4b is a partial unblinding (10% of signal region data).
+For measurements, Phase 4b is a consistency validation (10% of data
+compared to expected results). The human gate is between 4b and 4c in
+both cases. See §3 (Phase 4) for details.
 
 ---

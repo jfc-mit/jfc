@@ -79,6 +79,12 @@ Artifacts must be **self-contained**: a reader with access only to the artifact
 and the experiment corpus should understand what was done, why, and what the
 results are.
 
+**Artifacts are analysis note source material.** Phase 4 artifacts in
+particular should be written with the understanding that they will be
+directly consumed when drafting the analysis note. Write descriptions of
+methods, systematic evaluations, and cross-checks at publication quality —
+the Phase 4b/5 agent will draw heavily from these when assembling the AN.
+
 ### Standard artifact sections:
 
 1. **Summary** — What was accomplished (1 paragraph)
@@ -183,9 +189,9 @@ Additionally, any phase may produce these supplementary artifact types:
   an earlier phase did not consider (e.g., an unexpected background shape, a
   missing systematic). Non-blocking: the executor continues its own work. The
   orchestrator routes the feedback to the next review gate for the upstream
-  phase. See Section 6.9 for the full mechanism.
+  phase. See Section 6.8 for the full mechanism.
 - **`REGRESSION_TICKET.md`** — produced by the Investigator role when a
   regression trigger is confirmed. Contains root cause, affected phases,
-  unaffected phases, and fix scope. See Section 6.9.
+  unaffected phases, and fix scope. See Section 6.8.
 
 ---

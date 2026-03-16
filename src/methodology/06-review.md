@@ -25,21 +25,30 @@ All reviews — regardless of intensity — use the same classification:
 
 | Phase | Review type | Rationale |
 |-------|------------|-----------|
-| Phase 1: Strategy | **3-bot** (critical + constructive + arbiter) | Sets direction for everything. Physics errors propagate. Cheap phase, so review cost is well spent. |
+| Phase 1: Strategy | **4-bot** (physics + critical + constructive + arbiter) | Sets direction for everything. Physics errors propagate. Cheap phase, so review cost is well spent. |
 | Phase 2: Exploration | **Self-review** | Mostly mechanical (sample inventory, distributions). High execution iteration as the agent discovers data formats. Errors caught downstream in Phase 3. |
-| Phase 3: Selection & Modeling | **1-bot** (single critical reviewer) | Physics mistakes become quantitative here. One external eye on closure tests and background/correction modeling. High execution iteration — don't bottleneck it. |
-| Phase 4a: Expected results | **3-bot** | Gates the human review. The fit model, systematics, and expected results must be bulletproof. Full tribunal. |
-| Phase 4b: Partial unblinding | **3-bot** | The draft analysis note and 10% results must be polished before presenting to a human. The human should see a professional product, not a rough draft. |
-| Phase 4c: Full unblinding | **1-bot** | Sanity check on post-fit diagnostics. Methodology already human-approved. |
-| Phase 5: Documentation | **3-bot** | The final product submitted for collaboration review. Worth the full treatment. |
+| Phase 3: Processing | **1-bot** (single critical reviewer) | Physics mistakes become quantitative here. One external eye on closure tests and background/correction modeling. High execution iteration — don't bottleneck it. |
+| Phase 4a: Expected results | **4-bot** | Gates the 10% validation. The fit model, systematics, and expected results must be bulletproof. Full tribunal. |
+| Phase 4b: 10% validation | **4-bot** | The draft analysis note and 10% results must be polished before presenting to a human. The human should see a professional product, not a rough draft. |
+| Phase 4c: Full data | **1-bot** | Sanity check on post-fit diagnostics. Methodology already human-approved. |
+| Phase 5: Documentation | **5-bot** (physics + critical + constructive + rendering + arbiter) | The final product submitted for collaboration review. Worth the full treatment. |
 
-**3-bot review** = critical reviewer ("bad cop") + constructive reviewer
-("good cop") + arbiter. The critical reviewer's goal is to find flaws —
-both in what is present and in what is absent. The constructive reviewer's
-goal is to strengthen the analysis — clarity, additional validation, improved
-presentation. Reviewers run in parallel (they cannot see each other's work);
-the arbiter reads both reviews and the original artifact, adjudicates
-disagreements, and issues PASS / ITERATE / ESCALATE.
+**4-bot review** = physics reviewer + critical reviewer ("bad cop") +
+constructive reviewer ("good cop") + arbiter. The **physics reviewer**
+receives ONLY the physics prompt and the artifact — no methodology, no
+conventions. It reviews as a senior collaboration member (ARC/L2 convener)
+would: "Is this physics correct? Is it complete? Would I approve this?"
+The critical reviewer's goal is to find flaws — both in what is present
+and in what is absent. The constructive reviewer's goal is to strengthen
+the analysis — clarity, additional validation, improved presentation.
+Reviewers run in parallel (they cannot see each other's work); the arbiter
+reads all reviews and the original artifact, adjudicates disagreements, and
+issues PASS / ITERATE / ESCALATE.
+
+**5-bot review** (Phase 5 only) = physics + critical + constructive +
+rendering + arbiter. The rendering reviewer runs `pixi run build-pdf` and
+inspects the compiled PDF for figure rendering, math compilation, layout,
+and cross-references.
 
 **1-bot review** = single critical reviewer. Issues classified A/B/C.
 Executor addresses Category A items and re-submits. No arbiter needed.
@@ -105,10 +114,10 @@ and must not be treated as a formality.
 |-------|-------------|
 | Strategy | Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? Are 2-3 reference analyses identified with their systematic programs tabulated? |
 | Exploration | (Self-review) Are samples complete? Any data quality issues? Do distributions look physical? |
-| Selection & Modeling | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Are particle-level inputs to the observable validated with data/MC comparisons per object category? |
+| Processing | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Are particle-level inputs to the observable validated with data/MC comparisons per object category? Cutflow counts are monotonically non-increasing (Category A if violated)? |
 | 4a: Expected | Is the fit healthy? Are systematics complete — both internally consistent AND complete relative to conventions and reference analyses? Do signal injection tests pass? |
-| 4b: Partial unblinding | Is the draft note publication-quality? Are 10% results consistent with expectations? Are diagnostics clean? |
-| 4c: Full unblinding | Are post-fit diagnostics healthy? Are anomalies properly characterized? |
+| 4b: 10% validation | Is the draft note publication-quality? Are 10% results consistent with expectations? Are diagnostics clean? |
+| 4c: Full data | Are post-fit diagnostics healthy? Are anomalies properly characterized? |
 | Documentation | See 6.4.3 below. |
 
 #### 6.4.1 Completeness Review (Phases 1 and 4a)
@@ -168,7 +177,7 @@ external completeness (are we evaluating what the field considers standard?).
 
 #### 6.4.2 Figure and Label Review (all phases producing figures)
 
-Every review that evaluates figures — whether self-review, 1-bot, or 3-bot —
+Every review that evaluates figures — whether self-review, 1-bot, or multibot —
 must include a mechanical pass over all figures checking the following (see
 Appendix D for the plotting template that prevents most of these). These
 are Category A if wrong:
@@ -185,8 +194,17 @@ are Category A if wrong:
 - [ ] **Aspect ratios and font sizes** are consistent across all figures in
   the note
 - [ ] **Bin widths** are noted on the y-axis label for variable-width binning
+- [ ] **Uncertainties** are reasonable — error bars not suspiciously small or
+  large relative to bin content
+- [ ] **No clipped content** — data points, error bars, and legend fully visible
+- [ ] **Appropriate scales** — log y-axis used when range spans >2 orders of
+  magnitude, linear otherwise
+- [ ] **Ratio panels** are readable — axis range appropriate, reference line
+  visible, uncertainties shown
+- [ ] **Systematic breakdown** is sensible — individual sources smaller than
+  total, dominant source identified
 
-This is a cheap check — it can be delegated to a lowest-tier model as a
+This is a cheap check — it can be delegated to a dedicated reviewer as a
 mechanical pass before or during review. Metadata errors in figures destroy
 reviewer trust disproportionate to their severity, because they signal that
 the author did not look at their own plots.
@@ -281,7 +299,7 @@ right?), since completeness failures are the dominant failure mode.
 
 ### 6.5 Iteration and Escalation
 
-For **3-bot reviews:** the cycle repeats until the arbiter issues PASS.
+For **4/5-bot reviews:** the cycle repeats until the arbiter issues PASS.
 Correctness is the termination condition. The orchestrator emits warnings
 after 3 iterations and a strong warning after 5 as signals that the issues
 may require human input. A configurable hard cap (default 10) forces
@@ -299,43 +317,22 @@ finds them during execution.
 
 ### 6.6 The Human Gate
 
-The human gate is the point where the analysis pauses for human review. Its
-timing depends on the analysis type:
+The human gate is the point where the analysis pauses for human review.
+For **both** measurement and search analyses, the gate is between Phase 4b
+and Phase 4c. After Phase 4b's 4-bot review passes, the draft analysis note
+(including 10% results, post-fit diagnostics, and goodness-of-fit) is
+presented. The human approves proceeding to full data, requests changes, or
+halts the analysis.
 
-- **Search flow:** After Phase 4b's 3-bot review passes, the draft analysis
-  note (including 10% observed results, post-fit diagnostics, and
-  goodness-of-fit) is presented. The human approves full unblinding, requests
-  changes, or halts the analysis.
-- **Measurement flow:** After Phase 4a's 3-bot review passes, the draft
-  analysis note (including the corrected result, systematic evaluation, and
-  reference comparisons) is presented. The human approves proceeding to
-  Phase 5 documentation, requests changes, or halts.
-
-In both cases, this is equivalent to a collaboration internal review. The
-human should receive a professional, publication-quality document — not a
+This is equivalent to a collaboration internal review. The human should
+receive a professional, publication-quality document — not a
 work-in-progress.
 
-### 6.7 Model Tiering
-
-Not every agent session requires the most capable (and expensive) model.
-The principle: use the highest tier for physics reasoning and adversarial
-review, mid tier for code-heavy execution, lowest tier for mechanical tasks.
-
-| Task | Model tier |
-|------|-----------|
-| Strategy execution (Phase 1), 3-bot reviewers, arbiter, investigator | Highest (Opus) |
-| Phase 2–4 executors, 1-bot reviewer, calibrations | Mid (Sonnet) |
-| Plot generation, smoke tests, linting | Lowest (Haiku) |
-
-A top-level switch (`model_tier: auto | uniform_high | uniform_mid`)
-controls whether tiering is active. See `orchestration/reviews.md` for the
-operational configuration and YAML schema.
-
-### 6.8 Cost Controls
+### 6.7 Cost Controls
 
 To prevent runaway costs from pathological iteration:
 
-**Review iteration warnings:** For **3-bot reviews**, the orchestrator emits a
+**Review iteration warnings:** For **4/5-bot reviews**, the orchestrator emits a
 warning after **3** iterations and a strong warning after **5**. For **1-bot
 reviews**, the orchestrator warns after **2** and escalates to a human after
 **3** (1-bot issues that survive 3 rounds likely need a different approach or
@@ -345,22 +342,7 @@ default 10) forces escalation if reached. In interactive mode, the
 orchestrator surfaces warnings to the human for guidance. In batch mode,
 warnings are logged and the arbiter is prompted to consider ESCALATE.
 
-**Execution iteration budget:** Phases 2 and 3 (high iteration) should have a
-configurable execution budget (e.g., maximum N executor iterations or M tokens).
-When the budget is approached:
-- The agent produces the best artifact it can with current results
-- Open issues are documented in the artifact
-- The phase proceeds to review with a note that the iteration budget was
-  reached
-
-**Total analysis budget:** The orchestrator tracks cumulative cost across all
-phases. If the total exceeds a configured threshold, the analysis pauses for
-human review of cost vs. progress.
-
-These controls are configurable — aggressive budgets for exploratory runs,
-relaxed budgets for production analyses.
-
-### 6.9 Phase Regression
+### 6.8 Phase Regression
 
 The pipeline is normally forward-only, but a reviewer or executor may discover
 that a fundamental assumption from an earlier phase is wrong — a major
@@ -378,7 +360,7 @@ When this happens:
 
 #### The Investigator
 
-The Investigator is a dedicated agent role (Opus-tier) spawned when a
+The Investigator is a dedicated agent role spawned when a
 regression trigger is flagged. It does *not* read all artifacts end-to-end.
 Instead it follows a structured, minimal-read process:
 
@@ -409,11 +391,10 @@ The orchestrator dispatches fixes automatically — no human gate for regression
 
 #### Timing
 
-Regression only triggers before the **human gate** — through Phase 4b for
-searches (the human gate is between 4b and 4c), through Phase 4a for
-measurements (the human gate follows the 4a review). Once the human
-approves proceeding, discovered issues become Phase 5 iteration items or
-documented observations, not regression triggers.
+Regression only triggers before the **human gate** — through Phase 4b
+(the human gate is between 4b and 4c for both measurements and searches).
+Once the human approves proceeding, discovered issues become Phase 5
+iteration items or documented observations, not regression triggers.
 
 **Regression vs. documentation fix.** Not every issue found in review
 requires regression. The distinction:

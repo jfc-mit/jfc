@@ -205,7 +205,25 @@ The snippets library grows organically. After completing an analysis, useful
 patterns are extracted and added. This is YAGNI in practice — code is
 generalized only after it has proven useful in a real analysis, not before.
 
-### 11.6 Pre-commit Configuration
+### 11.6 Debug and Scratch Code
+
+Debug scripts and throwaway experiments are a normal part of analysis
+development, but they must not contaminate the production pipeline:
+
+- **Prefix debug scripts with `debug_`** (e.g., `debug_check_weights.py`,
+  `debug_plot_comparison.py`). This makes them visually distinct and
+  greppable.
+- **Or place them in a `scratch/` directory** within the phase directory.
+  The `scratch/` directory is for experiments that may or may not be kept.
+- **Never include debug scripts in the `all` task.** The `all` task is the
+  reproducibility contract — it must run only production scripts. Debug
+  scripts may have their own pixi tasks (e.g., `debug-weights`) but these
+  must not appear in the `all` chain.
+- **Clean up before review.** Before submitting for review, either delete
+  debug scripts that are no longer needed or move them to `scratch/` with
+  a note in the experiment log about what they tested.
+
+### 11.7 Pre-commit Configuration
 
 A minimal `.pre-commit-config.yaml`:
 

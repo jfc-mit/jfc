@@ -2,6 +2,9 @@
 
 ### Context assembly
 
+Methodology §8 is the canonical source for context assembly rules. This
+section provides the operational implementation.
+
 Every agent receives curated context, not the full methodology spec. The
 orchestrating agent (lead) assembles the input for each session following
 the layered approach in methodology §8.2:
@@ -40,6 +43,34 @@ Before writing code, produce plan.md. As you work:
 When complete, state what you produced and any open issues.
 ```
 
+### Physics reviewer
+
+**Context:** Bird's-eye framing, physics prompt, artifact under review.
+**Does NOT receive:** Methodology spec, conventions files, review criteria.
+The physics reviewer evaluates the work purely as a senior collaboration
+member (ARC/L2 convener) would.
+
+**Writes:** `{NAME}_PHYSICS_REVIEW.md`
+
+**Instruction core:**
+```
+You are a senior collaboration member reviewing this analysis for physics
+approval. You have NOT read the methodology spec or conventions — you are
+reviewing the physics on its merits.
+
+Read the artifact.
+
+Evaluate:
+- Is the physics motivation sound and complete?
+- Are the backgrounds correctly identified and estimated?
+- Is the systematic treatment appropriate for this measurement?
+- Are the cross-checks adequate?
+- Would you approve this analysis for publication?
+
+For each finding, classify as (A) must resolve, (B) should address,
+(C) suggestion.
+```
+
 ### Critical reviewer ("bad cop")
 
 **Context:** Bird's-eye framing, review methodology (§6), applicable phase
@@ -64,6 +95,10 @@ journal referee to reject this analysis.
 Before concluding, answer: "If a competing group published a measurement of
 the same quantity next month, what would they have that we don't?" If the
 answer is non-empty and unjustified, those are Category A findings.
+
+For every figure, check: uncertainties reasonable? clipped content?
+appropriate scales (log y for >2 orders of magnitude)? ratio panels
+readable? systematic breakdown sensible?
 
 Classify every issue as (A) must resolve, (B) should address, (C) suggestion.
 Err on the side of strictness.

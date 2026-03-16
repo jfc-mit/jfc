@@ -19,7 +19,7 @@ without thinking.
 **The orchestrator loop for each phase:**
 
 ```
-for each phase in [1, 2, 3, 4a, (4b, 4c if search), 5]:
+for each phase in [1, 2, 3, 4a, 4b, 4c, 5]:
 
   1. EXECUTE — spawn a phase executor subagent (start in plan mode) with:
      - The physics prompt
@@ -50,13 +50,12 @@ for each phase in [1, 2, 3, 4a, (4b, 4c if search), 5]:
   6. ADVANCE — proceed to next phase.
 ```
 
-**Measurement vs. search flow for Phase 4:**
-- **Measurements:** Phase 4a is the primary inference phase (systematics,
-  correction, covariance, reference comparisons). Phases 4b and 4c are
-  **skipped** — there is nothing to blind. The human gate happens after the
-  Phase 4a 3-bot review passes.
-- **Searches:** All three sub-phases (4a → 4b → 4c) are required. The human
-  gate is between 4b and 4c (before full unblinding).
+**Phase 4 flow (both measurements and searches):**
+All three sub-phases (4a → 4b → 4c) are required for both analysis types.
+- **4a:** Statistical analysis — systematics, expected results. No AN draft.
+- **4b:** 10% data validation. Compare to expected. Write full AN draft.
+  Review + PDF render. Human gate after 4b review passes.
+- **4c:** Full data. Compare to 10% and expected. Update AN with full results.
 
 **What the orchestrator does NOT do:**
 - Read full scripts or data files (subagents do this)
@@ -65,6 +64,10 @@ for each phase in [1, 2, 3, 4a, (4b, 4c if search), 5]:
 - Write analysis prose (subagents do this)
 
 **What the orchestrator MUST do:**
+- **Health monitoring.** Commit before spawning each subagent. Check progress
+  every ~5 minutes for long-running subagents. Respawn stalled agents from
+  the last commit. When background/non-blocking agent spawning is available,
+  use it for long-running subagents to enable monitoring.
 - Ensure review quality. Do NOT conserve tokens by accepting weak reviews
   or rushing past issues. If a reviewer finds problems, have the work redone
   properly — not minimally patched.
@@ -197,10 +200,11 @@ mh.style.use("CMS")
 For MxN subplots: `figsize=(10*ncols, 10*nrows)`. For ratio plots:
 `figsize=(10, 10)` with `height_ratios=[3, 1]`.
 
-**Font sizes are LOCKED.** Do not pass `fontsize=` to ANY matplotlib call
-(`set_xlabel`, `set_ylabel`, `set_title`, `tick_params`, `annotate`, `text`).
-The CMS stylesheet sets all font sizes for the 10x10 figure size. The ONLY
-exception is `ax.legend(fontsize="x-small")`.
+**Font sizes are LOCKED.** Do not pass absolute numeric `fontsize=` values
+to ANY matplotlib call. The CMS stylesheet sets all font sizes for the 10x10
+figure size. Relative string sizes (`'small'`, `'x-small'`) are allowed where
+needed (e.g., dense legends). The standard legend call is
+`ax.legend(fontsize="x-small")`.
 
 **No titles.** Never `ax.set_title()`. Captions go in the analysis note.
 
@@ -210,7 +214,7 @@ exception is `ax.legend(fontsize="x-small")`.
 **Experiment label on every axes:**
 ```python
 mh.label.exp_label(
-    exp="ALEPH",     # Set to your experiment
+    exp="<EXPERIMENT>",  # MANDATORY — set to your experiment, e.g. "ALEPH", "CMS"
     text="",         # e.g. "Preliminary"
     loc=0,
     data=False,      # True when real data is used
@@ -244,16 +248,13 @@ phase begins. No exceptions.
 
 | Phase | Required artifact | Review type |
 |-------|-------------------|-------------|
-| 1 | `phase1_strategy/exec/STRATEGY.md` | 3-bot |
+| 1 | `phase1_strategy/exec/STRATEGY.md` | 4-bot |
 | 2 | `phase2_exploration/exec/EXPLORATION.md` | Self |
 | 3 | `phase3_selection/exec/SELECTION.md` | 1-bot |
-| 4a | `phase4_inference/exec/INFERENCE_EXPECTED.md` | 3-bot |
-| 4b | `phase4_inference/exec/INFERENCE_PARTIAL.md` | 3-bot (search only) |
-| 4c | `phase4_inference/exec/INFERENCE_OBSERVED.md` | 1-bot (search only) |
-| 5 | `phase5_documentation/exec/ANALYSIS_NOTE.md` | 4-bot (3 + rendering) |
-
-**Measurements skip 4b/4c.** For measurements, Phase 4a produces the final
-result. The human gate follows the 4a review. Phase 5 follows directly.
+| 4a | `phase4_inference/exec/INFERENCE_EXPECTED.md` | 4-bot |
+| 4b | `phase4_inference/exec/INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_DRAFT.md` | 4-bot → human gate |
+| 4c | `phase4_inference/exec/INFERENCE_OBSERVED.md` | 1-bot |
+| 5 | `phase5_documentation/exec/ANALYSIS_NOTE.md` | 5-bot (4 + rendering) |
 
 **Review before advancing.** After each artifact, spawn a reviewer subagent
 (preferred) or self-review. Write findings to `phase*/review/REVIEW_NOTES.md`.
@@ -283,9 +284,15 @@ analysis chain. Update it whenever scripts are added.
 
 ### Review Types
 
-**3-bot review** = critical reviewer + constructive reviewer + arbiter.
-Run reviewers in parallel; arbiter reads both and issues PASS / ITERATE /
-ESCALATE.
+**4-bot review** = physics reviewer + critical reviewer + constructive
+reviewer + arbiter. The physics reviewer receives ONLY the physics prompt
+and the artifact — no methodology, no conventions. It reviews as a senior
+collaboration member would. Run physics/critical/constructive reviewers in
+parallel; arbiter reads all and issues PASS / ITERATE / ESCALATE.
+
+**5-bot review** (Phase 5 only) = physics + critical + constructive +
+rendering + arbiter. The rendering reviewer runs `pixi run build-pdf` and
+inspects the compiled PDF.
 
 **1-bot review** = single critical reviewer. Executor addresses Category A
 and B items and re-submits. No arbiter.
@@ -340,9 +347,9 @@ Before concluding review, explicitly answer:
 
 ### Iteration
 
-- 3-bot: repeats until arbiter PASS with no A or B items remaining. Warn
-  after 6 iterations, strong warn after 10.
-- 1-bot: warn after 4, escalate after 6.
+- 4/5-bot: repeats until arbiter PASS with no A or B items remaining. Warn
+  after 3 iterations, strong warn after 5. Hard cap at 10 forces escalation.
+- 1-bot: warn after 2, escalate after 3.
 - Self: no formal iteration.
 
 Each iteration adds a fresh reviewer. The arbiter must not PASS if any
@@ -366,18 +373,21 @@ Common trigger points:
 - **Phase 5 review** finds a methodological gap visible only when the full
   analysis is assembled
 
-### Phase 5 review structure (4-bot)
+### Phase 5 review structure (5-bot)
 
-Phase 5 uses an extended review with a rendering reviewer:
-1. **Critical reviewer** — reads the AN as a referee. Finds physics errors
+Phase 5 uses an extended review with physics and rendering reviewers:
+1. **Physics reviewer** — receives ONLY the physics prompt and the AN.
+   Reviews as a senior collaboration member (ARC/L2 convener): "Is this
+   physics correct? Is it complete? Would I approve this?"
+2. **Critical reviewer** — reads the AN as a referee. Finds physics errors
    and missing content.
-2. **Constructive reviewer** — identifies what would strengthen the analysis.
-3. **Rendering reviewer** — reads the compiled PDF using the Read tool
+3. **Constructive reviewer** — identifies what would strengthen the analysis.
+4. **Rendering reviewer** — reads the compiled PDF using the Read tool
    (which supports PDF viewing) and checks: figures render correctly, math
    compiles, layout is readable, no overlapping text or clipped figures,
    cross-references resolve. Run `pixi run build-pdf` first, then
    `Read("phase5_documentation/exec/ANALYSIS_NOTE.pdf")` to inspect.
-4. **Arbiter** — reads all three reviews, classifies findings, issues verdict.
+5. **Arbiter** — reads all four reviews, classifies findings, issues verdict.
 
 ### Regression trigger
 
@@ -412,8 +422,10 @@ detector simulation, missing calibration data, etc.), the agent must not
 silently downscope. Instead:
 
 1. **State the limitation clearly.** What is missing and why does it matter?
-2. **Evaluate feasibility.** Can this be obtained, generated, or approximated?
+2. **Evaluate feasibility.** Can an LLM agent do this? (Not "would a human
+   find this easy?" — agents have different strengths.)
    - Is documentation/code available to produce what's needed?
+   - Does a procedural path exist, or does it require novel reasoning?
    - How complex is the implementation?
    - What is the risk of failure?
 3. **Estimate cost.** How much compute time, how many SLURM jobs, how much
@@ -470,7 +482,13 @@ markdown** that compiles cleanly to PDF. This means:
 - **Tables:** Use pipe tables (`| col1 | col2 |`). They render in both
   markdown and PDF.
 - **Cross-references:** Use pandoc-crossref syntax (`{#fig:label}`,
-  `@fig:label`) for numbered figure/table/equation references.
+  `@fig:label`) for numbered figure/table/equation references. Standardize
+  on `@fig:name` (produces "fig. X"). At sentence start, write
+  `Figure @fig:name`. Every figure MUST have a label: `{#fig:name}`.
+  Never use `[-@fig:...]` — always use `@fig:name` for full references.
+- **Citations:** Use `[@key]` syntax with a `references.bib` BibTeX file
+  in the analysis note directory. Populate `references.bib` as you cite
+  sources. The `build-pdf` task uses `--citeproc` to process citations.
 - **Section structure:** Use `#`, `##`, `###` headings. Pandoc adds
   numbering with `--number-sections`.
 

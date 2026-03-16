@@ -34,10 +34,6 @@ writes code, and makes physics judgments within the constraints described here.
   analysis — empirically grounded, not speculative. The agent consults
   applicable conventions during strategy (Phase 1) and systematics (Phase 4a),
   and updates them with new knowledge gained during the analysis.
-- **Cost-aware execution.** Not every task requires the most capable model.
-  The orchestrator assigns model tiers based on task complexity (see Section
-  6.6). This is configurable — a top-level switch controls whether to use
-  tiered models or a uniform model (useful for benchmarking).
 - **Downscope, don't block.** When a resource is unavailable (missing MC,
   insufficient statistics, inaccessible data, no GPU for large training),
   the agent downscopes to what is achievable now and documents what would

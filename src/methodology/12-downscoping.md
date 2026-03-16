@@ -78,7 +78,28 @@ is blocked, the agent seeks parallel work that remains unblocked:
 "MC unavailable → measure everything else, extract maximum physics from
 detector-level data → document what unfolding will add when MC arrives."
 
-### 12.6 Future Directions
+### 12.6 Feasibility for LLM Agents
+
+When evaluating feasibility, the question is "can an LLM agent do this?" —
+not "would a human find this easy?" LLM agents have different strengths and
+limitations than human analysts:
+
+**Agents are good at:** Systematic, repetitive processing (evaluating 20
+systematic sources one by one), following documented procedures, producing
+complete artifacts, checking completeness against checklists, querying
+literature corpora.
+
+**Agents struggle with:** Tasks requiring persistent state across many
+sessions, visual inspection of plots, novel physics reasoning not grounded
+in training data or retrieved literature, tasks requiring interactive tools
+(GUIs, interactive fitting).
+
+When a task falls in the "agents struggle" category, the agent should:
+1. Attempt it if it affects the core result and a procedural path exists
+2. Document the limitation clearly if it cannot be resolved
+3. Flag it for human review at the next gate
+
+### 12.7 Future Directions
 
 The Phase 5 analysis note must include a **Future Directions** section that
 collects all downscoping decisions into a concrete roadmap: what was

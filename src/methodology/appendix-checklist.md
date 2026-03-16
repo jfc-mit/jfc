@@ -6,10 +6,10 @@
 |-------|---------------|-------------|
 | Strategy | `STRATEGY.md` | Signal/background enumeration, selection approach, blinding plan, systematics categories, literature citations, reference analysis systematic table |
 | Exploration | `EXPLORATION.md` | Sample inventory, data quality assessment, variable ranking, preselection cutflow, data/MC comparisons |
-| Selection & Modeling | `SELECTION.md` | Selection definition, region definitions, background estimates, closure tests, per-cut distributions |
+| Processing | `SELECTION.md` | Selection definition, region definitions, background estimates, closure tests, per-cut distributions |
 | 4a: Expected | `INFERENCE_EXPECTED.md` | Systematic table with per-source detail, fit model or correction procedure, expected results, validation tests, systematic completeness table vs references, covariance matrix |
-| 4b: Partial (10%) | `INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_DRAFT.md` | 10% observed results, post-fit diagnostics, GoF, draft analysis note with full structure |
-| 4c: Full observed | `INFERENCE_OBSERVED.md` | Full observed results, post-fit diagnostics, anomaly assessment, comparison to expected |
+| 4b: 10% validation | `INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_DRAFT.md` | 10% observed results, post-fit diagnostics, GoF, draft analysis note with full structure |
+| 4c: Full data | `INFERENCE_OBSERVED.md` | Full observed results, post-fit diagnostics, anomaly assessment, comparison to expected |
 | Documentation | `ANALYSIS_NOTE.md` + `results/` | Complete analysis note with all sections, figures, LaTeX math, machine-readable results |
 
 ### Analysis note completeness checklist

@@ -27,13 +27,13 @@ same session are fast. See `.mcp.json` for the concrete server definition.
 The **lead agent** is the orchestrator — spawns teammates, manages
 dependencies, handles gates. Does not do analysis work.
 
-Per phase (3-bot example):
+Per phase (4-bot example):
 ```
-Lead (orchestrator, opus)
-  ├── Executor      (sonnet for phases 2-4, opus for phase 1)
-  ├── Critical Rev  (opus)
-  ├── Constructive Rev (opus)
-  └── Arbiter       (opus)
+Lead (orchestrator)
+  ├── Executor
+  ├── Critical Rev
+  ├── Constructive Rev
+  └── Arbiter
 ```
 
 For 1-bot phases, the lead spawns only Executor + Critical Rev.
@@ -80,42 +80,12 @@ Agents should prefer `search_lep_corpus` for general queries and
 Use `get_paper` to drill into a specific reference. All retrieved passages
 include source paper ID and similarity score — cite these in artifacts.
 
-### Cost Estimates (with tiering)
-
-**Search flow** (full blinding protocol):
-
-| Phase | Sessions (no iteration) | Model mix (auto mode) | Relative cost |
-|-------|------------------------|-----------------------|---------------|
-| Phase 1 | 4 (exec + 3-bot) | 1 opus exec + 3 opus review | ████████ |
-| Phase 2 | 1 (exec, self-review) | 1 sonnet | █ |
-| Phase 3 | 4-6 (exec per channel + 1-bot per channel + consolidate) | sonnet | ██ |
-| Calibrations | 2-3 | sonnet | █ |
-| Phase 4a | 4 | 1 sonnet exec + 3 opus review | ███████ |
-| Phase 4b | 4 | 1 sonnet exec + 3 opus review | ███████ |
-| Phase 4c | 2 | sonnet | █ |
-| Phase 5 | 4 | 1 sonnet exec + 3 opus review | ███████ |
-| **Total** | **~26-30** | | |
-
-**Measurement flow** (no blinding — skip 4b/4c):
-
-| Phase | Sessions (no iteration) | Model mix (auto mode) | Relative cost |
-|-------|------------------------|-----------------------|---------------|
-| Phases 1-3, calibrations | same as above | | |
-| Phase 4a | 4 | 1 sonnet exec + 3 opus review | ███████ |
-| Phase 5 | 4 | 1 sonnet exec + 3 opus review | ███████ |
-| **Total** | **~20-24** | | |
-
-With `auto` tiering, opus is used for strategy execution (Phase 1) and all
-3-bot review sessions (critical, constructive, arbiter). Sonnet handles all
-other execution and 1-bot reviews.
-
 ## Adapting to Other Agent Systems
 
 Requirements:
 - Isolated agent sessions with file read/write and code execution
 - RAG corpus accessible as a tool
 - Parallel execution support
-- Model selection per session (for tiering)
 - Mechanism to pause for human review
 - Git integration
 

@@ -23,14 +23,13 @@ claude   # pass your physics prompt
 └─────┬───────────────────────────────────────────────────────┘
       │
       ▼
- ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
- │ Phase 1  │──▶│ Phase 2  │──▶│ Phase 3  │──▶│ Phase 4a │──▶│ Phase 5  │
- │ Strategy │   │ Explore  │   │ Selection│   │ Inference│   │ Document │
- │ (3-bot)  │   │ (self)   │   │ (1-bot)  │   │ (3-bot)  │   │ (4-bot)  │
- └──────────┘   └──────────┘   └──────────┘   └────┬─────┘   └──────────┘
-                                                    │
-                                              HUMAN GATE
-                                          (measurements)
+ ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+ │ Phase 1  │──▶│ Phase 2  │──▶│ Phase 3  │──▶│ Phase 4a │──▶│ Phase 4b │──▶│ Phase 4c │──▶│ Phase 5  │
+ │ Strategy │   │ Explore  │   │Processing│   │ Expected │   │  10% Val │   │Full Data │   │ Document │
+ │ (4-bot)  │   │ (self)   │   │ (1-bot)  │   │ (4-bot)  │   │(4-bot+HG)│   │ (1-bot)  │   │ (5-bot)  │
+ └──────────┘   └──────────┘   └──────────┘   └──────────┘   └────┬─────┘   └──────────┘   └──────────┘
+                                                                   │
+                                                             HUMAN GATE
 ```
 
 Each phase runs the same loop:
@@ -51,14 +50,16 @@ Each phase runs the same loop:
 
 | Phase | Review | Key deliverable |
 |-------|--------|-----------------|
-| **1. Strategy** | 3-bot | Technique selection, systematic plan, reference analysis table, conventions enumeration |
+| **1. Strategy** | 4-bot | Technique selection, systematic plan, reference analysis table, conventions enumeration |
 | **2. Exploration** | Self | Sample inventory, data quality, variable ranking, preselection cutflow |
-| **3. Selection** | 1-bot | Event selection, correction chain or background model, closure tests |
-| **4a. Inference** | 3-bot | Systematic completeness table, covariance matrix, reference comparisons |
-| **5. Documentation** | 4-bot | Analysis note (pandoc markdown → PDF, 50-100 pages), machine-readable results |
+| **3. Processing** | 1-bot | Event selection, correction chain or background model, closure tests |
+| **4a. Expected** | 4-bot | Systematic completeness table, covariance matrix, reference comparisons |
+| **4b. 10% Validation** | 4-bot | 10% data results, draft AN with full structure, human gate |
+| **4c. Full Data** | 1-bot | Full observed results, post-fit diagnostics |
+| **5. Documentation** | 5-bot | Analysis note (pandoc markdown → PDF, 50-100 pages), machine-readable results |
 
-Measurements skip Phases 4b/4c (nothing to blind). Searches add 4b (10%
-unblinding) and 4c (full unblinding) with a human gate between them.
+Both measurements and searches follow the same 4a → 4b → 4c flow. The
+human gate is between 4b and 4c.
 
 ### Review classification
 
@@ -68,8 +69,8 @@ unblinding) and 4c (full unblinding) with a human gate between them.
 | **B** | Weakens the analysis | Same — must be zero before PASS |
 | **C** | Style / clarity | Arbiter PASses; executor applies before commit |
 
-Fresh reviewer added each iteration cycle. Limits: 3-bot warn at 6, strong
-warn at 10. 1-bot warn at 4, escalate at 6.
+Fresh reviewer added each iteration cycle. Limits: 4/5-bot warn at 3,
+strong warn at 5, hard cap at 10. 1-bot warn at 2, escalate at 3.
 
 ### Phase regression
 
@@ -83,10 +84,10 @@ Reviewer finds physics issue from Phase M < current Phase N
   → Resume review at Phase N
 ```
 
-### Phase 5: 4-bot review
+### Phase 5: 5-bot review
 
 ```
-Critical (referee) + Constructive + Rendering (reads compiled PDF) + Arbiter
+Physics + Critical (referee) + Constructive + Rendering (reads compiled PDF) + Arbiter
 ```
 
 The rendering reviewer runs `pixi run build-pdf` and uses the Read tool to
@@ -136,6 +137,29 @@ reslop/
       conventions/ → src/conventions/
       phase{1..5}_*/          Phase dirs with CLAUDE.md, exec/, scripts/, figures/, review/
 ```
+
+## How scaffolding works
+
+The scaffolder (`pixi run scaffold`) creates a new analysis directory from
+templates in `src/templates/`:
+
+1. **Template files** (`src/templates/root_claude.md`, `phase*_claude.md`,
+   `pixi.toml`) are copied into the analysis directory with `{{name}}` and
+   `{{analysis_type}}` placeholders replaced.
+2. **Phase directories** (`phase1_strategy/`, `phase2_exploration/`,
+   `phase3_selection/`, `phase4_inference/`, `phase5_documentation/`) are
+   created with `exec/`, `scripts/`, `figures/`, and `review/` subdirs.
+3. **Conventions symlink** — `conventions/` → `../../src/conventions/` is
+   created so agents can read domain knowledge.
+4. **`.analysis_config`** is created with `analysis_type` set. Edit it to
+   add `data_dir=` pointing to the input data.
+5. **Git repo** is initialized in the analysis directory.
+
+After scaffolding, the analysis directory is self-contained: its CLAUDE.md
+files carry all instructions needed to run the analysis. The methodology
+spec (`src/methodology/`) is human reference only — agents do not read it
+directly. Instead, the relevant rules are distilled into the template
+CLAUDE.md files.
 
 ## Requirements
 

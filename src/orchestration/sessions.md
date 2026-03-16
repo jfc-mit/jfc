@@ -169,15 +169,17 @@ analysis_name/
       exec/
         ...
         INFERENCE_EXPECTED.md
-        ANALYSIS_NOTE_DRAFT.md   # For measurements (skip 4b/4c)
+        INFERENCE_EXPECTED.md
       review/
-        critical/               # 3-bot review (agent gate)
+        physics/                # 4-bot review (agent gate)
+          ...
+        critical/
           ...
         constructive/
           ...
         arbiter/
           ...
-    4b_partial/                  # Search flow only — skipped for measurements
+    4b_partial/
       experiment_log.md
       retrieval_log.md
       UPSTREAM_FEEDBACK.md
@@ -190,13 +192,15 @@ analysis_name/
         ANALYSIS_NOTE_DRAFT.md
         UNBLINDING_CHECKLIST.md
       review/
-        critical/               # 3-bot review before human
+        physics/                # 4-bot review before human
+          ...
+        critical/
           ...
         constructive/
           ...
         arbiter/
           ...
-    4c_observed/                 # Only created after human approval
+    4c_observed/                 # Created after human approval
       retrieval_log.md
       UPSTREAM_FEEDBACK.md
       REGRESSION_TICKET.md
@@ -217,9 +221,13 @@ analysis_name/
       ...
       ANALYSIS_NOTE.md
     review/
-      critical/                 # 3-bot review
+      physics/                  # 5-bot review
+        ...
+      critical/
         ...
       constructive/
+        ...
+      rendering/
         ...
       arbiter/
         ...

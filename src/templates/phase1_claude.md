@@ -22,6 +22,16 @@ structure will be. Execute after the plan is set.
   template fit, etc.) and justify the choice. This determines which
   technique-specific requirements apply in later phases.
 
+## RAG queries (mandatory)
+
+Before writing the strategy, query the experiment corpus (via MCP tools):
+1. `search_lep_corpus`: prior measurements of the same or similar observables
+2. `search_lep_corpus`: standard systematic sources for this analysis technique
+3. `compare_measurements`: cross-experiment results if applicable
+4. `get_paper`: drill into each reference analysis identified
+
+Cite all retrieved sources in the artifact (paper ID + section).
+
 ## Completeness requirements
 
 1. **Reference analyses.** Identify 2-3 published analyses closest in
@@ -36,10 +46,12 @@ structure will be. Execute after the plan is set.
 
 ## Review
 
-This phase gets **3-bot review**. Three reviewer agents run in parallel:
-1. Critical reviewer — finds everything wrong or missing
-2. Constructive reviewer — identifies what would make this stronger
-3. Arbiter — reads both reviews, issues PASS / ITERATE / ESCALATE
+This phase gets **4-bot review**. Four reviewer agents (first three in parallel):
+1. Physics reviewer — reviews as a senior collaboration member; receives only
+   the physics prompt and artifact (no methodology or conventions)
+2. Critical reviewer — finds everything wrong or missing
+3. Constructive reviewer — identifies what would make this stronger
+4. Arbiter — reads all reviews, issues PASS / ITERATE / ESCALATE
 
 The arbiter should ITERATE unless the strategy is genuinely complete. A
 strategy that omits systematic sources, lacks reference analyses, or has

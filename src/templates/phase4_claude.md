@@ -20,18 +20,26 @@ the artifact structure will be. Execute after the plan is set.
 
 ## Output artifacts and flow
 
-**For measurements:** Phase 4a is the primary (and usually only) inference
-phase. Phases 4b and 4c are skipped — there is nothing to blind. The human
-gate follows the 4a review.
+**Both measurements and searches follow the same 4a → 4b → 4c structure:**
+- **4a:** Statistical analysis — systematics, expected results. Artifact: `INFERENCE_EXPECTED.md`. No AN draft here.
+- **4b:** 10% data validation. Compare to expected. Write full AN draft with 10% results. Review + PDF render. Human gate after review passes.
+- **4c:** Full data. Compare to 10% and expected. Update AN with full results.
 
-**For searches:** All three sub-phases are required:
-- 4a → 4b (10% unblinding) → human gate → 4c (full unblinding)
+| Sub-phase | Artifact | Review |
+|-----------|----------|--------|
+| 4a | `exec/INFERENCE_EXPECTED.md` | 4-bot |
+| 4b | `exec/INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_DRAFT.md` | 4-bot → human gate |
+| 4c | `exec/INFERENCE_OBSERVED.md` | 1-bot |
 
-| Sub-phase | Artifact | When |
-|-----------|----------|------|
-| 4a | `exec/INFERENCE_EXPECTED.md` | Always |
-| 4b | `exec/INFERENCE_PARTIAL.md` | Search only |
-| 4c | `exec/INFERENCE_OBSERVED.md` | Search only |
+## RAG queries (mandatory)
+
+Query the experiment corpus for:
+1. Systematic evaluation methods used in reference analyses
+2. Published measurements for comparison (use `compare_measurements` for
+   cross-experiment results)
+3. Theory predictions or MC generator comparisons for the observable
+
+Cite sources in the artifact.
 
 ## Completeness requirements (critical)
 
@@ -63,6 +71,12 @@ Read the Phase 1 strategy to determine which technique applies.
   separately + total). Provide as tables/heatmaps in the artifact AND as
   machine-readable files (NumPy `.npy`, JSON, or CSV).
 
+**Goodness-of-fit (all analyses):**
+- Compute chi2/ndf for all fits and comparisons. chi2/ndf ~ 1 is good;
+  >>1 indicates mismodeling; <<1 indicates overestimated uncertainties.
+- For binned results: use the saturated model as the GoF reference.
+  Generate toys and report the p-value with the toy distribution.
+
 **For template fit / search analyses:**
 - Pre-fit and post-fit data/MC agreement in all regions
 - Nuisance parameter pulls and constraints
@@ -86,10 +100,12 @@ Reference figures in the artifact using:
 
 ## Review
 
-This phase gets **3-bot review**. Three reviewer agents run in parallel:
-1. Critical reviewer — finds everything wrong or missing
-2. Constructive reviewer — identifies what would make this stronger
-3. Arbiter — reads both reviews, issues PASS / ITERATE / ESCALATE
+This phase gets **4-bot review**. Four reviewer agents (first three in parallel):
+1. Physics reviewer — reviews as a senior collaboration member; receives only
+   the physics prompt and artifact (no methodology or conventions)
+2. Critical reviewer — finds everything wrong or missing
+3. Constructive reviewer — identifies what would make this stronger
+4. Arbiter — reads all reviews, issues PASS / ITERATE / ESCALATE
 
 The arbiter should ITERATE unless systematics are genuinely complete and
 all validation checks pass. A systematic completeness table with MISSING
@@ -98,7 +114,7 @@ rows must not PASS.
 Reviewers will check:
 - Are systematics complete relative to conventions AND reference analyses?
 - Do all validation checks pass?
-- If chi2/ndf vs. a reference measurement exceeds 1.5, has it been investigated?
+- If GoF vs. a reference measurement is poor, has it been investigated?
 - Is the systematic completeness table present with all rows resolved?
 - For measurements: is the full covariance matrix produced?
 
