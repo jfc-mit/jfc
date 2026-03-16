@@ -149,8 +149,8 @@ run_1bot_review() {
     run_agent --name "$(pick_session_name)" \
       --output "$dir/review/critical" "critical review"
 
-    if ! review_has_category_a "$dir/review/critical"; then
-      # No Category A issues — review passes
+    if ! review_has_category_a_or_b "$dir/review/critical"; then
+      # No Category A or B issues — review passes
       if ! run_regression_check "$dir"; then
         return 1
       fi
@@ -182,9 +182,8 @@ run_1bot_review() {
 }
 
 # --- Main pipeline ---
-# Supports two flows:
-#   analysis_type=search:      full blinding protocol (4a → 4b → human → 4c → 5)
-#   analysis_type=measurement: no blinding (4a → human → 5)
+# Unified flow for both measurements and searches:
+#   4a → 4b → human gate → 4c → 5
 
 run_agent --name "$(pick_session_name)" \
   --output "phase1_strategy/exec" "execute phase 1"

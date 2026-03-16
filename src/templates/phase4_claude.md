@@ -72,8 +72,10 @@ Read the Phase 1 strategy to determine which technique applies.
   machine-readable files (NumPy `.npy`, JSON, or CSV).
 
 **Goodness-of-fit (all analyses):**
-- Compute chi2/ndf for all fits and comparisons. chi2/ndf ~ 1 is good;
-  >>1 indicates mismodeling; <<1 indicates overestimated uncertainties.
+- Report **both** chi2/ndf for quick assessment **and** toy-based p-value
+  using the saturated model GoF statistic where binned results are involved.
+  chi2/ndf ~ 1 is good; >>1 indicates mismodeling; <<1 indicates
+  overestimated uncertainties.
 - For binned results: use the saturated model as the GoF reference.
   Generate toys and report the p-value with the toy distribution.
 
@@ -82,6 +84,37 @@ Read the Phase 1 strategy to determine which technique applies.
 - Nuisance parameter pulls and constraints
 - Impact ranking of systematics
 - Signal injection tests at known strengths
+
+**For extraction / counting measurements** (e.g., double-tag, ratio, branching fraction):
+
+Extraction measurements solve equations using MC-derived parameters to extract
+a physical quantity from observed counts. The result depends critically on
+these parameters. The following are required:
+
+- **Independent closure test (Category A if fails).** Apply the full
+  extraction procedure to a statistically independent MC sample (e.g.,
+  train/test split, or a held-out MC set not used for parameter estimation).
+  Extract the quantity and compare to MC truth. The pull must be < 2σ.
+  An algebraic closure (using the same MC for both parameters and test counts)
+  is necessary but not sufficient — it only verifies the solver, not the method.
+- **Parameter sensitivity table.** For each MC-derived input parameter
+  (efficiency, correlation factor, mistag rate, etc.), compute the derivative
+  dResult/dParam and the parameter's uncertainty σ_param. Report
+  |dResult/dParam| × σ_param for each. If any single parameter contributes
+  > 5× the data statistical uncertainty, flag it as a dominant systematic
+  and investigate whether a data-driven constraint exists.
+- **Operating point stability.** Scan the result vs. the primary operating
+  point (BDT cut, selection threshold, etc.) over a range that spans at least
+  2× the optimized region. The extracted quantity should be flat within
+  uncertainties. A statistically significant trend indicates method bias
+  (MC parameters have cut-dependent errors that don't cancel). This is
+  Category A if the trend exceeds the quoted systematic uncertainty.
+- **Expected results from MC pseudo-data, not real data.** The Phase 4a
+  "expected result" must be computed on MC pseudo-data (counts derived from
+  MC truth fractions and efficiencies, optionally Poisson-fluctuated) — never
+  on actual data counts. Applying the extraction to real data counts in 4a
+  makes 4c a tautology. The purpose of 4a is to validate the method and
+  quantify expected precision before seeing data.
 
 ## Plotting
 

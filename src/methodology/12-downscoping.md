@@ -94,6 +94,17 @@ sessions, visual inspection of plots, novel physics reasoning not grounded
 in training data or retrieved literature, tasks requiring interactive tools
 (GUIs, interactive fitting).
 
+**Agents CAN:**
+- Compile and run Fortran code (e.g., EVENT2, NNLO programs)
+- Install packages via `pixi add` — if conda-forge has it (`pixi search <pkg>`),
+  the agent can use it
+- Build external physics codes (EVENT2, MCFM, etc.) from source if the code is
+  accessible and build instructions exist
+- Dependencies like Fortran compilers (`gfortran`) are available via conda-forge
+
+The question is whether a procedural path exists in documentation, not whether
+the task is "hard" for a human.
+
 When a task falls in the "agents struggle" category, the agent should:
 1. Attempt it if it affects the core result and a procedural path exists
 2. Document the limitation clearly if it cannot be resolved

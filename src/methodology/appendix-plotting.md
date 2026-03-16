@@ -140,8 +140,10 @@ not do this automatically.
 - **Bin-width-normalized** `dN/dx`: `yerr[i] = sqrt(n[i]) / dx[i]`
 
 Always pass `yerr=` explicitly to `mh.histplot()` or `ax.errorbar()` for
-derived quantities. Relying on `mh.histplot` auto-errors is only correct
-for raw counts.
+derived quantities. `mh.histplot` auto-errors are only correct for raw event
+counts or weighted histograms — NOT for `(1/N) dN/dx`, ratios, efficiencies,
+or other post-processed quantities. Relying on auto-errors for derived
+quantities is a Category A review finding.
 
 ### Captions
 
@@ -156,6 +158,30 @@ figures. Use letter labels (`(a)`, `(b)`, etc.) with `ax.text(0.05, 0.95,
 "(a)", transform=ax.transAxes, fontsize="small", va="top")` in each panel.
 Write a single caption describing all sub-panels. This keeps the note
 compact and makes comparisons easier for the reader.
+
+**Grid sizing:** Selection cut distributions can be grouped into a 3×3 grid
+with a single caption. Related comparisons (e.g., data/MC for multiple
+variables) should be side-by-side. A 2×2 grid uses `figsize=(20, 20)`, a
+3×3 uses `figsize=(30, 30)` — following the 10-inches-per-subplot rule.
+
+### Figure cross-referencing
+
+Use pandoc-crossref syntax for numbered figure references in analysis notes:
+
+- **Label every figure:** `![Caption text](figures/name.pdf){#fig:name}`
+- **Reference figures:** `@fig:name` (produces "fig. X")
+- **At sentence start:** `Figure @fig:name` (capitalized)
+- **Never use** `[-@fig:...]` — always use `@fig:name` for full references
+- Tables use `{#tbl:name}` and `@tbl:name`; equations use `{#eq:name}` and
+  `@eq:name`
+
+### Systematic breakdown plots
+
+When a systematic breakdown shows any single source with relative uncertainty
+>100% in a bin, investigate — this typically indicates a bug in the variation
+processing or an edge effect in a low-stats bin. Clip or flag such bins rather
+than letting them dominate the y-axis scale. If the large variation is genuine
+(e.g., a very low-stats bin), document the explanation in the artifact.
 
 ### Delegation to plotting subagent
 

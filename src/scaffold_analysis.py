@@ -87,12 +87,18 @@ def scaffold(analysis_dir: Path, analysis_type: str):
             claude_path.write_text(_substitute(template, variables))
             print(f"  wrote {claude_path}")
 
-    # Symlink conventions/ into the analysis directory
+    # Symlink conventions/ and methodology/ into the analysis directory
     conventions_link = analysis_dir / "conventions"
     conventions_src = HERE / "conventions"
     if not conventions_link.exists() and conventions_src.exists():
         conventions_link.symlink_to(conventions_src.resolve())
         print(f"  linked {conventions_link} -> {conventions_src}")
+
+    methodology_link = analysis_dir / "methodology"
+    methodology_src = HERE / "methodology"
+    if not methodology_link.exists() and methodology_src.exists():
+        methodology_link.symlink_to(methodology_src.resolve())
+        print(f"  linked {methodology_link} -> {methodology_src}")
 
     # .analysis_config (for isolation hook — set data_dir before running)
     config_path = analysis_dir / ".analysis_config"

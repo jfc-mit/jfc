@@ -20,6 +20,14 @@ control regions or simulation.
 use Asimov data (background-only pseudo-data). Signal injection tests use
 pseudo-data at known signal strengths.
 
+**For extraction measurements (counting, ratios):** There is no
+signal/background decomposition, so "Asimov data" means MC pseudo-data
+counts generated from MC truth parameters. The blinded quantity is the
+extracted physical parameter — it must not be computed on real data until
+Phase 4b (10% sample) or 4c (full sample). Phase 4a validates the method
+on MC-only pseudo-data, evaluates systematics, and reports expected
+precision.
+
 **Partial unblinding — 10% data (Phase 4, agent-gated):** After the expected
 results and fit validation pass rigorous agent review (see Section 4.2), the
 agent performs a partial unblinding using a 10% random subsample of the SR data.
@@ -76,12 +84,14 @@ The review structure for the pre-unblinding assessment:
    disagreements between reviewers. Produces a final assessment with a clear
    PASS / ITERATE / ESCALATE decision.
 
-This cycle repeats until the arbiter issues a PASS with all items resolved
-(Category A fixed, Category B fixed, Category C applied). Correctness is the termination condition, not an iteration count. (The
-orchestrator imposes a configurable hard cap as a safety net — see Section 6.7.
-In practice, if the cycle hasn't converged after 3-4 rounds, the issues are
-likely fundamental enough to require human input, and the arbiter should
-escalate.)
+This cycle repeats until the arbiter issues a PASS with **all** items resolved:
+all Category A items fixed, all Category B items fixed, and all Category C items
+applied. The arbiter must not PASS with any unresolved A or B items — both
+categories are termination conditions, not just A. Correctness is the
+termination condition, not an iteration count. (The orchestrator imposes a
+configurable hard cap as a safety net — see Section 6.7. In practice, if the
+cycle hasn't converged after 3-4 rounds, the issues are likely fundamental
+enough to require human input, and the arbiter should escalate.)
 
 Only after PASS does the agent proceed to partial unblinding.
 

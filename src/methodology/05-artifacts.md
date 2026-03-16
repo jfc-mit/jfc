@@ -80,10 +80,13 @@ and the experiment corpus should understand what was done, why, and what the
 results are.
 
 **Artifacts are analysis note source material.** Phase 4 artifacts in
-particular should be written with the understanding that they will be
-directly consumed when drafting the analysis note. Write descriptions of
-methods, systematic evaluations, and cross-checks at publication quality —
-the Phase 4b/5 agent will draw heavily from these when assembling the AN.
+particular must be written at **publication quality** because the Phase 4b/5
+agent reads them directly to draft the analysis note. The artifact quality
+determines AN quality — a terse or poorly-written artifact produces a terse
+or poorly-written AN section. Write descriptions of methods, systematic
+evaluations, and cross-checks as if they were going straight into a journal
+publication. Include full context: what was done, why, what the result means,
+and how it relates to the physics goal.
 
 ### Standard artifact sections:
 

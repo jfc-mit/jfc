@@ -1,4 +1,4 @@
-## 10. Parallelism
+## 10. Parallelism and Sub-delegation
 
 This specification is written for a single agent executing phases sequentially.
 For parallel execution:
@@ -28,7 +28,7 @@ Tasks well-suited for sub-delegation:
 - **Systematic variation evaluation** — each systematic source (or group of
   related sources) can be evaluated independently.
 - **Plot generation** — once the data is prepared, producing a batch of
-  standard plots is mechanical work suitable for a lower-tier model.
+  standard plots is mechanical work suitable for a dedicated sub-agent.
 - **Closure tests** — running fits or comparisons in validation regions.
 
 Sub-agents within a phase:

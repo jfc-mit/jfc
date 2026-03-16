@@ -202,7 +202,13 @@ are Category A if wrong:
 - [ ] **Ratio panels** are readable — axis range appropriate, reference line
   visible, uncertainties shown
 - [ ] **Systematic breakdown** is sensible — individual sources smaller than
-  total, dominant source identified
+  total, dominant source identified. No single source with relative uncertainty
+  >100% in any bin (typically indicates a bug — see Appendix D)
+- [ ] **Uncertainties make physical sense** — error bars proportional to bin
+  content (for Poisson-dominated bins), systematics in the right ballpark
+  for the analysis type
+- [ ] **Log scale used appropriately** — y-axis spanning >2 orders of magnitude
+  should use log scale; linear otherwise
 
 This is a cheap check — it can be delegated to a dedicated reviewer as a
 mechanical pass before or during review. Metadata errors in figures destroy

@@ -42,7 +42,7 @@ Each phase runs the same loop:
        A or B items?       → fix agent + fresh reviewer → re-review (loop)
        Only C items?       → PASS, executor applies Cs before commit
   4. COMMIT
-  5. HUMAN GATE (after 4a for measurements / after 4b for searches)
+  5. HUMAN GATE (after 4b for both measurements and searches)
   6. ADVANCE
 ```
 
@@ -155,11 +155,23 @@ templates in `src/templates/`:
    add `data_dir=` pointing to the input data.
 5. **Git repo** is initialized in the analysis directory.
 
+6. **Methodology symlink** — `methodology/` → `../../src/methodology/` is
+   created so agents can consult the full methodology spec for detailed
+   protocol definitions.
+
 After scaffolding, the analysis directory is self-contained: its CLAUDE.md
-files carry all instructions needed to run the analysis. The methodology
-spec (`src/methodology/`) is human reference only — agents do not read it
-directly. Instead, the relevant rules are distilled into the template
-CLAUDE.md files.
+files carry the essential instructions for execution. The full methodology
+spec (`src/methodology/`) is also available via symlink for agents that need
+detailed protocol definitions (review criteria, blinding protocol, etc.).
+
+**How templates map to methodology:** Each template distills the relevant
+methodology sections into execution-ready instructions:
+- `root_claude.md` — §3 (phases), §6 (review, summary), §10 (scaling), §12 (feasibility)
+- `phase1_claude.md` — §3 Phase 1, §6.4 review focus for strategy
+- `phase2_claude.md` — §3 Phase 2, §5 (artifact format)
+- `phase3_claude.md` — §3 Phase 3, §6.4 review focus for selection
+- `phase4_claude.md` — §3 Phase 4, §4 (blinding), §6.4 review focus for inference
+- `phase5_claude.md` — §3 Phase 5, §6.4.3 (documentation review), Appendix D (plotting)
 
 ## Requirements
 

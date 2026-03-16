@@ -185,6 +185,16 @@ orchestrating — it is executing, and its context will fill up.
   the orchestrator should use it for long-running subagents. This allows
   monitoring and respawning without blocking the orchestrator's context.
 
+**Context splitting for heavy phases.** Phase 4b and Phase 5 are the most
+context-intensive phases because they involve AN writing alongside statistical
+analysis. When context pressure is high, the orchestrator should split these
+into separate subagent invocations:
+- One subagent for the statistical analysis (inference, diagnostics)
+- A second subagent for the AN writing/rendering
+The AN-writing subagent reads the inference artifact from disk — it does not
+need the full statistical analysis context. This keeps each subagent within
+comfortable context limits.
+
 ---
 
 ### Analysis Types
@@ -325,6 +335,16 @@ executes the plan, it does not redesign it.
 *Selection:*
 - Implement event selection (preselection + final selection or MVA, as
   determined by the strategy and what the data supports)
+- **Default to multivariate techniques** (BDT, neural network) when the
+  task involves classification in more than one dimension — flavour tagging,
+  signal/background separation, event categorization. Rectangular cuts are
+  acceptable only for preselection, single-variable selections with clear
+  physical motivation, or when the training sample is too small (< ~1000
+  events). A BDT with 5 input features trains in seconds; the complexity
+  cost is negligible and the performance gain over hand-tuned cuts is
+  typically substantial. Reviewers will flag analyses that use multi-
+  dimensional rectangular cuts where a trained classifier would be standard
+  practice.
 - If using multivariate techniques: train, validate (overtraining checks), and
   optimize the classifier. Document feature importance and working point choice.
 - If cut-based: optimize cut values with a figure of merit and document N-1
@@ -487,9 +507,10 @@ and compute expected results using Asimov data only.
   the fit recovers them
 
 *Goodness-of-fit:*
-- Compute chi2/ndf for all fits and comparisons. Report the value and
-  interpret it (chi2/ndf ~ 1 is good; >>1 indicates mismodeling; <<1
-  indicates overestimated uncertainties or overfitting).
+- Report **both** chi2/ndf for quick assessment **and** toy-based p-value
+  using the saturated model GoF statistic where binned results are involved.
+  chi2/ndf ~ 1 is good; >>1 indicates mismodeling; <<1 indicates
+  overestimated uncertainties or overfitting.
 - For measurements with binned results: use the saturated model as the
   reference for GoF. Generate toys under the null hypothesis and compute
   the p-value. Report the toy distribution alongside the observed test
@@ -498,6 +519,14 @@ and compute expected results using Asimov data only.
 *Expected results:*
 - Compute expected results (limits, significance, or measurement precision)
 - Produce pre-unblinding fit diagnostics
+
+**For measurements:** "Expected results" means the result extracted from
+MC pseudo-data — not from real data. For extraction measurements (counting,
+ratios), generate pseudo-data counts from MC truth parameters
+(e.g., N_t = 2 × N_had × [ε_b × R_b + ε_nonb × (1-R_b)]). Optionally
+Poisson-fluctuate to assess statistical reach. Running the extraction on real
+data counts in Phase 4a defeats the purpose of the 4a → 4b → 4c staged
+validation — it makes 4a and 4c identical.
 
 **Output artifact:** `INFERENCE_EXPECTED.md` — systematic uncertainty table with
 impacts, statistical model description, expected results, fit diagnostics, and
@@ -531,7 +560,8 @@ the draft analysis note.
 - Run the full analysis chain (fit, correction, or extraction) on this subsample
 - Evaluate goodness-of-fit, nuisance parameter pulls, impact ranking
 - Compare observed and expected results (should be compatible within the large
-  statistical uncertainties)
+  statistical uncertainties). **Explicit comparison to Phase 4a** is required:
+  overlay 10% observed vs. expected, report pull or chi2, interpret agreement.
 - Document any discrepancies and their explanations
 - If problems are found, fix them and re-run (without seeing additional data)
 
@@ -539,6 +569,19 @@ the draft analysis note.
 **For measurements:** This is a consistency validation — compare the 10% result
 to the expected result from Phase 4a. Agreement validates the correction chain
 and systematic evaluation on real data before committing to the full dataset.
+
+**For extraction measurements:** The 10% test must include at least one
+diagnostic that is genuinely sensitive to data/MC differences — not just
+a comparison of the extracted quantity (which is dominated by correlated
+systematics and therefore insensitive to the subsample). Required
+diagnostics include:
+- Per-subperiod extraction (if multiple data-taking periods exist). A
+  χ²/ndof >> 1 across periods indicates time-dependent effects not
+  modeled by the MC.
+- Comparison of data-derived quantities (tag rates, double-tag fractions)
+  to MC predictions, independent of the final extraction.
+- If the method self-calibrates some parameters (e.g., efficiency), compare
+  the self-calibrated values between 10% and MC.
 
 **Output artifact:** `INFERENCE_PARTIAL.md` — 10% observed results, post-fit
 diagnostics, comparison to expected, and assessment of analysis health.
@@ -575,7 +618,10 @@ approval.
 - Run the full analysis chain on the complete dataset
 - Produce post-fit diagnostics: nuisance parameter pulls, impact ranking,
   correlation matrix, goodness-of-fit
-- Compare to 10% results (consistency check) and expected results
+- Compare to **both** 10% results (Phase 4b) and expected results (Phase 4a).
+  Report consistency quantitatively: pull distributions, chi2, or ratio plots
+  for each comparison. Flag any result that disagrees with expected at >2σ or
+  disagrees with 10% beyond statistical scaling.
 - If results show anomalies (large NP pulls, poor GoF, unexpected signal),
   investigate and document whether these indicate a modeling problem or a
   genuine feature of the data
@@ -722,7 +768,13 @@ pages, it is almost certainly missing required detail.
 `references.bib` as sources are cited — every retrieved paper, every
 published measurement used for comparison, every theory prediction. The
 `build-pdf` task includes `--citeproc` to process citations automatically.
-BibTeX entries can be obtained from INSPIRE-HEP or the RAG corpus metadata.
+
+BibTeX entries must include DOI and/or INSPIRE-HEP URL. When citing a paper
+discovered via RAG, use `get_paper` to retrieve its metadata and construct a
+proper BibTeX entry with the INSPIRE key. Never cite as bare INSPIRE IDs
+(e.g., `inspire:123456`) — always use proper bibliography entries with
+`[@key]` syntax. If the RAG corpus provides a `get_bibtex` tool, use it to
+retrieve properly formatted BibTeX entries directly.
 
 **LaTeX compilation.** The working format during development is markdown.
 Conversion to PDF uses **pandoc** (≥3.0, installed via pixi as a conda-forge

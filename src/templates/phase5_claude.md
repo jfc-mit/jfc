@@ -30,6 +30,9 @@ for syntax rules).
   `Figure @fig:name`. Never use `[-@fig:...]`.
 - Citations use `[@key]` syntax with `references.bib` in the exec directory.
   Populate the bib file as you add citations. `build-pdf` uses `--citeproc`.
+  BibTeX entries must include DOI and/or INSPIRE-HEP URL. When citing a paper
+  discovered via RAG, use `get_paper` to retrieve its metadata and construct a
+  proper BibTeX entry with the INSPIRE key. Never cite as bare INSPIRE IDs.
 - Tables: `{#tbl:name}` and `@tbl:name`. Equations: `{#eq:name}` and `@eq:name`.
 
 It must contain at minimum:

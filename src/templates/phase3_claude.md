@@ -51,6 +51,56 @@ Read the Phase 1 strategy to determine which technique applies.
 - Control region definitions with purity and kinematic relationship to SR
 - Validation region closure tests (predicted vs. observed, chi2)
 
+## Multivariate classification: use it
+
+When the analysis requires separating signal from background, tagging
+flavour, or classifying event types, **default to training a BDT or
+neural network** — do not default to rectangular cuts unless the
+separation is trivially one-dimensional.
+
+Modern HEP analyses use multivariate techniques as standard practice.
+The available tools (`xgboost`, `scikit-learn`, and optionally
+`pytorch` via `pixi add`) make this straightforward. A trained
+classifier almost always outperforms hand-tuned cuts, and the training
+process itself reveals which variables carry discriminating power.
+
+**When to train a classifier:**
+- Flavour tagging (b vs. light, b vs. c) — always. Impact parameter
+  `d0`, `z0`, track multiplicity, vertex detector hits, and jet
+  kinematics are natural inputs. A BDT on these variables will
+  outperform any single-variable cut.
+- Signal/background separation in searches — always, unless the signal
+  is a simple mass peak with no combinatoric background.
+- Event categorization (e.g., 2-jet vs. 3-jet topology quality) — when
+  more than 2 variables are relevant.
+
+**When rectangular cuts are fine:**
+- Preselection (hadronic event selection, basic quality cuts)
+- Single-variable selections with clear physical motivation (e.g.,
+  thrust > 0.7 to select 2-jet events)
+- When the sample size is too small for training (~< 1000 events)
+
+**Training protocol:**
+1. Split MC into train/test (e.g., 50/50 or 70/30). Use a fixed random
+   seed. Never evaluate performance on the training set.
+2. Train the classifier. For BDTs: `xgboost.XGBClassifier` with
+   early stopping on the test set. Start with defaults; tune only if
+   performance is poor.
+3. Produce standard validation plots: ROC curve, score distributions
+   for signal and background (train and test overlaid to check
+   overtraining), feature importance ranking.
+4. Choose the working point by optimizing a figure of merit (efficiency
+   × purity, S/√(S+B), or analysis-specific metric). Document the
+   choice.
+5. The trained model, its hyperparameters, the training/test split
+   seed, and all validation plots are required artifacts.
+
+**Do not avoid ML because it seems complex.** A basic XGBoost BDT with
+5 input features trains in seconds on the available MC sample sizes.
+The complexity cost is near zero; the performance gain is often
+substantial. Reviewers will ask why a multivariate approach was not
+used if the analysis relies on cuts in a multi-dimensional space.
+
 ## Plotting
 
 Style setup: `import mplhep as mh; mh.style.use("CMS")`

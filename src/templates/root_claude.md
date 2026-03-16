@@ -44,8 +44,8 @@ for each phase in [1, 2, 3, 4a, 4b, 4c, 5]:
 
   4. COMMIT — commit the phase's work.
 
-  5. HUMAN GATE (after 4a for measurements, after 4b for searches):
-     Present the draft AN or results to the human. Pause until approved.
+  5. HUMAN GATE (after 4b for both measurements and searches):
+     Present the draft AN and 10% results to the human. Pause until approved.
 
   6. ADVANCE — proceed to next phase.
 ```
@@ -55,7 +55,13 @@ All three sub-phases (4a → 4b → 4c) are required for both analysis types.
 - **4a:** Statistical analysis — systematics, expected results. No AN draft.
 - **4b:** 10% data validation. Compare to expected. Write full AN draft.
   Review + PDF render. Human gate after 4b review passes.
-- **4c:** Full data. Compare to 10% and expected. Update AN with full results.
+- **4c:** Full data. Compare to **both** 10% and expected. Update AN with full results.
+
+**Context splitting:** Phase 4b and Phase 5 are context-intensive (AN writing
+alongside statistical analysis). When context pressure is high, split into
+separate subagent invocations: one for statistical analysis, another for AN
+writing/rendering. The AN-writing subagent reads the inference artifact from
+disk.
 
 **What the orchestrator does NOT do:**
 - Read full scripts or data files (subagents do this)
@@ -66,8 +72,10 @@ All three sub-phases (4a → 4b → 4c) are required for both analysis types.
 **What the orchestrator MUST do:**
 - **Health monitoring.** Commit before spawning each subagent. Check progress
   every ~5 minutes for long-running subagents. Respawn stalled agents from
-  the last commit. When background/non-blocking agent spawning is available,
-  use it for long-running subagents to enable monitoring.
+  the last commit (if no commit in >10 minutes and no progress, terminate
+  and respawn). When background/non-blocking agent spawning is available,
+  use it for long-running subagents (Phase 3 processing, Phase 4 systematic
+  evaluation, Phase 5 AN writing) to enable monitoring and respawning.
 - Ensure review quality. Do NOT conserve tokens by accepting weak reviews
   or rushing past issues. If a reviewer finds problems, have the work redone
   properly — not minimally patched.
@@ -75,12 +83,25 @@ All three sub-phases (4a → 4b → 4c) are required for both analysis types.
   to an earlier phase (see Phase Regression section below). This is
   especially common after Phase 4a/4b and Phase 5 reviews.
 
+**Subagent model selection:** All subagents — executors, reviewers, arbiters,
+fix agents — must be spawned with `model: "opus"`. Never use Sonnet or Haiku
+for any analysis subagent. Reviewers on a weaker model produce shallow
+reviews that miss physics issues. This is non-negotiable.
+
+**Subagent file reading:** Instruct all subagents to use the Read tool to
+read files in full (no line limits). Never use `cat`, `sed`, `head`, or
+`tail` to read files in chunks — the Read tool handles files of any size
+and gives the subagent the complete content. Chunked reading causes
+reviewers to miss context and produce incomplete reviews.
+
 **Anti-patterns:**
 - Running straight from Phase 1 to Phase 5 with no intermediate artifacts
 - The orchestrator writing analysis scripts itself
 - Using an LLM for format conversion — use pandoc, not an agent
 - Writing a workaround when a maintained tool exists — `pixi add` it instead
 - Accepting reviewer PASS too easily — the arbiter should ITERATE liberally
+- Spawning subagents without `model: "opus"` — this silently degrades quality
+- Subagents reading files with `cat | sed | head` instead of the Read tool
 
 ---
 
@@ -269,149 +290,50 @@ analysis chain. Update it whenever scripts are added.
 
 ## Review Protocol
 
+The full review protocol is defined in the methodology (accessible via
+`conventions/` — see `methodology/06-review.md`). Key rules summarized here:
+
 ### Classification
 
-- **(A) Must resolve:** Errors or missing elements that would cause a referee
-  to reject. Work cannot proceed.
-- **(B) Must fix before PASS:** Issues that weaken the analysis. These are
-  fixed in the same iteration cycle as Category A — the arbiter must not
-  PASS with unresolved B items. A "good enough" analysis with known B
-  issues produces a bad AN.
-- **(C) Suggestions:** Style, clarity, minor improvements. Do not trigger
-  re-review — the fix agent addresses them in the same pass as A/B items.
-  If only C items remain, the arbiter PASses and the executor applies them
-  before committing. No C item should be silently dropped.
+- **(A) Must resolve** — blocks advancement
+- **(B) Must fix before PASS** — weakens the analysis, must be resolved
+- **(C) Suggestion** — applied before commit, does not trigger re-review
 
-### Review Types
+**The arbiter must not PASS with unresolved A or B items.** Both categories
+are fixed in the same iteration cycle. Fresh reviewer added each iteration.
 
-**4-bot review** = physics reviewer + critical reviewer + constructive
-reviewer + arbiter. The physics reviewer receives ONLY the physics prompt
-and the artifact — no methodology, no conventions. It reviews as a senior
-collaboration member would. Run physics/critical/constructive reviewers in
-parallel; arbiter reads all and issues PASS / ITERATE / ESCALATE.
+### Review types per phase
 
-**5-bot review** (Phase 5 only) = physics + critical + constructive +
-rendering + arbiter. The rendering reviewer runs `pixi run build-pdf` and
-inspects the compiled PDF.
+| Phase | Review type |
+|-------|-------------|
+| 1: Strategy | 4-bot (physics + critical + constructive + arbiter) |
+| 2: Exploration | Self-review |
+| 3: Processing | 1-bot (single critical reviewer) |
+| 4a: Expected | 4-bot |
+| 4b: 10% validation | 4-bot → human gate |
+| 4c: Full data | 1-bot |
+| 5: Documentation | 5-bot (4-bot + rendering reviewer) |
 
-**1-bot review** = single critical reviewer. Executor addresses Category A
-and B items and re-submits. No arbiter.
+### Iteration limits
 
-**Self-review** = the executing agent reviews its own work before producing
-the artifact. No separate agent.
-
-### Reviewer Harshness
-
-**Reviewers must be adversarial.** The critical reviewer's job is to find
-what is WRONG and what is MISSING — not to validate what is present. The
-constructive reviewer proposes concrete improvements, not compliments.
-
-**The arbiter must ITERATE liberally.** PASS only when the work is genuinely
-publication-ready. The arbiter should ask: "Would I stake my reputation on
-this analysis?" If the answer is no, ITERATE. Erring on the side of another
-iteration is always preferable to passing weak work.
-
-**The orchestrator must not optimize for speed.** If a reviewer flags
-Category A or B issues, the orchestrator spawns a fix agent to address ALL
-of them — not just the A items. A and B issues are both fixed before the
-arbiter can PASS. If large sections need rework, that is fine. The cost of
-iteration is tokens; the cost of a bad analysis is a retraction.
-
-**Fresh eyes after each iteration.** After each fix-and-re-review cycle,
-add a fresh reviewer to the panel (spawn a new critical or constructive
-reviewer that has not seen previous iterations). Stale reviewers develop
-blind spots — a fresh reviewer catches issues the original panel normalized.
-
-### Review Focus by Phase
-
-| Phase | Focus |
-|-------|-------|
-| Strategy | Backgrounds complete? Approach motivated by literature? Systematic plan covers standard sources (conventions)? Reference analyses identified with systematic programs tabulated? |
-| Exploration | Samples complete? Data quality checked? Distributions physical? |
-| Selection | Background model closes? Every cut motivated by a plot? Per-category data/MC validation? |
-| 4a: Expected | Fit healthy? Systematics complete vs conventions AND references? Signal injection passes? |
-| 4b: Partial | Draft note publication-quality? 10% results consistent? Diagnostics clean? |
-| 4c: Full | Post-fit diagnostics healthy? Anomalies characterized? |
-| Documentation | See Phase Regression below — this is where most bugs are caught. |
-
-### Reviewer Framing
-
-The key question is not "does this pass its tests?" but "what would a
-knowledgeable referee ask for that isn't here?"
-
-Before concluding review, explicitly answer:
-1. Are all systematic sources in conventions either implemented or justified?
-2. Have 2-3 reference analyses been identified with systematic programs tabulated?
-3. If a competing group published the same measurement, what would they have
-   that we don't?
-
-### Iteration
-
-- 4/5-bot: repeats until arbiter PASS with no A or B items remaining. Warn
-  after 3 iterations, strong warn after 5. Hard cap at 10 forces escalation.
-- 1-bot: warn after 2, escalate after 3.
-- Self: no formal iteration.
-
-Each iteration adds a fresh reviewer. The arbiter must not PASS if any
-Category B items remain unresolved.
+- 4/5-bot: warn at 3, strong warn at 5, hard cap at 10 forces escalation.
+- 1-bot: warn at 2, escalate after 3.
+- All subagents use `model: "opus"`.
 
 ---
 
 ## Phase Regression
 
-**Regression can trigger at any review, not just Phase 5.** When a reviewer
-at Phase N finds a physics issue whose root cause is in Phase M < N, this
-triggers regression — rework of the earlier phase and its downstream
-dependents.
+When a reviewer at Phase N finds a **physics issue** traceable to Phase M < N,
+this triggers regression — rework of the earlier phase and its downstream
+dependents. See methodology §6.8 for the full protocol.
 
-**This is the expected path, not an exception.** Most serious issues (wrong
-systematic treatment, missing background, flawed correction, inadequate
-cross-checks) surface during later reviews when more context is available.
-Common trigger points:
-- **Phase 4a/4b review** finds a selection flaw (Phase 3) or a missing
-  systematic that should have been planned (Phase 1)
-- **Phase 5 review** finds a methodological gap visible only when the full
-  analysis is assembled
+**Regression trigger:** Spawn an Investigator to trace impact →
+`REGRESSION_TICKET.md` → fix origin phase → re-run affected downstream →
+resume review.
 
-### Phase 5 review structure (5-bot)
-
-Phase 5 uses an extended review with physics and rendering reviewers:
-1. **Physics reviewer** — receives ONLY the physics prompt and the AN.
-   Reviews as a senior collaboration member (ARC/L2 convener): "Is this
-   physics correct? Is it complete? Would I approve this?"
-2. **Critical reviewer** — reads the AN as a referee. Finds physics errors
-   and missing content.
-3. **Constructive reviewer** — identifies what would strengthen the analysis.
-4. **Rendering reviewer** — reads the compiled PDF using the Read tool
-   (which supports PDF viewing) and checks: figures render correctly, math
-   compiles, layout is readable, no overlapping text or clipped figures,
-   cross-references resolve. Run `pixi run build-pdf` first, then
-   `Read("phase5_documentation/exec/ANALYSIS_NOTE.pdf")` to inspect.
-5. **Arbiter** — reads all four reviews, classifies findings, issues verdict.
-
-### Regression trigger
-
-When any review finds a **physics issue** traceable to an earlier phase:
-
-1. The arbiter (or 1-bot reviewer) classifies the finding as a **regression
-   trigger** and identifies the origin phase.
-2. The orchestrator spawns an **Investigator** to assess impact:
-   - Reads the finding and the origin phase artifact
-   - Traces forward: which downstream artifacts depend on the wrong
-     conclusion?
-   - Produces `REGRESSION_TICKET.md`: root cause, affected phases, fix scope
-3. The orchestrator dispatches fixes in phase order:
-   - Origin phase executor re-runs with the regression ticket
-   - Affected downstream phases re-run with updated upstream artifacts
-   - Unaffected phases are skipped
-4. After fixes, review resumes from the phase where regression was triggered.
-
-### Regression vs. local fix
-
-- **Physics issue traceable to earlier phase** (wrong systematic, missing
-  background, flawed correction, selection bug) → regression trigger.
-- **Issue fixable within the current phase** (axis label, caption, code bug
-  in current phase's scripts) → normal Category A fix-and-re-review cycle.
+**Not regression (local fix):** Axis labels, captions, current-phase code bugs
+→ normal Category A fix-and-re-review cycle.
 
 ---
 
@@ -444,7 +366,13 @@ silently downscope. Instead:
 
 ---
 
-## Conventions
+## Methodology and Conventions
+
+The full methodology specification is available in `methodology/` (symlinked
+from the spec repository). Agents may consult it for detailed protocol
+definitions — review criteria (§6), artifact format (§5), blinding protocol
+(§4), downscoping rules (§12). The methodology is the single source of truth;
+this CLAUDE.md distills the essential rules for execution.
 
 Read the applicable files in `conventions/` at three mandatory checkpoints:
 
