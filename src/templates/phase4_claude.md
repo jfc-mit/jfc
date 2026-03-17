@@ -52,16 +52,23 @@ These are the critical items for Phase 4. See
   against the reference analyses from Phase 1 and the applicable
   `conventions/` files (see root CLAUDE.md → Conventions for which files
   apply). Format: `| Source | Conventions | Ref 1 | Ref 2 | This | Status |`.
-  Any MISSING source without justification is a blocker.
+  Any MISSING source without justification is a blocker. In particular,
+  any source listed in the Phase 1 conventions enumeration as "Will
+  implement" that is absent here is Category A (must resolve before
+  advancing).
 - **Statistical model construction.** Build a binned likelihood with all
-  samples, Asimov/pseudo-data, and systematic terms. Validate: nuisance
-  parameter pulls small, fit converges, results physically sensible.
+  samples, Asimov data (pseudo-data generated under the background-only or
+  nominal hypothesis), and systematic terms as nuisance parameters (NPs —
+  parameters that encode systematic uncertainties in the fit). Validate:
+  NP pulls small, fit converges, results physically sensible.
 - **Fit validation.** Signal injection tests (searches) or closure tests
   (measurements) to confirm the model recovers known inputs.
 - **Goodness-of-fit.** Report **both** chi2/ndf (quick assessment) **and**
-  toy-based p-value using the saturated model GoF statistic. chi2/ndf ~ 1
-  is good; >>1 indicates mismodeling; <<1 indicates overestimated
-  uncertainties.
+  toy-based p-value using the saturated model GoF statistic (the saturated
+  model treats each bin as an independent parameter — this is the standard
+  GoF reference in pyhf/HistFactory; for pure counting extractions, use
+  chi2 across bins or subperiods). chi2/ndf ~ 1 is good; >>1 indicates
+  mismodeling; <<1 indicates overestimated uncertainties.
 - **Expected results on Asimov/MC only.** Phase 4a results must come from
   pseudo-data — never real data.
 - **Covariance matrix (measurements).** Full bin-to-bin covariance

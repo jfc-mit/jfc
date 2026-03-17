@@ -150,6 +150,34 @@ silently omitted from an absolute measurement.
 
 ---
 
+## Required validation checks
+
+1. **Closure test (Category A if fails).** Unfold MC truth through the
+   response matrix and verify recovery of the input truth distribution
+   within statistical precision (chi2 p-value > 0.05). Failure indicates
+   a problem in the response matrix or unfolding procedure.
+
+2. **Stress test.** Unfold a reweighted MC truth (different shape from the
+   nominal) through the nominal response matrix. The unfolded result should
+   recover the reweighted truth. Failure indicates the method is sensitive
+   to the assumed prior shape.
+
+3. **Flat-prior test.** Repeat the unfolding with a uniform prior at the
+   nominal regularization strength. If any bin changes by more than 20%
+   relative to the nominal result, the regularization is too strong for
+   that bin — increase iterations, merge bins, or exclude the bin.
+
+4. **Alternative method cross-check.** Apply at least one independent
+   unfolding method. Agreement validates the procedure; disagreement beyond
+   the assigned method systematic requires investigation. (See BBB validity
+   criterion in the systematic sources section.)
+
+5. **Covariance matrix validation.** Verify positive semi-definiteness
+   (all eigenvalues ≥ 0). Report the condition number; flag if > 10^10
+   (numerically unstable inverse). Visualize the correlation matrix.
+
+---
+
 ## Covariance matrix
 
 ### Construction
@@ -202,3 +230,23 @@ quantity:
   means the inverse is numerically unstable. Consider regularizing the
   covariance or restricting the chi2 calculation to a well-conditioned
   sub-matrix.
+
+---
+
+## References
+
+- D'Agostini, G., "A multidimensional unfolding method based on Bayes'
+  theorem" (Nucl. Instrum. Meth. A362, 487, 1995). The foundational paper
+  for iterative Bayesian unfolding (IBU).
+- Hoecker, A. and Kartvelishvili, V., "SVD approach to data unfolding"
+  (Nucl. Instrum. Meth. A372, 469, 1996). INSPIRE: Hocker:1995kb.
+  Singular value decomposition method with regularization.
+- Schmitt, S., "TUnfold: an algorithm for correcting migration effects in
+  high energy physics" (JINST 7, T10003, 2012). INSPIRE: Schmitt:2012kp.
+  Tikhonov-regularized matrix inversion with L-curve optimization.
+- Andreassen, A. et al., "OmniFold: A Method to Simultaneously Unfold All
+  Observables" (Phys. Rev. Lett. 124, 182001, 2020). INSPIRE:
+  Andreassen:2019cjw. Machine-learning-based unfolding.
+- Cowan, G., "Statistical Data Analysis" (Oxford University Press, 1998).
+  General reference for unfolding, regularization, and covariance
+  propagation in HEP.

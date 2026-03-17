@@ -66,7 +66,7 @@ process itself reveals which variables carry discriminating power.
 5. The trained model, hyperparameters, split seed, and validation plots are
    required artifacts.
 
-## Key requirements: sensitivity optimization
+## Sensitivity optimization (when initial selection is insufficient)
 
 If the initial selection does not meet the physics goal, systematically
 explore alternatives. Maintain a **sensitivity log** (`sensitivity_log.md`)

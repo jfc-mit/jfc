@@ -56,7 +56,8 @@ These are the critical actionable items for Phase 1. See
   `conventions/` files (see root CLAUDE.md → Conventions for which files
   apply to your analysis type). For every required source listed, state
   "Will implement" or "Not applicable because [reason]." This enumeration
-  is binding — Phase 4a reviews against it. Silent omissions are Category A.
+  is binding — Phase 4a reviews against it. Silent omissions are Category A
+  (must-resolve findings that block advancement — see review protocol).
 - **Reference analysis table.** Identify 2-3 published analyses closest in
   technique/observable. Tabulate their systematic programs. This table is a
   binding input to later reviews.

@@ -2,6 +2,11 @@
 
 Type: {{analysis_type}}
 
+**Sections:** Execution Model · Methodology · Environment · Tool
+Requirements · Phase Gates · Review Protocol · Phase Regression · Coding
+Rules · Scale-Out · Plotting · Conventions · Analysis Note Format ·
+Feasibility · Reference Analyses · Pixi Reference · Git
+
 ---
 
 ## Execution Model

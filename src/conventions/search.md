@@ -19,9 +19,10 @@ parameter, use `unfolding.md` or `extraction.md` instead.
 
 ## Standard configuration
 
-- **CLs method.** Use the modified frequentist CLs method (not CL) for
-  upper limit calculations. CLs avoids excluding signal hypotheses to which
-  the analysis has no sensitivity.
+- **CLs method.** Use the modified frequentist CLs method (CLs = CL_s+b /
+  CL_b, not the simple CL_s+b) for upper limit calculations. CLs avoids
+  excluding signal hypotheses to which the analysis has no sensitivity — a
+  problem that arises with CL_s+b when the expected background is small.
 - **Asymptotic approximation.** Acceptable for expected limits and initial
   observed limits when the expected event counts in each bin are > ~5. For
   final results with low statistics, validate against toy-based limits (or
@@ -62,7 +63,7 @@ source.
 | Background normalization | Vary normalization within CR-constrained or theory uncertainty | Transfer factor or theory cross-section uncertainty propagates to the SR prediction |
 | Background shape | Alternative functional forms or MC generators | Mismodeled shape in the discriminant biases the limit |
 | qq̄(γ) modeling | Compare generators (Pythia, Herwig, KK2f) for 2-fermion backgrounds | Fragmentation and hadronization differences affect jet multiplicity and event shapes |
-| MC statistics | Barlow-Beeston or equivalent bin-by-bin MC stat terms | Finite MC sample size adds uncertainty to template shapes |
+| MC statistics | Barlow-Beeston (one NP per bin to absorb MC statistical uncertainty) or equivalent bin-by-bin MC stat terms | Finite MC sample size adds uncertainty to template shapes |
 
 ### Detector and reconstruction
 

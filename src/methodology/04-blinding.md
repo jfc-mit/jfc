@@ -34,8 +34,11 @@ extrapolation from control regions or simulation. For measurements without
 SR structure, no data-derived result is computed — all development uses MC.
 
 **Asimov-only (Phase 4, expected results):** Expected limits and sensitivity
-use Asimov data (background-only pseudo-data). Signal injection tests use
-pseudo-data at known signal strengths. For extraction measurements, Phase 4a
+use Asimov data — synthetic pseudo-data generated from the nominal model
+(background-only for searches, nominal MC parameters for measurements),
+with bin contents set to their exact expected values (no statistical
+fluctuations). Signal injection tests use pseudo-data at known signal
+strengths. For extraction measurements, Phase 4a
 validates the method on MC-only pseudo-data, evaluates systematics, and
 reports expected precision.
 
