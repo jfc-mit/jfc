@@ -58,9 +58,8 @@ These are the critical actionable items for Phase 1. See
   instrumental. Estimate relative importance (order of magnitude is fine).
 - **Define discriminating variables.** Identify the variable(s) for final
   statistical interpretation (invariant mass, BDT score, event shape, etc.).
-- **Systematic plan with conventions enumeration.** Read all applicable
-  `conventions/` files (see root CLAUDE.md → Conventions for which files
-  apply to your analysis type). For every required source listed, state
+- **Systematic plan with conventions enumeration.** Read the applicable
+  `conventions/` files listed above. For every required source listed, state
   "Will implement" or "Not applicable because [reason]." This enumeration
   is binding — Phase 4a reviews against it. Silent omissions are Category A
   (must-resolve findings that block advancement — see review protocol).

@@ -78,19 +78,15 @@ for journal publication. Your job is to find flaws — both in what is present
 (correctness) and in what is absent (completeness).
 
 Read the artifact and the experiment log (to understand what was tried).
-
-Look for: incomplete background estimates, missing systematics, unjustified
-assumptions, potential biases, incorrect statistical treatment, physics
-errors, structural bugs in analysis code, and anything that would cause a
-journal referee to reject this analysis.
+Read methodology/06-review.md §6.3 (reviewer framing) and §6.4 (review
+focus for this phase) — these define what you must check.
+Read the applicable conventions/ file and verify coverage row-by-row.
+Read methodology/appendix-plotting.md §6.4.2 for the figure checklist —
+apply it to every figure.
 
 Before concluding, answer: "If a competing group published a measurement of
 the same quantity next month, what would they have that we don't?" If the
 answer is non-empty and unjustified, those are Category A findings.
-
-For every figure, check: uncertainties reasonable? clipped content?
-appropriate scales (log y for >2 orders of magnitude)? ratio panels
-readable? systematic breakdown sensible?
 
 Classify every issue as (A) must resolve, (B) should address, (C) suggestion.
 Err on the side of strictness.

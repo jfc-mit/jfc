@@ -23,8 +23,10 @@ COMMIT → ADVANCE cycle for each phase. The canonical, detailed loop
 `templates/root_claude.md` — that file is auto-loaded by Claude Code into
 every orchestrator session, making it the authoritative reference agents
 read at runtime. This methodology section provides the architectural
-rationale; the template provides the operational instructions. The cycle structure is: spawn an executor subagent for the
-phase work, spawn reviewer subagent(s) at the appropriate tier, read review
+rationale; the template provides the operational instructions.
+
+The cycle structure is: spawn an executor subagent for the phase work,
+spawn reviewer subagent(s) at the appropriate tier, read review
 findings and resolve any Category A/B issues or regression triggers, commit,
 then advance. Phase 4 adds a human gate after 4b for both measurements and
 searches.

@@ -45,34 +45,26 @@ bibliography requirements.
   `url`, `eprint` fields. Use `unsrt`-style. Use `get_paper` for metadata.
 - Tables: `{#tbl:name}` / `@tbl:name`. Equations: `{#eq:name}` / `@eq:name`.
 
-**Cross-checks belong with their relevant result** — not in a standalone
-section. If large (>2 pages), move to appendix with forward reference.
-
 ## Key requirements
 
 These are the critical items for the analysis note. See
-`methodology/03-phases.md` → Phase 5 for full details.
+`methodology/analysis-note.md` for full details.
 
 - **The AN is the complete record — not an executive summary or a
   journal-length paper.** Every detail needed to reproduce the analysis
   from scratch must be in the note. If a reviewer has to read the code to
   understand a choice, the AN has a gap.
-- **Depth calibration.** A measurement with ~5 systematics, ~3 cross-checks,
-  ~6 cuts, ~18 bins should produce ~50-100 rendered pages. Under 30 pages
-  means detail is missing.
+- **Depth calibration.** ~50-100 rendered pages for a typical analysis.
+  Under 30 pages means detail is missing.
 - **Per-systematic subsections.** Each systematic source gets its own
-  subsection: description, method, impact figure, per-bin table. A summary
-  table alone is insufficient.
+  subsection: description, method, impact figure, per-bin table.
 - **Cross-checks with their results.** Each cross-check appears as a
   subsection within the relevant results section (not in a standalone
-  "Cross-checks" section). Include comparison plots, chi2/p-value, and
-  interpretation. One-liners are not subsections.
+  "Cross-checks" section). If large (>2 pages), move to appendix.
 - **Completeness test.** A physicist unfamiliar with the analysis should be
-  able to read the AN alone and understand every choice, reproduce every
-  number, and evaluate whether conclusions are supported.
+  able to read the AN alone and reproduce every number.
 - **Machine-readable results.** `results/` directory with CSV/JSON for
-  spectra, uncertainties, and covariance matrices. Results that exist only
-  in a PDF are not reusable.
+  spectra, uncertainties, and covariance matrices.
 
 ## Figure setup
 
