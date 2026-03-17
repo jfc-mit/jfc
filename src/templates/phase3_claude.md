@@ -19,7 +19,7 @@ optimization, cutflow table, and technique-specific deliverables.
 ## Methodology references
 
 - Phase requirements: `methodology/03-phases.md` → Phase 3
-- Technique-specific requirements: `methodology/03-phases.md` → §3.3/§3.4
+- Technique-specific requirements: `methodology/03-phases.md` → Phase 3 "Correction infrastructure" / "Background estimation" subsections
 - Review protocol: `methodology/06-review.md` → §6.2 (1-bot), §6.4
 - Plotting: `methodology/appendix-plotting.md`
 - Coding: `methodology/11-coding.md`
@@ -76,7 +76,7 @@ Progress through qualitatively different strategies (not just parameter
 tuning). Not all apply to every analysis type — select those relevant:
 1. Optimize the current approach (tune cuts for S/sqrt(B) or equivalent)
 2. Try a more powerful discriminant (cut-based → BDT → GNN)
-3. Try different extraction strategies (shape fit vs. counting, different
+3. Try different inference strategies (shape fit vs. counting, different
    discriminant variables) — primarily for searches and template fits
 4. Revisit region design (tighter SR, different background decomposition,
    alternative efficiency binning)

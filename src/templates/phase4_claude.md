@@ -27,7 +27,7 @@ the artifact structure will be. Execute after the plan is set.
 ## Methodology references
 
 - Phase requirements: `methodology/03-phases.md` → Phase 4
-- Technique-specific requirements: `methodology/03-phases.md` → §3.3/§3.4
+- Technique-specific requirements: `methodology/03-phases.md` → Phase 4 sub-phase descriptions
 - Blinding: `methodology/04-blinding.md`
 - Review protocol: `methodology/06-review.md` → §6.2 (4-bot / 1-bot), §6.4
 - Goodness-of-fit: `methodology/03-phases.md` → Phase 4 GoF requirements
@@ -65,10 +65,10 @@ These are the critical items for Phase 4. See
   (measurements) to confirm the model recovers known inputs.
 - **Goodness-of-fit.** Report **both** chi2/ndf (quick assessment) **and**
   toy-based p-value using the saturated model GoF statistic (the saturated
-  model treats each bin as an independent parameter — this is the standard
-  GoF reference in pyhf/HistFactory; for pure counting extractions, use
-  chi2 across bins or subperiods). chi2/ndf ~ 1 is good; >>1 indicates
-  mismodeling; <<1 indicates overestimated uncertainties.
+  model treats each bin as an independent parameter — standard reference in
+  pyhf/HistFactory). For pure counting extractions without a binned fit,
+  use chi2 across bins or subperiods instead. chi2/ndf ~ 1 is good; >>1
+  indicates mismodeling; <<1 indicates overestimated uncertainties.
 - **Expected results on Asimov/MC only.** Phase 4a results must come from
   pseudo-data — never real data.
 - **Covariance matrix (measurements).** Full bin-to-bin covariance

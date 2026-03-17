@@ -113,7 +113,16 @@ of them requires explicit justification.
 | Prior dependence | Alternative priors (reweighted truth, flat) | Tests sensitivity to assumed shape |
 | Alternative method | At least one independent unfolding method | Cross-check of the full procedure |
 
-**BBB validity criterion:** Bin-by-bin correction factors are a valid alternative method only when the response matrix diagonal fraction exceeds ~70% across the fit range. When diagonal fractions are lower (significant bin migrations), BBB is structurally incorrect and must be treated as a cross-check only — computed and reported, but excluded from the systematic budget. In this regime, a proper alternative (SVD, TUnfold, or matrix inversion with regularization) is required for the systematic. If no valid alternative is available, document this as a limitation in the analysis note.
+**BBB validity criterion:**
+- Bin-by-bin (BBB) correction factors are a valid alternative method only
+  when the response matrix diagonal fraction exceeds ~70% across the fit
+  range.
+- When diagonal fractions are lower (significant bin migrations), BBB is
+  structurally incorrect — compute and report it as a cross-check, but
+  exclude it from the systematic budget.
+- In this regime, a proper alternative (SVD, TUnfold, or matrix inversion
+  with regularization) is required for the method systematic.
+- If no valid alternative is available, document this as a limitation.
 
 ### Generator model (hadronization / fragmentation)
 
@@ -151,6 +160,9 @@ silently omitted from an absolute measurement.
 ---
 
 ## Required validation checks
+
+The tests below formalize the criteria from the Regularization and
+Covariance sections as explicit pass/fail gates.
 
 1. **Closure test (Category A if fails).** Unfold MC truth through the
    response matrix and verify recovery of the input truth distribution
@@ -192,9 +204,8 @@ silently omitted from an absolute measurement.
 
 ### Validation
 
-- Positive semi-definiteness (eigenvalue check)
-- Condition number (report; flag if > 10^10 for the fit sub-matrix)
-- Correlation matrix visualization
+See Required validation check #5 above for the specific criteria
+(eigenvalue check, condition number threshold, correlation visualization).
 
 ---
 

@@ -24,9 +24,10 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
 ## Standard configuration
 
 - **MC pseudo-data for Phase 4a.** The expected result must be computed on
-  MC-generated pseudo-data counts (e.g., N_t = 2 * N_had * [eps_b * R_b +
-  eps_nonb * (1 - R_b)]), not on real data. Optionally Poisson-fluctuate to
-  assess statistical reach.
+  MC-generated pseudo-data counts, not on real data. Generate counts from
+  MC truth parameters using the extraction formula (e.g., for R_b:
+  N_t = 2 * N_had * [eps_b * R_b + eps_nonb * (1 - R_b)]). Optionally
+  Poisson-fluctuate to assess statistical reach.
 - **Fixed random seed.** All pseudo-data generation and 10% subsample
   selection use documented fixed seeds for reproducibility.
 - **Per-subperiod granularity.** When multiple data-taking periods exist,
@@ -89,8 +90,9 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
 1. **Independent closure test (Category A if fails).** Apply the full
    extraction procedure to a statistically independent MC sample (not the
    sample used to derive efficiencies or corrections). Extract the quantity
-   and compare to MC truth. The pull must be < 2 sigma. Failure indicates a
-   bias in the method.
+   and compare to MC truth. The pull (extracted value minus truth, divided
+   by the method's uncertainty) must be < 2 sigma. Failure indicates a bias
+   in the method.
 
 2. **Parameter sensitivity table.** For each MC-derived input parameter,
    compute |dResult/dParam| * sigma_param. Flag any parameter contributing
@@ -156,9 +158,9 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
 - ALEPH R_b measurement: "A measurement of R_b using a lifetime-mass tag"
   (Phys. Lett. B401, 163, 1997). INSPIRE: Barate:1997ha. Reference for
   double-tag counting with hemisphere correlations.
-- DELPHI R_b/R_c: "Measurement of the inclusive charge current cross
-  section..." — use `search_lep_corpus` with query "DELPHI R_b double tag"
-  to retrieve the specific paper and its systematic program.
+- DELPHI R_b/R_c: DELPHI double-tag measurements of R_b and R_c — multiple
+  papers across 1995-2000. Use `search_lep_corpus` with query "DELPHI R_b
+  double tag" to retrieve specific papers and their systematic programs.
 - SLD R_b: "A measurement of R_b using a vertex mass tag" (Phys. Rev. Lett.
   80, 660, 1998). INSPIRE: Abe:1997sb. Reference for high-purity
   single/double tag methods with self-calibrating efficiencies.

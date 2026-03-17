@@ -270,7 +270,7 @@ See `methodology/11-coding.md` for full coding practices.
 
 See `methodology/appendix-plotting.md` for full plotting standards. Essentials:
 
-- **Style:** `import mplhep as mh; mh.style.use("CMS")`
+- **Style:** `import mplhep as mh; mh.style.use("CMS")` (CMS style is the default mplhep preset — clean, widely used)
 - **Figure size:** `figsize=(10, 10)`. Subplots: `figsize=(10*ncols, 10*nrows)`.
 - **No titles.** Never `ax.set_title()`. Captions go in the analysis note.
 - **No absolute font sizes.** The CMS stylesheet sets sizes. Use `'x-small'` for legends.

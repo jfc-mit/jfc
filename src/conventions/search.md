@@ -31,8 +31,7 @@ parameter, use `unfolding.md` or `extraction.md` instead.
   mu >= 0 (one-sided) for upper limits. For discovery significance, use
   the unconstrained (two-sided) profile likelihood ratio.
 - **Signal injection.** Inject signal at 0x, 1x, 2x, and 5x the expected
-  cross-section. Verify the fit recovers the injected strength within
-  uncertainties. Failed signal injection is Category A.
+  cross-section. See Required validation check #2 for pass/fail criteria.
 - **Blinding.** The signal region discriminant distribution in data is not
   examined until Phase 4b (10% subsample) or 4c (full data). See
   `methodology/04-blinding.md` for the full protocol.
@@ -53,7 +52,7 @@ source.
 | Signal cross-section theory uncertainty | Scale variations (muR, muF), higher-order corrections | Affects the interpretation of the limit in terms of a physical parameter |
 | Signal acceptance | Generator comparison, ISR variations | Different generators predict different acceptance at the same √s |
 | Signal shape | Alternative signal MC or parameter variations (mass, width, coupling) | The discriminant shape determines how the signal distributes across bins |
-| ISR modeling | Vary ISR treatment or compare generators with different ISR implementations | ISR shifts the effective √s, affecting both signal kinematics and acceptance. This is the dominant beam-related systematic at LEP2 energies. |
+| ISR modeling | Vary ISR treatment or compare generators with different ISR implementations | ISR shifts effective √s, affecting signal kinematics and acceptance — dominant beam-related systematic at LEP2 |
 
 ### Background estimation
 

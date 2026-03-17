@@ -61,9 +61,10 @@ Required sections:
 These are the critical items for the analysis note. See
 `methodology/03-phases.md` → Phase 5 for full details.
 
-- **The AN is the complete record, not a summary.** Every detail needed to
-  reproduce the analysis from scratch must be in the note. If a reviewer
-  has to read the code to understand a choice, the AN has a gap.
+- **The AN is the complete record — not an executive summary or a
+  journal-length paper.** Every detail needed to reproduce the analysis
+  from scratch must be in the note. If a reviewer has to read the code to
+  understand a choice, the AN has a gap.
 - **Depth calibration.** A measurement with ~5 systematics, ~3 cross-checks,
   ~6 cuts, ~18 bins should produce ~50-100 rendered pages. Under 30 pages
   means detail is missing.
@@ -84,7 +85,12 @@ These are the critical items for the analysis note. See
 
 Symlink phase figures into `phase5_documentation/exec/figures/` so that
 `![caption](figures/name.pdf)` references resolve correctly when pandoc
-compiles the PDF.
+compiles the PDF. The `build_pdf.py` script collects figures automatically;
+if setting up manually:
+```bash
+mkdir -p phase5_documentation/exec/figures
+ln -sf ../../phase*/figures/*.pdf phase5_documentation/exec/figures/
+```
 
 ## Building the PDF
 
