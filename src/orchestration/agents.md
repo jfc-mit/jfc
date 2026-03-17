@@ -6,7 +6,10 @@ protocol and orchestrator architecture; this file provides the copy-pasteable
 prompts the orchestrator sends to each subagent.
 
 Context assembly follows methodology §3a.4.2 (three layers: bird's-eye
-framing, relevant methodology sections, upstream artifacts).
+framing, relevant methodology sections, upstream artifacts). The phase
+CLAUDE.md files (from `../templates/`) are what agents read at runtime;
+these prompts define how the *orchestrator* launches agents that will read
+those CLAUDE.md files.
 
 ### Execution agent
 

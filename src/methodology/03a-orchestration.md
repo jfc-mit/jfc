@@ -64,76 +64,31 @@ orchestrating — it is executing, and its context will fill up.
 
 ---
 
-### 3a.2 Subagent Prompts
+### 3a.2 Subagent Roles and Context
 
-*Phase executor prompt (adapt per phase):*
-```
-You are executing Phase N of a HEP analysis. Read the methodology and
-follow it exactly.
+The orchestrator spawns subagents in two categories: **executors** and
+**reviewers**. Each receives curated context assembled per §3a.4.2 (three
+layers: bird's-eye framing, relevant methodology sections, upstream
+artifacts). See `orchestration/agents.md` for literal, copy-pasteable
+prompt templates for each role.
 
-Analysis directory: analyses/<name>/
-Phase CLAUDE.md: <path> (read this first)
-Upstream artifacts to read from disk: <list of paths>
-Experiment log: <path> (append your findings as you work)
-Conventions: <path> (consult for systematic requirements)
+**Executor subagents** receive the phase CLAUDE.md, upstream artifact paths,
+experiment log, and conventions path. They work in plan-then-code mode:
+produce `plan.md` first, then scripts/figures, then the phase artifact last.
 
-Your deliverables:
-1. Scripts in phase*/scripts/ that produce all required figures and results
-2. The phase artifact: phase*/exec/<ARTIFACT_NAME>.md
-3. Updated experiment_log.md with material decisions and discoveries
-4. Updated pixi.toml tasks for any new scripts
+**Reviewer subagents** come in four roles:
 
-Write the artifact LAST, after all scripts run and results are on disk.
-The artifact summarizes and references the results — it is not a plan.
+| Role | Context | Goal |
+|------|---------|------|
+| Physics reviewer | Physics prompt + artifact only (no methodology, no conventions) | Evaluate as a senior collaboration member: "Would I approve this?" |
+| Critical reviewer | Full context (methodology + conventions + artifact) | Find all flaws in correctness and completeness |
+| Constructive reviewer | Same as critical | Strengthen: clarity, additional validation, presentation |
+| Arbiter | All reviews + artifact | Adjudicate, issue PASS / ITERATE / ESCALATE |
 
-[Insert physics prompt here]
-```
-
-*Reviewer prompt (adapt per phase):*
-```
-You are reviewing Phase N of a HEP analysis. You are a critical reviewer —
-your job is to find what is MISSING, not just check what is present.
-
-Read the artifact: <path>
-Read the conventions: <path>
-Read the reference analyses in the strategy: <path to STRATEGY.md>
-
-Apply the review focus from methodology Section 6.4 for this phase.
-Check the artifact against the checklist in methodology Appendix B.
-
-For each finding, classify as:
-  (A) Must resolve — blocks advancement
-  (B) Should address — weakens but doesn't invalidate
-  (C) Suggestion — style, clarity
-
-Write your findings to: phase*/review/REVIEW_NOTES.md
-
-The key question: "What would a knowledgeable referee ask for that
-isn't here?"
-```
-
-*4-bot review (for phases requiring it):*
-Spawn four reviewer agents (first three in parallel).
-See `methodology/06-review.md` §6.2–6.4 for the full reviewer protocol,
-framing, phase-specific review focus, and completeness checks. Summary:
-
-1. **Physics reviewer** — receives ONLY the physics prompt and artifact
-   (no methodology, no conventions). Reviews as a senior collaboration
-   member: "Is the physics correct and complete? Would I approve this?"
-2. **Critical reviewer** — receives the artifact, methodology, and
-   conventions. Goal: find everything wrong or missing, both in what is
-   present and what is absent. Must explicitly check the conventions
-   document row-by-row.
-3. **Constructive reviewer** — same inputs as critical. Goal: what would
-   make this stronger? Clarity, additional validation, improved
-   presentation. Escalates to Category A if warranted.
-4. **Arbiter** — reads all three reviews and the original artifact.
-   Adjudicates disagreements. Issues PASS / ITERATE / ESCALATE. Must
-   not PASS with any unresolved A or B items.
-
-The arbiter's verdict determines whether the phase advances. The bar is
-high: the arbiter should ITERATE liberally and only PASS when a senior
-physicist would be comfortable with the result.
+**4-bot review** spawns all four (first three in parallel). See
+`methodology/06-review.md` §6.2–6.4 for the full protocol. The arbiter
+must not PASS with unresolved A or B items. The bar is high: ITERATE
+liberally, PASS only when a senior physicist would be comfortable.
 
 ---
 

@@ -39,7 +39,9 @@ artifacts.
 
 **Orchestrator architecture.** See §3a (`03a-orchestration.md`) for the
 orchestrator loop, subagent delegation, context management, and health
-monitoring.
+monitoring. Phase-specific agent instructions are provided by the CLAUDE.md
+templates in each phase directory (sourced from `templates/`) — these are
+the operational entry points agents read at runtime.
 
 ---
 
@@ -195,6 +197,19 @@ executes the plan, it does not redesign it.
   practice.
 - If using multivariate techniques: train, validate (overtraining checks), and
   optimize the classifier. Document feature importance and working point choice.
+  - **Train at least one alternative architecture** (e.g., fully connected NN
+    if primary is BDT, or vice versa). This is inexpensive and provides a
+    genuine cross-check. Report both performances.
+  - **When the physics has >2 classes** (e.g., b vs. c vs. light in flavour
+    tagging), try multiclass classification — not just binary. Multiclass
+    often outperforms chained binary classifiers.
+  - **Check data/MC agreement on the classifier output** — if mismodeling is
+    visible, investigate input variable cuts or calibration before accepting
+    the MVA systematic as-is.
+  - **Sub-delegate MVA training** to a sub-agent. Classifier training is a
+    self-contained task (hyperparameter tuning, overtraining checks, feature
+    selection) that should not consume the main executor's context. See
+    §3a.5.1.
 - If cut-based: optimize cut values with a figure of merit and document N-1
   distributions.
 - Produce the final signal region definition and cutflow with efficiencies.

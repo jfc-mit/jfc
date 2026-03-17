@@ -33,55 +33,20 @@ Query the experiment corpus for:
 
 Cite sources in the artifact.
 
-## Multivariate classification: use it
+## MVA classification checklist
 
-When the analysis requires separating signal from background, tagging
-flavour, or classifying event types, **default to training a BDT or
-neural network** — do not default to rectangular cuts unless the
-separation is trivially one-dimensional.
+Default to multivariate techniques (BDT, NN) for multi-dimensional
+classification. See `methodology/03-phases.md` → Phase 3 "Selection" for
+full guidance including when to use cuts vs. MVA.
 
-Modern HEP analyses use multivariate techniques as standard practice.
-The available tools (`xgboost`, `scikit-learn`, and optionally
-`pytorch` via `pixi add`) make this straightforward. A trained
-classifier almost always outperforms hand-tuned cuts, and the training
-process itself reveals which variables carry discriminating power.
-
-**When to train a classifier:**
-- Flavour tagging (b vs. light, b vs. c) — always.
-- Signal/background separation in searches — always, unless the signal
-  is a simple mass peak with no combinatoric background.
-- Event categorization — when more than 2 variables are relevant.
-
-**When rectangular cuts are fine:**
-- Preselection (hadronic event selection, basic quality cuts)
-- Single-variable selections with clear physical motivation
-- When the sample size is too small for training (~< 1000 events)
-
-**Training protocol:**
-1. Split MC into train/test (fixed random seed). Never evaluate on training set.
-2. Train the classifier. For BDTs: `xgboost.XGBClassifier` with early stopping.
-3. **Train at least one alternative architecture** (e.g., fully connected NN
-   if primary is BDT, or vice versa). This is cheap and provides a genuine
-   cross-check of the classifier. Report both performances.
-4. **When the physics has >2 classes** (e.g., b vs. c vs. light in flavour
-   tagging), try multiclass classification — not just binary. Multiclass
-   often outperforms chained binary classifiers and directly models the
-   background composition.
-5. Produce validation plots: ROC curve, score distributions (train/test
-   overlaid), feature importance ranking. **Check data/MC agreement on
-   the classifier output** — if mismodeling is visible, investigate
-   whether input variable cuts or calibration can improve it before
-   accepting the MVA systematic as-is.
-6. Choose working point by optimizing a figure of merit. Document the choice.
-7. The trained model, hyperparameters, split seed, and validation plots are
-   required artifacts.
-
-**Sub-delegate MVA training.** Classifier training is a self-contained task
-with its own iteration cycle (hyperparameter tuning, overtraining checks,
-feature selection). Delegate it to a sub-agent rather than running it in
-the main executor context. The sub-agent receives the training data spec
-and returns the trained model + performance metrics + validation plots.
-See `methodology/03a-orchestration.md` → §3a.5.1.
+- [ ] Sub-delegate MVA training to a sub-agent (see §3a.5.1)
+- [ ] Train primary classifier (BDT or NN)
+- [ ] Train ≥1 alternative architecture (NN if BDT, vice versa)
+- [ ] Try multiclass if >2 physics classes (e.g., b/c/light)
+- [ ] Produce validation plots: ROC, score distributions (train/test overlaid), feature importance
+- [ ] Check data/MC agreement on classifier output — investigate before accepting systematic
+- [ ] Optimize working point with figure of merit
+- [ ] Save trained model, hyperparameters, split seed, validation plots as artifacts
 
 ## Sensitivity optimization (when initial selection is insufficient)
 

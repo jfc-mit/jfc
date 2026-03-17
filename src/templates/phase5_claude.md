@@ -34,37 +34,19 @@ If either fails, fix it before requesting review.
 ## Analysis note structure
 
 The AN must be **pandoc-compatible markdown** (see root CLAUDE.md for syntax).
+See `methodology/analysis-note.md` for the full AN specification including
+all 11 required sections, depth calibration, completeness test, and
+bibliography requirements.
 
-**Cross-references and citations:**
-- Every figure MUST have a label: `![Caption](figures/name.pdf){#fig:name}`
-- Reference as `@fig:name`. At sentence start: `Figure @fig:name`. Never `[-@fig:...]`.
-- Citations: `[@key]` with `references.bib`. BibTeX entries must include
-  `doi`, `url` (journal or arXiv link), and `eprint` (arXiv ID) fields
-  where available. Use `unsrt`-style formatting as a reference. Use
-  `get_paper` for RAG-discovered papers — always retrieve full metadata.
-- Tables: `{#tbl:name}` and `@tbl:name`. Equations: `{#eq:name}` and `@eq:name`.
+**Cross-references and citations (quick reference):**
+- Figures: `![Caption](figures/name.pdf){#fig:name}` → `@fig:name`
+- At sentence start: `Figure @fig:name`. Never `[-@fig:...]`.
+- Citations: `[@key]` with `references.bib`. BibTeX must include `doi`,
+  `url`, `eprint` fields. Use `unsrt`-style. Use `get_paper` for metadata.
+- Tables: `{#tbl:name}` / `@tbl:name`. Equations: `{#eq:name}` / `@eq:name`.
 
-Required sections:
-
-1. **Introduction** — physics motivation, observable definition, prior measurements
-2. **Data samples** — experiment, sqrt(s), luminosity, MC generators, cross-sections, event counts
-3. **Event selection** — every cut with motivation, distribution plot, efficiency
-4. **Corrections / unfolding** (measurements) — full procedure, closure tests
-5. **Systematic uncertainties** — one subsection per source: method, impact
-6. **Statistical method** — likelihood, fit validation, uncertainty propagation
-7. **Results** — primary result with full uncertainties, per-bin tables
-8. **Comparison to prior results and theory** — overlay plots, chi2/p-values
-9. **Conclusions** — summary, precision, dominant limitations
-10. **Future directions** — concrete roadmap
-11. **Appendices** — covariance matrices as tables, extended cutflow, auxiliary plots
-
-**Cross-checks belong with their relevant result, not in a separate
-section.** A BDT cross-check goes in the selection section. An alternative
-inference strategy goes in the statistical method section. An operating
-point stability scan goes in the systematics section. If a cross-check is
-large (>2 pages), move it to an appendix with a forward reference from the
-relevant section. Do not create a standalone "Cross-checks" section — it
-disconnects the check from its context.
+**Cross-checks belong with their relevant result** — not in a standalone
+section. If large (>2 pages), move to appendix with forward reference.
 
 ## Key requirements
 

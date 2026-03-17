@@ -30,23 +30,15 @@ Cite sources in the artifact.
 
 ## Data discovery
 
-Expect to discover the data format at runtime. To avoid wasting time/memory:
-1. **Metadata first.** Inspect tree names, branch names, types before loading.
-2. **Small slice of scalars.** Load ~1000 events of scalar branches first.
-3. **Identify jagged structure.** Determine which branches are variable-length
-   before bulk loading.
-4. **Document the schema.** The discovered structure is artifact content.
+Expect to discover the data format at runtime. See
+`methodology/03-phases.md` → Phase 2 "Data discovery" for the protocol
+(metadata first → small slice → identify jagged structure → document schema).
 
 ## PDF build test (independent — can run in parallel)
 
-Run a stub PDF build to verify the toolchain. This is independent of the
-Phase 2 exploration work and can be sub-delegated or run in parallel:
-1. Create a minimal `phase5_documentation/exec/ANALYSIS_NOTE.md` with a
-   title, one section heading, and one figure reference
-2. Run `pixi run build-pdf`
-3. Fix any issues (missing packages, broken pandoc flags) now
-
-This catches toolchain problems early — not in Phase 5.
+Run a stub PDF build (`pixi run build-pdf`) to verify the toolchain. This
+is independent of exploration and can be sub-delegated. See
+`methodology/03-phases.md` → Phase 2 "PDF build test" for details.
 
 ## Key requirements
 

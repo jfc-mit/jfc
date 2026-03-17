@@ -40,6 +40,12 @@ Cite all retrieved sources in the artifact (paper ID + section).
   template fit, etc.) and justify the choice. This determines which
   technique-specific requirements apply in later phases.
 
+## Applicable conventions
+
+{{conventions_files}}
+
+Read these before writing the systematic plan.
+
 ## Key requirements
 
 These are the critical actionable items for Phase 1. See

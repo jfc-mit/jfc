@@ -43,6 +43,12 @@ Query the experiment corpus for:
 
 Cite sources in the artifact.
 
+## Applicable conventions
+
+{{conventions_files}}
+
+Re-read these before finalizing systematics.
+
 ## Key requirements
 
 These are the critical items for Phase 4. See

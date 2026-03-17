@@ -19,6 +19,23 @@ HERE = Path(__file__).parent
 TEMPLATES = HERE / "templates"
 
 # ---------------------------------------------------------------------------
+# Conventions routing — determines which conventions files apply per type
+# ---------------------------------------------------------------------------
+
+CONVENTIONS_FOR_TYPE = {
+    "measurement": (
+        "- `conventions/unfolding.md` — for unfolded measurements\n"
+        "- `conventions/extraction.md` — for extraction/counting measurements\n"
+        "\n"
+        "The technique selected in Phase 1 determines which file applies.\n"
+        "Read the \"When this applies\" section of each to confirm."
+    ),
+    "search": (
+        "- `conventions/search.md`"
+    ),
+}
+
+# ---------------------------------------------------------------------------
 # Phase directories
 # ---------------------------------------------------------------------------
 
@@ -64,6 +81,7 @@ def scaffold(analysis_dir: Path, analysis_type: str):
     variables = {
         "name": analysis_dir.name,
         "analysis_type": analysis_type,
+        "conventions_files": CONVENTIONS_FOR_TYPE.get(analysis_type, ""),
     }
 
     # Analysis-root CLAUDE.md from template

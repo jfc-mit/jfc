@@ -1,3 +1,7 @@
+<!-- Spec developer note: agent prompt templates live in
+     src/orchestration/agents.md. Context assembly rules are in
+     src/methodology/03a-orchestration.md §3a.4.2. -->
+
 # Analysis: {{name}}
 
 Type: {{analysis_type}}
