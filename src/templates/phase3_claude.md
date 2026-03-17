@@ -60,11 +60,28 @@ process itself reveals which variables carry discriminating power.
 **Training protocol:**
 1. Split MC into train/test (fixed random seed). Never evaluate on training set.
 2. Train the classifier. For BDTs: `xgboost.XGBClassifier` with early stopping.
-3. Produce validation plots: ROC curve, score distributions (train/test overlaid),
-   feature importance ranking.
-4. Choose working point by optimizing a figure of merit. Document the choice.
-5. The trained model, hyperparameters, split seed, and validation plots are
+3. **Train at least one alternative architecture** (e.g., fully connected NN
+   if primary is BDT, or vice versa). This is cheap and provides a genuine
+   cross-check of the classifier. Report both performances.
+4. **When the physics has >2 classes** (e.g., b vs. c vs. light in flavour
+   tagging), try multiclass classification — not just binary. Multiclass
+   often outperforms chained binary classifiers and directly models the
+   background composition.
+5. Produce validation plots: ROC curve, score distributions (train/test
+   overlaid), feature importance ranking. **Check data/MC agreement on
+   the classifier output** — if mismodeling is visible, investigate
+   whether input variable cuts or calibration can improve it before
+   accepting the MVA systematic as-is.
+6. Choose working point by optimizing a figure of merit. Document the choice.
+7. The trained model, hyperparameters, split seed, and validation plots are
    required artifacts.
+
+**Sub-delegate MVA training.** Classifier training is a self-contained task
+with its own iteration cycle (hyperparameter tuning, overtraining checks,
+feature selection). Delegate it to a sub-agent rather than running it in
+the main executor context. The sub-agent receives the training data spec
+and returns the trained model + performance metrics + validation plots.
+See `methodology/03a-orchestration.md` → §3a.5.1.
 
 ## Sensitivity optimization (when initial selection is insufficient)
 

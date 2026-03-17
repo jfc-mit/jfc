@@ -37,8 +37,10 @@ The AN must be **pandoc-compatible markdown** (see root CLAUDE.md for syntax).
 **Cross-references and citations:**
 - Every figure MUST have a label: `![Caption](figures/name.pdf){#fig:name}`
 - Reference as `@fig:name`. At sentence start: `Figure @fig:name`. Never `[-@fig:...]`.
-- Citations: `[@key]` with `references.bib`. BibTeX entries must include DOI
-  and/or INSPIRE-HEP URL. Use `get_paper` for RAG-discovered papers.
+- Citations: `[@key]` with `references.bib`. BibTeX entries must include
+  `doi`, `url` (journal or arXiv link), and `eprint` (arXiv ID) fields
+  where available. Use `unsrt`-style formatting as a reference. Use
+  `get_paper` for RAG-discovered papers — always retrieve full metadata.
 - Tables: `{#tbl:name}` and `@tbl:name`. Equations: `{#eq:name}` and `@eq:name`.
 
 Required sections:
@@ -48,13 +50,20 @@ Required sections:
 3. **Event selection** — every cut with motivation, distribution plot, efficiency
 4. **Corrections / unfolding** (measurements) — full procedure, closure tests
 5. **Systematic uncertainties** — one subsection per source: method, impact
-6. **Cross-checks** — one subsection per check: quantitative result
-7. **Statistical method** — likelihood, fit validation, uncertainty propagation
-8. **Results** — primary result with full uncertainties, per-bin tables
-9. **Comparison to prior results and theory** — overlay plots, chi2/p-values
-10. **Conclusions** — summary, precision, dominant limitations
-11. **Future directions** — concrete roadmap
-12. **Appendices** — covariance matrices as tables, extended cutflow, auxiliary plots
+6. **Statistical method** — likelihood, fit validation, uncertainty propagation
+7. **Results** — primary result with full uncertainties, per-bin tables
+8. **Comparison to prior results and theory** — overlay plots, chi2/p-values
+9. **Conclusions** — summary, precision, dominant limitations
+10. **Future directions** — concrete roadmap
+11. **Appendices** — covariance matrices as tables, extended cutflow, auxiliary plots
+
+**Cross-checks belong with their relevant result, not in a separate
+section.** A BDT cross-check goes in the selection section. An alternative
+inference strategy goes in the statistical method section. An operating
+point stability scan goes in the systematics section. If a cross-check is
+large (>2 pages), move it to an appendix with a forward reference from the
+relevant section. Do not create a standalone "Cross-checks" section — it
+disconnects the check from its context.
 
 ## Key requirements
 
@@ -71,9 +80,10 @@ These are the critical items for the analysis note. See
 - **Per-systematic subsections.** Each systematic source gets its own
   subsection: description, method, impact figure, per-bin table. A summary
   table alone is insufficient.
-- **Per-cross-check subsections.** Each cross-check gets its own subsection
-  with comparison plots, chi2/p-value, and interpretation. One-liners are
-  not subsections.
+- **Cross-checks with their results.** Each cross-check appears as a
+  subsection within the relevant results section (not in a standalone
+  "Cross-checks" section). Include comparison plots, chi2/p-value, and
+  interpretation. One-liners are not subsections.
 - **Completeness test.** A physicist unfamiliar with the analysis should be
   able to read the AN alone and understand every choice, reproduce every
   number, and evaluate whether conclusions are supported.

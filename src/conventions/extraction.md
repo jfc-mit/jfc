@@ -49,6 +49,14 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
   statistics per bin. As a rule of thumb, each efficiency bin should contain
   at least ~100 MC events; below this, statistical noise in the correction
   dominates. Document the binning choice and its motivation.
+- **Data-derived calibration (scale factors).** When the extraction depends
+  on MC-derived efficiencies (e.g., tagging efficiency), derive data/MC
+  scale factors from a control sample using tag-and-probe or similar
+  methods. Apply these scale factors to the MC before extraction. If
+  data-derived calibration is not feasible, assign the full data/MC
+  difference as a systematic — but document why calibration was not done.
+  Relying on uncalibrated MC efficiencies without justification is
+  Category A.
 
 ---
 
@@ -99,11 +107,14 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
    more than 5x the data statistical uncertainty — these are the dominant
    systematics and require careful evaluation.
 
-3. **Operating point stability.** Scan the extracted result vs. the primary
-   selection variable (e.g., the classifier working point or the cut
-   threshold) over a range spanning at least 2x the optimized region. The
-   result should be flat within uncertainties. A trend indicates sensitivity
-   to the operating point that must be understood.
+3. **Operating point stability (Category A if fails).** Scan the extracted
+   result vs. the primary selection variable (e.g., the classifier working
+   point or the cut threshold) over a range spanning at least 2x the
+   optimized region. The result must be flat within uncertainties — a
+   dramatic variation indicates the measurement is not robust and the
+   operating point is not in a stable plateau. This is a physics red flag,
+   not just a systematic: it means the result depends critically on an
+   arbitrary choice. Investigate before proceeding.
 
 4. **Per-subperiod consistency.** Extract the result independently for each
    data-taking period. Compute chi2/ndof across periods. A chi2/ndof >> 1

@@ -520,7 +520,12 @@ found a gap.
    - Correlation information: which sources are correlated across bins,
      regions, or processes
 
-6. **Cross-checks** — Every cross-check performed, each as its own subsection:
+6. **Cross-checks** — Each cross-check appears as a subsection within the
+   section it validates (e.g., a BDT cross-check in the selection section,
+   an alternative fit in the statistical method section). Do not create a
+   standalone "Cross-checks" section — it disconnects the check from its
+   context. If a cross-check is large (>2 pages), move it to an appendix
+   with a forward reference. Each cross-check subsection must include:
    - What is being tested and what a failure would indicate
    - The quantitative result (ratio plots, chi2, p-values)
    - Interpretation: does it pass? If marginal, why?

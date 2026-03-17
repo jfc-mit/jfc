@@ -114,8 +114,8 @@ and must not be treated as a formality.
 |-------|-------------|
 | Strategy | Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? Are 2-3 reference analyses identified with their systematic programs tabulated? |
 | Exploration | (Self-review) Are samples complete? Any data quality issues? Do distributions look physical? |
-| Processing | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Are particle-level inputs to the observable validated with data/MC comparisons per object category? Cutflow counts are monotonically non-increasing (Category A if violated)? |
-| 4a: Expected | Is the fit healthy? Are systematics complete — both internally consistent AND complete relative to conventions and reference analyses? Do signal injection tests pass? |
+| Processing | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Are particle-level inputs to the observable validated with data/MC comparisons per object category? Cutflow counts are monotonically non-increasing (Category A if violated)? **If an MVA is used:** is data/MC agreement on the classifier output acceptable? Are inputs well-modeled? Was an alternative architecture tried? |
+| 4a: Expected | Is the fit healthy? Are systematics complete — both internally consistent AND complete relative to conventions and reference analyses? Do signal injection tests pass? **Internal consistency:** if MVA mismodeling is a dominant systematic, was calibration or input restriction explored to reduce it? Is the operating point stability plot flat (Category A if not)? Are MC-dependent quantities only derived for data periods that have corresponding MC? |
 | 4b: 10% validation | Is the draft note publication-quality? Are 10% results consistent with expectations? Are diagnostics clean? |
 | 4c: Full data | Are post-fit diagnostics healthy? Are anomalies properly characterized? |
 | Documentation | See 6.4.3 below. |
@@ -287,7 +287,7 @@ disk and applies the review criteria.
 | Selection | Every cut motivated by a plot? Per-category data/MC validation done? Cutflow complete? |
 | Inference (4a) | Systematic completeness table vs references? Prior-sensitivity check done? Alternative method run? Covariance matrix produced? |
 | Inference (4b/4c) | Results consistent with expectations? Post-fit diagnostics clean? |
-| Documentation | Per-systematic subsections present? Per-cross-check subsections present? Math renders? `results/` directory populated? Figures pass cosmetic checklist (6.4.2)? |
+| Documentation | Per-systematic subsections present? Cross-checks co-located with relevant results (not in standalone section)? Math renders? `results/` directory populated? Figures pass cosmetic checklist (6.4.2)? BibTeX entries have DOI/arXiv links? |
 
 **Fallback: self-review.** If subagent spawning is unavailable, the
 orchestrator performs review itself. In this case it must:

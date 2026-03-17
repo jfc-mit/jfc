@@ -83,18 +83,25 @@ plt.close(fig)
   square aspect.
 - **No titles.** Never `ax.set_title()`. Captions go in the analysis note.
   Instead additional info can go into `ax.legend(title="...")`. And when
-  truly necessary it can go into `mh.utils.add_text(text, ax=ax)`
+  truly necessary it can go into `mh.utils.add_text(text, ax=ax)`.
+- **No raw `ax.text()` for annotations.** Use `mh.utils.add_text(text,
+  ax=ax)` instead — it respects mplhep styling and positioning. Raw
+  `ax.text()` or `ax.annotate()` should only be used for panel labels
+  like `(a)`, `(b)` in subfigure grids.
 - **Axis labels with units.** Always `ax.set_xlabel(...)` and
   `ax.set_ylabel(...)` with units in brackets, e.g. `r"$p_T$ [GeV]"`.
   Do not increase axis label font size beyond the stylesheet default — no
   `fontsize=` argument on `set_xlabel`/`set_ylabel`.
 - **Labels on every axes.** In multi-panel figures, call
   `mh.label.exp_label(...)` on EACH axes, not just the first one.
-- **Label stacking pitfall.** When `data=False`, mplhep auto-adds
-  "Simulation" as the text. If you also set `llabel="MC Simulation"`, you
-  get "Simulation MC Simulation" overlapping. Fix: either use `data=False`
-  alone (gives "Simulation"), or set `data=True, llabel="MC Simulation"`
-  to fully control the left side.
+- **Label stacking pitfall (Category A).** When `data=False`, mplhep
+  auto-adds "Simulation" as the left label. Do NOT also set `llabel` or
+  `text` to something containing "MC", "Simulation", "truth", etc. — this
+  produces mangled labels like "Simulation MC truth". The rules:
+  - For simulation plots: `data=False` alone → displays "Simulation"
+  - For data plots: `data=True` alone → displays nothing (or "Preliminary")
+  - For full control: `data=True, llabel="your text"` to override entirely
+  - Never combine `data=False` with `llabel` or `text` — this always stacks
 - **Save as PDF and PNG.** PDF for the note, PNG for quick inspection.
   Always `bbox_inches="tight", dpi=200, transparent=True`.
 - **Never use `tight_layout()` or `constrained_layout=True` with mplhep.**
@@ -174,6 +181,19 @@ Use pandoc-crossref syntax for numbered figure references in analysis notes:
 - **Never use** `[-@fig:...]` — always use `@fig:name` for full references
 - Tables use `{#tbl:name}` and `@tbl:name`; equations use `{#eq:name}` and
   `@eq:name`
+
+### Correlation and covariance visualizations
+
+Correlations between variables, bins, or systematic sources must be shown
+as **matrix heatmaps** (using `mh.hist2dplot` or `ax.pcolormesh` with a
+diverging colormap like `RdBu_r`, centered at 0 for correlations). Never
+show correlations as overlaid 1D distributions or scatter-plot grids —
+these are unreadable for more than ~3 variables. For the correlation
+matrix specifically:
+- Use `vmin=-1, vmax=1` with a diverging colormap
+- Annotate cells with values if the matrix is small enough (< 10×10)
+- For large matrices, show the heatmap without annotations but with a
+  clear colorbar
 
 ### Systematic breakdown plots
 

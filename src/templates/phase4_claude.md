@@ -71,6 +71,12 @@ These are the critical items for Phase 4. See
   indicates mismodeling; <<1 indicates overestimated uncertainties.
 - **Expected results on Asimov/MC only.** Phase 4a results must come from
   pseudo-data — never real data.
+- **MC coverage must match data.** Do not derive MC-dependent quantities
+  (efficiencies, corrections, scale factors) for data-taking periods that
+  lack corresponding MC simulation. If MC covers only one period, either
+  restrict the measurement to that period or justify (with evidence) that
+  the MC is applicable to other periods. Silently extrapolating MC-derived
+  corrections to uncovered periods underestimates uncertainties.
 - **Covariance matrix (measurements).** Full bin-to-bin covariance
   (statistical + each systematic + total) in the artifact and as
   machine-readable files.
