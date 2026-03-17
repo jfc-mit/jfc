@@ -30,10 +30,12 @@ note. Terse artifacts produce terse AN sections.
 5. **Open issues** — what subsequent phases should be aware of
 6. **Code reference** — `pixi run <task>` commands that produced results
 
-**Figure captions must be self-contained.** State what is plotted, identify
-all curves/markers/bands, state the conclusion. Sparse captions ("Thrust
-distribution") are Category A. See `appendix-plotting.md` for all figure
-standards.
+**Figure captions must be self-contained** and follow the format:
+`<Plot name>. <Full description in complete sentences.>` A caption must
+be 2-5 sentences: name the plot, describe what is shown (axes, curves,
+markers, bands), state the key conclusion, and note any selection or
+normalization. Anything under two full sentences is Category A. See
+`appendix-plotting.md` § "Captions" for examples of good and bad captions.
 
 **Supplementary files** (`.npz`, `.json`, workspaces, trained models) must
 include a brief description in the artifact: what the file contains, how to
@@ -41,6 +43,6 @@ load it, which pixi task produced it.
 
 **Supplementary artifacts:** `UPSTREAM_FEEDBACK.md` (non-blocking feedback
 to an earlier phase) and `REGRESSION_TICKET.md` (regression investigation
-output). See §6.8.
+output). See §6.7.
 
 ---

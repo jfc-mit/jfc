@@ -4,15 +4,33 @@ The AN is a single evolving document across Phases 4b, 4c, and 5. Phase 4b
 writes the complete AN with 10% results. Phase 4c updates numbers. Phase 5
 polishes and renders. Structure is written in 4b; later phases update results.
 
-The AN is the complete record — not a journal paper. Every detail needed to
-reproduce the analysis from scratch must be present. ~50-100 rendered pages
-for a typical measurement. **Under 30 pages means detail is missing** —
-this is a Category A finding at Phase 5 review. Common causes of thin ANs:
-missing per-cut distribution plots, missing per-systematic impact figures,
-missing cross-check result plots, summary tables without supporting figures.
+**The gold standard: a physicist who has never seen the analysis should be
+able to reproduce every number from the AN alone.** This is the completeness
+test. If a reader needs to look at the code to understand a choice, the AN
+has a gap. If a reader can't tell how a systematic was evaluated without
+reading the script, the AN has a gap. If a reader can't reconstruct the
+event selection from the AN text and figures, the AN has a gap.
+
+The AN is the complete record — not a journal paper, not an executive
+summary, not a set of results with a brief methods section. ~50-100
+rendered pages for a typical measurement. **Under 30 pages means detail
+is missing** — this is a Category A finding at Phase 5 review.
+
+Common causes of thin ANs:
+- Missing per-cut distribution plots (before and after each cut)
+- Missing per-systematic impact figures (how does each source shift
+  the result?)
+- Missing cross-check result plots (just saying "PASS" is not enough —
+  show the comparison)
+- Summary tables without supporting figures
+- Methods described in one sentence instead of full paragraphs with
+  equations
+
 The rule of thumb: every selection cut needs a before/after distribution
 plot, every systematic needs an impact figure, every cross-check needs a
-comparison plot.
+comparison plot. A 5-energy-point lineshape fit should have ~30+ figures
+minimum (data/MC for each variable, cutflow, efficiency, backgrounds,
+lineshape, residuals, profiles, correlations, systematics, comparisons).
 
 ---
 

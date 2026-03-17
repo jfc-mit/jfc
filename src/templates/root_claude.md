@@ -347,19 +347,27 @@ creating new conventions files.
 
 ## Analysis Note Format
 
+**The gold standard:** a physicist who has never seen the analysis should
+be able to reproduce every number from the AN alone. If they need to read
+the code, the AN has a gap. Target 50-100 pages; under 30 is Category A.
+
 The analysis note (`ANALYSIS_NOTE.md`) must be **pandoc-compatible markdown**:
 
 - **LaTeX math:** `$...$` inline, `$$...$$` display. Write `$\alpha_s$`, not `alpha_s`.
 - **Figures:** `![Caption text](figures/name.pdf)` — pandoc converts to `\includegraphics`.
+  Captions must be 2-5 sentences: `<Plot name>. <Full description.>`
+  Anything under two sentences is Category A.
 - **No raw HTML.** Pandoc markdown only.
-- **Tables:** Pipe tables (`| col1 | col2 |`).
+- **Tables:** Pipe tables (`| col1 | col2 |`). Keep columns narrow to
+  avoid overflow. Test with `build-pdf`.
 - **Cross-references:** pandoc-crossref syntax — `{#fig:label}`, `@fig:label`.
   At sentence start: `Figure @fig:name`. Every figure MUST have a label.
   Never use `[-@fig:...]`.
 - **Citations:** `[@key]` with a `references.bib` BibTeX file. `build-pdf` uses `--citeproc`.
 - **Sections:** `#`, `##`, `###` — pandoc adds numbering with `--number-sections`.
 
-Required AN sections — see `methodology/03-phases.md` → Phase 5 for the full list.
+Required AN sections — see `methodology/analysis-note.md` for the full
+specification including depth calibration and completeness test.
 
 ---
 

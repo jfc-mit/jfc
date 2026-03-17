@@ -171,9 +171,40 @@ quantities is a Category A review finding.
 
 ### Captions
 
-See §5.2 for caption requirements. Captions must be self-contained: state
-what is plotted, identify all curves/markers/bands, and state the key
-conclusion. Sparse captions are Category A.
+See §5.2 for caption requirements. Captions must be self-contained and
+follow the format: **`<Plot name>. <Full description in complete sentences.>`**
+
+A good caption is 2-5 sentences. It must:
+1. Name the plot (what observable, what selection stage, what comparison).
+2. Describe what is shown (axes, curves, markers, bands, colors, hatching).
+3. State the key observation or conclusion the reader should draw.
+4. Note any selection or normalization applied.
+
+**Examples:**
+
+Bad (Category A):
+> "Thrust distribution."
+
+Bad (Category A):
+> "Data vs MC comparison of nChargedHadrons."
+
+Good:
+> "Distribution of charged hadron multiplicity after the hadronic event
+> selection. Data (black points) are compared to MC simulation (blue
+> histogram) normalized to the same integrated luminosity. The lower panel
+> shows the data/MC ratio; the grey band indicates the MC statistical
+> uncertainty. Good agreement is observed across the full multiplicity
+> range, with data/MC ratios consistent with unity within 2%."
+
+Good:
+> "Measured hadronic cross-section as a function of centre-of-mass energy.
+> The data points (black) show the cross-section at five energy groups with
+> statistical (inner bars) and total (outer bars) uncertainties. The solid
+> red curve is the best-fit Breit-Wigner convolved with the O(α²) ISR
+> radiator. The lower panel shows the ratio of data to the fitted curve;
+> the dashed lines indicate ±5%. The fit yields χ²/ndf = 3.07/2 (p = 0.22)."
+
+Sparse captions — anything under two full sentences — are Category A.
 
 ### Subfigures and figure grouping
 
