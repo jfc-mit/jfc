@@ -88,6 +88,26 @@ Markdown → PDF via **pandoc** (≥3.0) + tectonic (or xelatex). The
 `--number-sections --toc --filter pandoc-crossref --citeproc`, default
 figure width `0.45\linewidth`. Do not use an LLM for conversion.
 
+### Pandoc pitfalls (mandatory rules)
+
+These patterns cause mangled output and must be avoided:
+
+- **Never use `$\pm$`, `$<$`, `$>$`, `$-$` as standalone math.**
+  Use Unicode instead: `±`, `<`, `>`, `−`. Bare single-symbol math
+  delimiters confuse pandoc-crossref and produce garbled italic text.
+  Only use `$...$` for actual mathematical expressions (`$M_Z$`,
+  `$\chi^2/ndf = 1.5$`).
+- **Never use `\mathrm{}` in figure captions or section headers.**
+  Pandoc converts captions to both LaTeX and alt-text; `\mathrm` in
+  alt-text produces `\mathrm allowed only in math mode` errors. Use
+  plain subscripts (`$\sigma^0_{had}$`) or text in captions.
+- **Never put `@ref` cross-references inside `$...$` math.**
+  `$\Gamma_Z$ (@eq:width)` is fine; `$\Gamma_Z (@eq:width)$` mangles
+  the reference into math-mode italic.
+- **Section headers must not contain complex LaTeX.** Use plain text
+  for headers: "Gamma-Z interference" not
+  `$\gamma$-Z interference ($j_{had} = 0.14$)"`.
+
 ### Table formatting
 
 Pipe tables in markdown become `longtable` in LaTeX. To avoid overflow:

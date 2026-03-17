@@ -354,6 +354,10 @@ the code, the AN has a gap. Target 50-100 pages; under 30 is Category A.
 The analysis note (`ANALYSIS_NOTE.md`) must be **pandoc-compatible markdown**:
 
 - **LaTeX math:** `$...$` inline, `$$...$$` display. Write `$\alpha_s$`, not `alpha_s`.
+  **Never use `$\pm$`, `$<$`, `$>$`, `$-$` as standalone math** — use
+  Unicode `±`, `<`, `>`, `−` instead. These break pandoc-crossref.
+  Never use `\mathrm{}` in captions or headers (use plain subscripts).
+  Never put `@ref` cross-references inside `$...$` math delimiters.
 - **Figures:** `![Caption text](figures/name.pdf)` — pandoc converts to `\includegraphics`.
   Captions must be 2-5 sentences: `<Plot name>. <Full description.>`
   Anything under two sentences is Category A.
