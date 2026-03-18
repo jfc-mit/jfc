@@ -80,14 +80,21 @@ plt.close(fig)
   annotation text). Any script that sets a numeric font size is a Category A
   review finding.
 - **Legend font size.** Always pass `fontsize="x-small"` to `ax.legend(...)`.
-- **Aspect.** Keep figures with square aspect. For 2D plots with colorbars,
-  you MUST use one of these to prevent the colorbar from squashing the plot:
+- **Aspect and colorbars (Category A if wrong).** Keep figures with square
+  aspect. For ANY 2D plot with a colorbar (`pcolormesh`, `imshow`,
+  `hist2dplot`), you MUST use one of these three patterns to prevent the
+  colorbar from squashing the main axes:
   - `mh.hist2dplot(H, cbarextend=True)` — preferred, handles it automatically
   - `cax = mh.utils.make_square_add_cbar(ax)` then `fig.colorbar(im, cax=cax)`
   - `cax = mh.utils.append_axes(ax, extend=True)` then `fig.colorbar(im, cax=cax)`
-  Never just do `fig.colorbar(im)`, `fig.colorbar(im, ax=ax, shrink=...)`,
-  or `plt.colorbar()` — these steal space from the axes and break the
-  square aspect.
+  **Any script that uses `fig.colorbar(im)`, `fig.colorbar(im, ax=ax)`,
+  `fig.colorbar(im, ax=ax, shrink=...)`, or `plt.colorbar(...)` is a
+  Category A review finding.** These patterns steal space from the main
+  axes, breaking the square aspect ratio. This applies to ALL 2D plots
+  including correlation matrices, migration matrices, response matrices,
+  2D systematic shift maps, and efficiency maps — not just the primary
+  result figure. Reviewers must grep for these patterns and flag every
+  occurrence.
 - **No titles.** Never `ax.set_title()`. Captions go in the analysis note.
   Instead additional info can go into `ax.legend(title="...")`. And when
   truly necessary it can go into `mh.label.add_text(text, ax=ax)`.

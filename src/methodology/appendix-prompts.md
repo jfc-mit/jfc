@@ -132,8 +132,14 @@ an absolute (not normalized) measurement. Flag flat shifts on shape
 measurements as Category A with the note "systematic not propagated."
 
 For EVERY figure: does it follow the plotting rules? Check: sharex on
-ratio plots, make_square_add_cbar on 2D plots, no off-page content, no
-orphaned labels, tight axis limits, described uncertainty bands.
+ratio plots, no off-page content, no orphaned labels, tight axis limits,
+described uncertainty bands. For EVERY 2D plot (pcolormesh, imshow,
+hist2dplot): verify the colorbar uses `make_square_add_cbar` or
+`cbarextend=True`. Grep the plotting scripts for `plt.colorbar` and
+`fig.colorbar(im, ax=` — these are ALWAYS wrong (Category A). The only
+correct patterns are `fig.colorbar(im, cax=cax)` where cax comes from
+`make_square_add_cbar` or `append_axes`, or `mh.hist2dplot(H,
+cbarextend=True)`.
 
 When evaluating a concern, query the experiment corpus to check how
 published analyses handled the same issue. For example: if the stress
