@@ -40,6 +40,10 @@ everything and produce plausible-looking wrong numbers.
 **Check:** Variable names → right quantities. Cut inversions → correct
 complement. Object efficiencies → consistent with published. Cutflow →
 monotonically decreasing. Systematic variations → expected direction.
+**Parallel outputs not identical.** If a parallel processing step
+produces N independent results (e.g., per-file histograms, per-year
+densities), verify they are not bit-for-bit identical. Identical
+outputs from independent inputs indicate a fork/threading bug.
 
 ### 11.4 Task Graph
 

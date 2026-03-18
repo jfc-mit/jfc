@@ -31,6 +31,13 @@ Before writing code, produce plan.md. As you work:
 - Append to experiment_log.md: what you tried, what worked, what didn't
 - Produce your primary artifact as {ARTIFACT_NAME}.md
 
+Before producing your artifact, self-check:
+- [ ] Every "Will implement" commitment from the strategy is addressed
+- [ ] Every validation test failure has 3+ documented remediation attempts
+- [ ] Every systematic is propagated through the chain (not flat borrowed)
+- [ ] Every section heading has prose content (not just figures)
+- [ ] Every figure is referenced in the artifact text
+
 When complete, state what you produced and any open issues.
 ```
 
@@ -115,6 +122,14 @@ chain, or a flat percentage estimate? Flat estimates are acceptable only
 when (a) the source is subdominant AND (b) the magnitude is justified by
 a cited measurement. "±3% tracking efficiency" without a citation is not
 a systematic — it's a guess.
+
+For EVERY systematic shift: verify the shift is BIN-DEPENDENT. A
+perfectly flat relative shift (identical percentage in every bin) across
+a shape measurement is physically impossible — it means the systematic
+was not actually propagated through the analysis chain but was assigned
+as a flat number. The only exception is a pure normalization source on
+an absolute (not normalized) measurement. Flag flat shifts on shape
+measurements as Category A with the note "systematic not propagated."
 
 For EVERY figure: does it follow the plotting rules? Check: sharex on
 ratio plots, make_square_add_cbar on 2D plots, no off-page content, no

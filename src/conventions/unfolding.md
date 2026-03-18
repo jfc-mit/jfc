@@ -58,11 +58,30 @@ Required deliverables before proceeding:
 
 ## Regularization and iteration
 
+### Recommended methods
+
+- **SVD (Hoecker & Kartvelishvili)** — default for 1D measurements. Singular
+  value truncation naturally handles ill-conditioned response matrices by
+  discarding small singular values that amplify statistical noise. Vary the
+  number of kept singular values (k) and select the value where closure
+  passes and the result is stable over k ± 1.
+- **TUnfold (Tikhonov-regularized)** — preferred for 2D measurements or
+  when L-curve optimization is desired. The Tikhonov parameter provides
+  continuous regularization control.
+- **IBU (iterative Bayesian unfolding)** — use as a cross-check method,
+  not the primary. IBU is sensitive to the prior and can diverge on
+  ill-conditioned matrices where SVD succeeds. When IBU is used as a
+  cross-check, agreement with the SVD result validates the procedure;
+  disagreement requires investigation.
+- **OmniFold** — for complex multi-dimensional cases where traditional
+  methods are impractical. Requires careful validation as the method is
+  less mature.
+
 ### Choosing the regularization strength
 
-For iterative methods (IBU), the number of iterations is the regularization
-parameter. For matrix methods (SVD), it's the number of kept singular values
-or a Tikhonov parameter.
+For SVD, the regularization parameter is the number of kept singular values
+(k). For IBU, it is the number of iterations. For TUnfold, it is the
+Tikhonov parameter (selected via L-curve or similar criterion).
 
 The selection criterion should be:
 1. Closure test passes (unfolding MC truth through the response recovers
@@ -80,15 +99,19 @@ insufficient for that bin.
 
 **Remediation is mandatory and ordered.** The following steps must be tried
 **in order** before excluding a bin:
-1. **Increase iterations** (or reduce regularization). Re-run the closure
-   test to verify the method still converges. If the flat-prior shift drops
-   below 20% without the closure test failing, this is the preferred fix.
-2. **Merge the failing bin** with a neighbor. Wider bins have higher
+1. **Try SVD** — truncate singular values. SVD naturally handles
+   ill-conditioned matrices that cause IBU to diverge. Vary the number
+   of kept singular values (k) and check closure.
+2. **Adjust regularization** (more/fewer iterations for IBU, different
+   Tikhonov parameter for TUnfold). Re-run the closure test to verify the
+   method still converges. If the flat-prior shift drops below 20% without
+   the closure test failing, this is the preferred fix.
+3. **Merge the failing bin** with a neighbor. Wider bins have higher
    diagonal fraction and less prior sensitivity.
-3. **Use a data-driven prior.** Initialize IBU with the reco-level data
-   shape (smoothed if needed) instead of MC truth. This removes the
+4. **Use a data-driven prior** for IBU. Initialize with the reco-level
+   data shape (smoothed if needed) instead of MC truth. This removes the
    circular dependence on the MC model as prior.
-4. **Exclude the bin** — last resort, appropriate only for bins at
+5. **Exclude the bin** — last resort, appropriate only for bins at
    kinematic boundaries or distribution edges where the physics content
    is minimal.
 
@@ -159,6 +182,30 @@ of them requires explicit justification.
 - In this regime, a proper alternative (SVD, TUnfold, or matrix inversion
   with regularization) is required for the method systematic.
 - If no valid alternative is available, document this as a limitation.
+
+**When diagonal fraction is low (< 50%) and unfolding fails:**
+
+This situation arises for multi-dimensional observables (2D+) or
+observables where the detector response rearranges combinatorial
+structure (e.g., jet clustering trees, where tracking inefficiency
+changes the tree topology). The remediation hierarchy applies:
+
+1. **SVD with aggressive truncation** — keep only the first few singular
+   values. This sacrifices resolution but may produce a stable result.
+2. **Coarser binning** — reduce to the point where diagonal fraction
+   exceeds 50%.
+3. **1D projections** — unfold each projection independently where
+   diagonal fractions are higher.
+4. **BBB as model-dependent fallback** — document prominently that the
+   result depends on the MC model. The hadronization systematic and
+   prior dependence must be evaluated conservatively.
+5. **Dimensionality reduction** — 2D → 1D projections as the primary
+   result, with the 2D density as a BBB cross-check.
+
+If none of these produce a method with diagonal fraction > 50%, the
+measurement should be presented as BBB-corrected with explicit
+model-dependence caveats. The prior dependence systematic is the
+primary estimator of the correction's reliability.
 
 ### Generator model (hadronization / fragmentation)
 
@@ -231,6 +278,35 @@ Covariance sections as explicit pass/fail gates.
 5. **Covariance matrix validation.** Verify positive semi-definiteness
    (all eigenvalues ≥ 0). Report the condition number; flag if > 10^10
    (numerically unstable inverse). Visualize the correlation matrix.
+
+## BBB-specific validation
+
+When bin-by-bin correction factors are used (either as the primary method
+when diagonal fraction > 70%, or as a model-dependent fallback), the
+standard validation tests have different interpretations:
+
+**Closure test:** For BBB, applying C_ij to the same MC that derived them
+is an algebraic identity. A **split-sample** closure test is required:
+derive correction factors from one statistically independent half of the
+MC, apply to the reco-level of the other half, and verify recovery of
+the second half's gen-level truth. This tests statistical stability, not
+method correctness.
+
+**Stress tests:** BBB stress tests (reweight truth, apply nominal C_ij)
+are also algebraic identities — the reweighting cancels in the gen/reco
+ratio. BBB stress tests provide no diagnostic information. The prior
+dependence systematic (reweight gen, recompute C_ij) is the correct
+analog.
+
+**Flat-prior test:** Not applicable to BBB (no prior). The prior
+dependence systematic serves as the BBB analog.
+
+**Alternative method:** When BBB is the primary method, SVD or TUnfold
+(not IBU) should be used as the cross-check. When BBB is a fallback
+(diagonal fraction < 70%), the fact that proper unfolding methods fail
+must be documented as a limitation, and the prior dependence +
+hadronization model systematics must be enlarged to cover the
+model-dependent correction.
 
 ---
 

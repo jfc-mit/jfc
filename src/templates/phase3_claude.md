@@ -16,6 +16,34 @@ produce, what the artifact structure will be. Execute after the plan is set.
 `exec/SELECTION.md` — final object definitions, event selection with
 optimization, cutflow table, and technique-specific deliverables.
 
+## Applicable conventions
+
+Read the Phase 1 `STRATEGY.md` to identify the selected technique, then
+open the corresponding convention file and implement every required step:
+
+{{conventions_files}}
+
+Convention requirements (e.g., input validation before response matrix
+construction, required validation checks) are **hard requirements** —
+omissions are Category A at review.
+
+## Correction infrastructure gate (measurements)
+
+**BEFORE computing correction factors or building the response matrix:**
+1. Produce data/MC comparison plots for ALL variables entering the
+   observable calculation. This is a hard gate — do not proceed without
+   these plots.
+2. Compute the response matrix on a small MC subset (~10K events) and
+   report the diagonal fraction. If < 50%, reassess the binning/method
+   before building the full chain.
+
+**If ANY validation test fails (closure, stress, flat-prior, alternative
+method):** You MUST attempt at least 3 independent remediations from the
+hierarchy in `conventions/unfolding.md` BEFORE writing the artifact.
+Start with SVD (singular value truncation), then coarser binning, then
+alternative priors. Documenting a failure without remediation attempts
+is Category A at review.
+
 ## Methodology references
 
 - Phase requirements: `methodology/03-phases.md` → Phase 3
@@ -39,7 +67,7 @@ Default to multivariate techniques (BDT, NN) for multi-dimensional
 classification. See `methodology/03-phases.md` → Phase 3 "Selection" for
 full guidance including when to use cuts vs. MVA.
 
-- [ ] Sub-delegate MVA training to a sub-agent (see §3a.5.1)
+- [ ] Sub-delegate MVA training to a sub-agent (see §3a.5)
 - [ ] Train primary classifier (BDT or NN)
 - [ ] Train ≥1 alternative architecture (NN if BDT, vice versa)
 - [ ] Try multiclass if >2 physics classes (e.g., b/c/light)

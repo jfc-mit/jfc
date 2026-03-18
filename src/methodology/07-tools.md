@@ -52,4 +52,27 @@ peak memory.
 Prefer the simplest pattern that works. See `appendix-automation.md` for
 SLURM job templates. Never wait >15 min on a login node when SLURM exists.
 
+### 7.4 Multiprocessing Safety
+
+When using `ProcessPoolExecutor` with libraries that use OpenMP or other
+threading (fastjet, ROOT, numpy with MKL), always set the start method
+to `forkserver` or `spawn`:
+
+```python
+import multiprocessing
+multiprocessing.set_start_method("forkserver", force=True)
+```
+
+The default `fork` method copies the parent process's thread state into
+child processes. Libraries with active thread pools (OpenMP in fastjet,
+Intel MKL in numpy) can produce silently wrong results — child processes
+may return cached data from the parent instead of computing fresh
+results. This bug is insidious because the output looks plausible
+(correct types, reasonable magnitudes) but is numerically wrong.
+
+**Validation rule:** After any parallel processing step that produces N
+independent outputs, verify they are not trivially identical. If N
+inputs produce N bit-for-bit identical outputs, this is a
+multiprocessing bug, not a physics result.
+
 ---

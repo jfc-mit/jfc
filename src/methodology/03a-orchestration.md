@@ -20,6 +20,16 @@ Phase 2. All other phases require independent reviewer agents.
 **Anti-patterns:** Skipping phases. Writing code as orchestrator. Accepting
 weak reviews to save tokens. Spawning subagents without `model: "opus"`.
 
+**Binding commitment tracking.** The orchestrator must maintain awareness
+of all "Will implement" commitments from the Phase 1 strategy. At each
+phase gate, verify that all commitments scheduled for that phase have
+been fulfilled. Unfulfilled binding commitments are Category A at review
+regardless of whether the reviewer catches them — the orchestrator is
+the last line of defense. When a commitment is deferred (e.g., generator
+comparison moved from Phase 4a to 4b), the deferral must be explicitly
+documented with justification and a hard deadline. Commitments cannot be
+deferred indefinitely.
+
 ---
 
 ### 3a.2 Subagent Roles and Context

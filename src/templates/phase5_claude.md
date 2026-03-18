@@ -27,6 +27,16 @@ The AN typically needs ~30+ figures. Phases 2-4 produce some, but the AN
 usually needs additional per-variable distribution plots, per-cut before/after
 comparisons, and per-systematic impact figures.
 
+**Figure path verification (mandatory).** After aggregating figures, run:
+```bash
+# Verify every figure reference in the AN resolves to a file
+grep -oP 'figures/[^)]+\.pdf' exec/ANALYSIS_NOTE.md | sort -u | while read f; do
+  [ -f "exec/$f" ] || echo "MISSING: $f"
+done
+```
+Any missing figure is Category A. Fix before proceeding to the AN
+writing subagent.
+
 ### Sub-task 2: AN writing (prose-writing subagent)
 
 **This subagent does NOT read data files or write code.** It reads:
@@ -41,6 +51,12 @@ And writes: `exec/ANALYSIS_NOTE.md` — the complete analysis note.
 **The gold standard:** a physicist who has never seen the analysis should
 be able to reproduce every number from the AN alone. Under 30 rendered
 pages is Category A.
+
+**No empty sections rule.** Every section heading (`##`, `###`) must be
+followed by at least one paragraph (2-3 sentences minimum) of prose
+before any figure or table. A bare heading followed immediately by a
+figure reference produces an empty-looking section in the rendered PDF
+and is Category A.
 
 **Start in plan mode.** Before writing any prose, produce a plan: the AN
 section structure, which figures go where, which results tables are needed.

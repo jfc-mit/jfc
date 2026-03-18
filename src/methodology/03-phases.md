@@ -123,6 +123,13 @@ test in VRs (p > 0.05 or Category A).
 - Data/MC comparisons for all variables entering the observable, resolved
   by object category (Category A if missing for unfolded measurements)
 - Response matrix: dimensions, diagonal fraction, condition number, efficiency
+- **Early diagonal fraction check (gate).** Before building the full
+  correction chain, compute the response matrix on a small MC subset
+  (~10K events) and report the diagonal fraction. If diagonal fraction
+  < 50%, trigger an immediate strategy reassessment: consider coarser
+  binning, SVD unfolding, or dimensionality reduction BEFORE investing
+  in full-scale processing. Do not build a complete BBB chain and
+  discover at the end that the method is invalid.
 - Closure + stress tests on MC. Failure (p < 0.05) is Category A.
 - Prototype full chain on data.
 - Binning must be justified (resolution, statistics, physics features).
@@ -200,6 +207,16 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
   from MC with a 20% normalization uncertainty, use ±20%. Arbitrary
   inflations ("conservative ±50%") mask the analysis's actual sensitivity
   and are Category A at review.
+- **No borrowed flat systematics.** Borrowing systematic values from a
+  different analysis as flat percentages is NOT a propagation. Every
+  systematic must be evaluated by varying the source and re-running
+  the affected part of the analysis chain to produce bin-dependent
+  shifts. Flat estimates are acceptable ONLY when (a) the source is
+  confirmed subdominant AND (b) a proper propagation is infeasible
+  AND (c) the flat value is justified by a cited measurement — with
+  all three conditions documented in the artifact. A perfectly flat
+  relative shift across all bins of a shape measurement is physically
+  suspect and likely indicates the systematic was not propagated.
 - Construct binned likelihood (Asimov data, systematic terms)
 - Validate: NP pulls small, fit converges, results sensible
 - Signal injection tests (searches) or closure tests (measurements)
