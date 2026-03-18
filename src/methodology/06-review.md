@@ -80,11 +80,28 @@ Cross-check conventions "required validation checks" against the artifact.
 Key Category A items: wrong metadata (√s, experiment, luminosity), missing
 axis labels, no figure titles, clipped content, inappropriate scales.
 
+**Figure-by-figure verification.** The reviewer must enumerate every figure
+and state whether it passes or fails the plotting checklist. Specifically
+check: `sharex=True` on ratio plots (no redundant x-axis labels),
+`make_square_add_cbar` on 2D plots (colorbar same height as main axes),
+no off-page content, described uncertainty bands in ratio panels, tight
+axis limits. A blanket "figures look fine" is not acceptable — list each
+figure number with its status.
+
 #### 6.4.3 Documentation Review (Phase 5)
 
 Reviewer reads the AN as a standalone document — as a journal referee would.
 Check: every systematic described with method + impact? Every comparison
 quantitative? Reproducible from the note alone? Conventions covered?
+
+**Tautological comparisons.** If the "comparison to theory/MC" is
+mathematically identical to the "comparison to expected" (e.g., the
+expected result was derived from the same MC that serves as the theory
+comparison), the AN must not present them as independent evidence of
+consistency. Either (a) remove the redundant comparison, or (b) explicitly
+state the tautology and explain what independent information, if any, the
+comparison provides. Presenting tautological agreement as validation is
+Category A.
 
 ### 6.5 Iteration and Escalation
 
@@ -92,6 +109,29 @@ quantitative? Reproducible from the note alone? Conventions covered?
 cap at 10. The arbiter should ESCALATE rather than loop indefinitely.
 
 **1-bot:** Warn at 2, escalate to human after 3.
+
+### 6.5.1 Arbiter Dismissal Rules
+
+**The arbiter may NOT dismiss a reviewer finding as "out of scope" if the
+fix requires less than ~1 hour of agent processing time.** Re-running a
+Phase 4 script with modified parameters, producing additional figures, or
+propagating a systematic through an existing chain are NOT out of scope —
+they are exactly the kind of work that review iterations exist for.
+
+When multiple reviewer findings independently require re-running an
+earlier phase, this is **extra motivation** to address them together in
+a single regression or fix iteration, not a reason to dismiss each one
+individually.
+
+**The arbiter must justify every dismissal** with:
+1. A concrete cost estimate (agent-hours, not vague "significant effort")
+2. An explanation of why the finding does not affect the physics
+   conclusion
+3. A commitment to address it in a future phase (if applicable)
+
+Dismissals of the form "requires reprocessing" or "out of scope for this
+phase" without a cost estimate are not acceptable. Phase regression (§6.7)
+exists precisely for findings that require upstream work.
 
 ### 6.6 Human Gate
 
@@ -105,10 +145,20 @@ requests changes, or halts.
 problems. Concrete triggers (must not be rationalized away):
 - Data/MC disagreement on observable or MVA inputs
 - Closure test failure (p < 0.05)
+- Stress test failure without successful remediation (see §3 validation
+  failure remediation)
 - Operating point instability
-- Unexplained dominant systematic
+- Unexplained dominant systematic (a single source exceeding 80% of
+  total uncertainty warrants investigation, not acceptance)
 - MC used for periods without corresponding simulation
 - Result > 3σ from a well-measured reference value (see §6.8)
+- GoF toy distribution inconsistent with observed chi2 (the observed
+  chi2 falls outside the 95% interval of the toy distribution)
+- Wholesale bin exclusion: flat-prior gate or similar criterion
+  excluding > 50% of measurement bins (indicates binning or method
+  problem, not a systematic effect — see §3 Phase 3)
+- Two distributions that should be independent appear visually
+  identical (indicates a bug or tautological comparison)
 
 **Procedure:**
 1. Document issue, identify origin phase

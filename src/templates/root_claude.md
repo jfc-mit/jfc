@@ -106,6 +106,17 @@ disk.
   properly — not minimally patched.
 - Trigger phase regression when ANY review finds physics issues traceable
   to an earlier phase.
+- **Regression checklist (mandatory after every review).** After reading
+  the arbiter's verdict, the orchestrator must independently evaluate:
+  - [ ] Any validation test failures without 3 documented remediation attempts?
+  - [ ] Any single systematic > 80% of total uncertainty?
+  - [ ] Any GoF toy distribution inconsistent with observed chi2?
+  - [ ] Any flat-prior gate excluding > 50% of bins?
+  - [ ] Any tautological comparison presented as independent validation?
+  - [ ] Any visually identical distributions that should be independent?
+  If ANY box is checked, the orchestrator must trigger regression or
+  re-run the affected phase — even if the arbiter said PASS. The
+  orchestrator is the last line of defense against process failures.
 
 **Subagent model selection:** All subagents — executors, reviewers, arbiters,
 fix agents — must be spawned with `model: "opus"`. Never use Sonnet or Haiku
@@ -262,12 +273,23 @@ resume review.
 **Concrete triggers (must not be rationalized away):**
 - Data/MC disagreement on observable or MVA inputs
 - Closure test failure (p < 0.05)
+- Stress test failure without successful remediation (3+ attempts required)
 - Operating point instability
-- Unexplained dominant systematic
+- Unexplained dominant systematic (single source > 80% of total)
 - Result > 3σ from a well-measured reference value (§6.8)
+- GoF toy distribution inconsistent with observed chi2 (outside 95% interval)
+- Wholesale bin exclusion (> 50% of bins excluded by flat-prior gate or
+  similar criterion)
+- Two distributions that should be independent appear visually identical
 
 **Not regression (local fix):** Axis labels, captions, current-phase code bugs
 → normal Category A fix-and-re-review cycle.
+
+**Arbiter dismissal rule:** The arbiter may NOT dismiss reviewer findings
+as "out of scope" if the fix requires less than ~1 hour of agent time.
+Re-running a Phase 4 script with different parameters is NOT out of scope.
+When multiple findings require upstream reprocessing, batch them into a
+single regression iteration. See `methodology/06-review.md` §6.5.1.
 
 ---
 

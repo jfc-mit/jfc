@@ -38,6 +38,21 @@ restate what is already in the legend or axis labels** — the caption adds
 information the plot alone cannot convey. Anything under two full sentences
 is Category A. See `appendix-plotting.md` § "Captions" for examples.
 
+**Caption co-generation.** Every figure must have a draft caption written
+at the time the figure is produced — in the same script or in the artifact
+that first references it. Captions written hours or phases after the plot
+was made lose the context of what the plot shows and why. The Phase 5 AN
+writing subagent refines and polishes these draft captions, but it should
+never have to write captions from scratch for figures it didn't produce.
+
+**Flagship figures.** Phase 1 defines ~6 flagship ("money") figures that
+would represent the measurement in a journal paper. These are produced at
+the highest quality in Phase 5 and receive extra attention at review:
+tighter axis limits, careful legend placement, considered color choices.
+The flagship list propagates from the strategy artifact through to the
+AN writing subagent. Every flagship figure must appear in the Results or
+Comparison section of the AN, not buried in an appendix.
+
 **Supplementary files** (`.npz`, `.json`, workspaces, trained models) must
 include a brief description in the artifact: what the file contains, how to
 load it, which pixi task produced it.

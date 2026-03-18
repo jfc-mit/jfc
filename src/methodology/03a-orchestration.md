@@ -36,9 +36,17 @@ artifact last.
 | Role | Context | Goal |
 |------|---------|------|
 | Physics reviewer | Physics prompt + artifact only | "Would I approve this for publication?" |
-| Critical reviewer | Full context + conventions | Find all flaws in correctness and completeness |
-| Constructive reviewer | Same as critical | Strengthen: clarity, validation, presentation |
-| Arbiter | All reviews + artifact | PASS / ITERATE / ESCALATE |
+| Critical reviewer | Full context + conventions + RAG corpus | Find all flaws in correctness and completeness |
+| Constructive reviewer | Same as critical (including RAG) | Strengthen: clarity, validation, presentation |
+| Arbiter | All reviews + artifact + conventions | PASS / ITERATE / ESCALATE |
+
+**Reviewer RAG access.** Critical and constructive reviewers have access
+to the experiment corpus (MCP tools). They should query it to verify claims,
+check how reference analyses handled similar concerns, and identify
+published standards. When a reviewer encounters a questionable approach
+(e.g., a flat systematic estimate, a novel validation criterion), they
+should search for how this was handled in published analyses before
+accepting or rejecting it.
 
 **4-bot review:** first three in parallel, then arbiter. See §6.2–6.4 for
 the full protocol. The bar is high: ITERATE liberally.

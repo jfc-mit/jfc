@@ -58,6 +58,19 @@ measurements substitute: fiducial region, sidebands, purity optimization.
 
 **For measurements additionally:** Define observable(s), correction strategy,
 prior measurements (validation target), theory predictions for comparison.
+**Theory comparison independence:** The MC generators listed for comparison
+must include at least one that is INDEPENDENT of the MC used to derive
+the correction (response matrix, efficiency). Comparing the corrected
+result to the same MC used for the correction is a closure check, not a
+theory comparison. If no independent generator is available, document this
+as a limitation and plan particle-level-only comparisons.
+
+**Flagship figures.** Identify ~6 figures that would represent the
+measurement in a journal paper — the "money plots." Examples: the final
+spectrum with uncertainties, the response matrix, the key data/MC
+comparison, the systematic breakdown, the theory overlay. These are
+defined here in the strategy and produced at the highest quality in
+Phase 5. The list propagates to the AN writing subagent.
 
 **Artifact:** `STRATEGY.md`. **Review:** 4-bot (§6).
 
@@ -114,6 +127,37 @@ test in VRs (p > 0.05 or Category A).
 - Prototype full chain on data.
 - Binning must be justified (resolution, statistics, physics features).
 
+**Validation failure remediation (measurements).** When a required
+validation test fails (stress test, flat-prior test, alternative method
+closure), the failure must NOT be accepted at face value. The executor
+must attempt **at least 3 independent remediation approaches** before
+documenting the failure as a limitation. At least one attempt should use
+a **minimal-context subagent** — a fresh agent given only the problem
+statement and data, without the prior failed attempts in context, to get
+an unbiased perspective.
+
+Remediation hierarchy for unfolding:
+1. Adjust regularization (more/fewer iterations, different parameter)
+2. Modify binning (coarser, variable-width, restrict range to
+   well-populated region)
+3. Try a data-driven prior (use reco-level data shape as IBU starting
+   point instead of MC truth)
+4. Try an entirely different unfolding method
+5. Reduce dimensionality (2D → 1D projections)
+
+Only after 3+ remediation attempts have been tried and documented in the
+experiment log may the failure be accepted. Accepting a validation
+failure without remediation attempts is Category A at review.
+
+**Wholesale bin exclusion is a red flag.** If a flat-prior gate or
+similar criterion excludes more than 50% of the measurement bins, this
+indicates a fundamental problem with the binning, regularization, or
+method — not a legitimate systematic effect. This triggers mandatory
+re-evaluation of the binning choice and/or method before proceeding.
+Exclusion is appropriate for edge bins with genuine kinematic boundary
+effects (e.g., the upper corner of a Dalitz plot), not for central bins
+that are simply poorly constrained.
+
 **Background estimation flow:** Phase 1 defines approach → Phase 2
 validates feasibility → Phase 3 builds estimation inputs for Phase 4.
 
@@ -121,6 +165,19 @@ validates feasibility → Phase 3 builds estimation inputs for Phase 4.
 Progress through qualitatively different strategies (optimize current → more
 powerful discriminant → different inference strategy → revisit regions).
 Stop when goal met OR 3+ approaches tried with marginal improvement.
+
+**Method health assessment (measurements).** The Phase 3 artifact must
+include an explicit "Is the method working?" section answering:
+1. Does the closure test converge to chi2/ndf ≈ 1 with a stable plateau
+   spanning ≥ 2 iterations/parameter values?
+2. Does the stress test pass at the level of expected data/MC differences?
+   (Not just at 50% tilt — characterize the resolving power.)
+3. Does the flat-prior test leave > 50% of bins with < 20% shift?
+4. Is the alternative method viable (closure chi2/ndf < 5)?
+
+If ANY of these fail, the method needs redesign or the binning needs
+adjustment before proceeding to Phase 4. Document what was tried
+(minimum 3 remediation attempts per failure) and what the resolution was.
 
 **Artifact:** `SELECTION.md`. **Review:** 1-bot (§6).
 
@@ -214,7 +271,10 @@ with figure generation or data processing):
    already generated in Phases 2-4 (e.g., per-cut distributions, per-
    systematic impact plots). Reads data files, runs plotting scripts,
    saves to `phase5_documentation/exec/figures/`. This is a code-writing
-   agent.
+   agent. **Flagship figures** (defined in Phase 1 strategy) receive
+   extra attention: tighter axis limits, careful legend placement,
+   considered color choices. These are the figures that would appear in
+   a journal paper.
 
 2. **AN writing subagent.** Reads ALL phase artifacts (strategy, exploration,
    selection, inference) and the figures directory. Writes the complete AN

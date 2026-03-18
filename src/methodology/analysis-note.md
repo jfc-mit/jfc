@@ -125,4 +125,33 @@ Pipe tables in markdown become `longtable` in LaTeX. To avoid overflow:
 - **Test with `build-pdf`.** Overfull hbox warnings in the TeX log indicate
   table overflow. Fix before submitting for review.
 
+### Rendering quality checklist
+
+The rendering reviewer (Phase 5) and the AN writing subagent must check
+for these common rendering defects. All are Category A findings:
+
+- **Orphaned section headings.** A section heading must not be the last
+  line on a page. Add `\needspace{4\baselineskip}` before major sections
+  in the pandoc preamble, or restructure text to avoid orphans. The
+  `build-pdf` preamble should include `\widowpenalty=10000` and
+  `\clubpenalty=10000`.
+- **Figures off-page.** Any figure that extends beyond the page margins
+  (clipped in the PDF) must be resized. Check that `width=` attributes
+  are set correctly. 2D plots with colorbars are especially prone to
+  this — verify with `make_square_add_cbar`.
+- **Table splitting.** Short tables (< 15 rows) should not be split
+  across pages. Use `\FloatBarrier` or position tables immediately
+  after their first reference. The `longtable` environment splits by
+  default — for small tables, consider using the `table` float instead.
+- **Caption width.** Figure and table captions must span the full text
+  width, not be limited to the figure width. This is the default pandoc
+  behavior; do not override it.
+- **Consistent cross-references.** All `@fig:`, `@tbl:`, `@eq:`
+  references must resolve. Hardcoded section numbers (e.g., "Section 5.6")
+  are fragile — use pandoc-crossref `@sec:` labels instead, or verify
+  hardcoded numbers match the rendered PDF.
+- **Overfull hbox warnings.** These indicate content (usually tables)
+  extending past margins. Every overfull hbox warning must be
+  investigated and resolved.
+
 ---

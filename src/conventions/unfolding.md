@@ -76,12 +76,48 @@ The selection criterion should be:
 Repeat the unfolding with a flat (uniform) prior at the nominal
 regularization. If any bin's corrected value changes by more than 20%
 relative (i.e., |flat − nominal| / nominal > 0.20), the regularization is
-insufficient for that bin — increase iterations, merge bins, or exclude
-the bin.
+insufficient for that bin.
+
+**Remediation is mandatory and ordered.** The following steps must be tried
+**in order** before excluding a bin:
+1. **Increase iterations** (or reduce regularization). Re-run the closure
+   test to verify the method still converges. If the flat-prior shift drops
+   below 20% without the closure test failing, this is the preferred fix.
+2. **Merge the failing bin** with a neighbor. Wider bins have higher
+   diagonal fraction and less prior sensitivity.
+3. **Use a data-driven prior.** Initialize IBU with the reco-level data
+   shape (smoothed if needed) instead of MC truth. This removes the
+   circular dependence on the MC model as prior.
+4. **Exclude the bin** — last resort, appropriate only for bins at
+   kinematic boundaries or distribution edges where the physics content
+   is minimal.
+
+**Wholesale exclusion (> 50% of bins failing) is a red flag** indicating
+the binning or method is fundamentally inappropriate. It must trigger
+re-evaluation of the binning granularity and/or the unfolding method
+before proceeding. Simply excluding most bins and calling the remainder
+a "measurement" is not acceptable — see §3 Phase 3 validation failure
+remediation.
 
 Rationale: closure and stress tests use the correct (or nearly correct)
 prior. They can pass even when the regularization is too weak to overcome a
 wrong prior. The flat-prior test exposes this.
+
+### IBU convergence behavior
+
+For IBU, the closure chi2/ndf as a function of iterations should follow
+a characteristic pattern: starting near 0 (under-corrected, close to
+prior), crossing ~1.0 at the optimal iteration count, then climbing
+above 1.0 as statistical noise amplification dominates. **If chi2/ndf
+increases monotonically from iteration 1 without a clear plateau
+near 1.0**, this indicates a problem — the method may not be converging,
+the response matrix may be poorly conditioned, or the binning may be
+too fine. Investigate before accepting.
+
+A well-behaved IBU should show a "sweet spot" where chi2/ndf ≈ 1.0
+with a stable plateau spanning 2-3 iterations. If the plateau is
+narrower than 1 iteration, the regularization is fragile and should be
+documented as a limitation.
 
 ### Reporting
 
@@ -169,10 +205,18 @@ Covariance sections as explicit pass/fail gates.
    within statistical precision (chi2 p-value > 0.05). Failure indicates
    a problem in the response matrix or unfolding procedure.
 
-2. **Stress test.** Unfold a reweighted MC truth (different shape from the
-   nominal) through the nominal response matrix. The unfolded result should
-   recover the reweighted truth. Failure indicates the method is sensitive
-   to the assumed prior shape.
+2. **Stress test (Category A if fails without remediation).** Unfold a
+   reweighted MC truth (different shape from the nominal) through the
+   nominal response matrix. The unfolded result should recover the
+   reweighted truth. Failure indicates the method is sensitive to the
+   assumed prior shape. **A stress test failure must trigger at least 3
+   independent remediation attempts** (see §3 Phase 3 validation failure
+   remediation) before being accepted as a limitation. Accepting a
+   stress test failure without investigation is Category A at review.
+   Use graded stress tests (5%, 10%, 20%, 50% reweighting magnitudes)
+   to characterize the method's resolving power — a method that fails at
+   50% tilt but passes at 10% may still be adequate if the expected
+   data/MC difference is < 5%.
 
 3. **Flat-prior test.** Repeat the unfolding with a uniform prior at the
    nominal regularization strength. If any bin changes by more than 20%

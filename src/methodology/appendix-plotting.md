@@ -1,8 +1,15 @@
 ## Appendix D: Plotting Template
 
-All plotting code must follow this template. This is the reference for any
-agent producing figures — whether the executor itself or a dedicated plotting
-subagent.
+All plotting code must follow this template. **These rules are
+non-negotiable and must be treated as gospel.** Any deviation requires an
+explicit, documented justification in the experiment log explaining why
+the rule cannot be followed — not a silent override. The rules exist
+because past analyses produced figures with broken aspect ratios, mangled
+labels, clipped content, and inconsistent styling. Following them exactly
+prevents these problems.
+
+This is the reference for any agent producing figures — whether the
+executor itself or a dedicated plotting subagent.
 
 ### Base template
 
@@ -141,15 +148,37 @@ plt.close(fig)
   To override the default width for a figure that genuinely needs full
   width, use pandoc-crossref attributes in the markdown:
   `![Caption](figures/name.pdf){#fig:name width=100%}`
-- **Ratio plot hspace.** `fig.subplots_adjust(hspace=0)` is non-negotiable
-  for ratio plots. Any visible gap between the main panel and ratio panel
-  is a Category A review finding.
+- **Ratio plot `sharex` and `hspace`.** Ratio plots MUST use
+  `sharex=True` in `plt.subplots()` AND `fig.subplots_adjust(hspace=0)`.
+  Both are non-negotiable. Without `sharex=True`, the upper panel shows
+  a redundant x-axis label (e.g., "Axis 0") — this is a Category A
+  review finding. Without `hspace=0`, a visible gap appears between the
+  main and ratio panels — also Category A.
 - **Log scale.** Use `ax.set_yscale("log")` when the y-axis range spans
   more than 2 orders of magnitude. Linear scale is appropriate otherwise.
 - **Prefer mplhep functions** (`mh.histplot`, `mh.hist2dplot`) over raw
   matplotlib `ax.hist` / `ax.pcolormesh`. They handle binning, styling,
   and error bars correctly for HEP conventions.
 - **Deterministic.** `np.random.seed(42)` if any randomness is involved.
+- **Ratio panel uncertainty bands.** When a ratio plot shows an
+  uncertainty band (e.g., MC statistical uncertainty), the band must be
+  described in either the legend or the caption. An unexplained shaded
+  band is a Category B finding. If the band is suspiciously flat
+  (constant width across all bins), verify the error computation —
+  constant uncertainty is unusual for binned distributions.
+- **Axis limits.** Set axis limits tight to the data range. Do not leave
+  large empty regions on either axis. Use `ax.set_xlim()` and
+  `ax.set_ylim()` explicitly when the auto-range includes too much
+  whitespace. Log-scale y-axes should start at ~0.5× the minimum
+  non-zero value, not at an arbitrary small number.
+- **Sanity check: visually identical distributions.** If two
+  distributions that should represent independent quantities (e.g.,
+  data from different years, different systematic variations, different
+  observables) appear visually indistinguishable in a plot, flag this
+  for investigation. It may indicate a bug (plotting the same array
+  twice), a tautological comparison, or genuinely high correlation —
+  but all three explanations must be considered. Do not silently accept
+  identical-looking distributions without explanation.
 
 ### Error propagation for derived quantities
 

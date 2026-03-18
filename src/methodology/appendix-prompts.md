@@ -5,14 +5,14 @@ The review protocol (`06-review.md`) and orchestrator architecture
 (`03a-orchestration.md`) define the methodology; this file provides the
 copy-pasteable prompts the orchestrator sends to each subagent.
 
-Context assembly follows §3a.4.2 (three layers: bird's-eye framing,
+Context assembly follows §3a.4 (three layers: bird's-eye framing,
 relevant methodology sections, upstream artifacts). The phase CLAUDE.md
 files (from `../templates/`) are what agents read at runtime; these prompts
 define how the *orchestrator* launches agents that will read those files.
 
 ### Execution agent
 
-**Context:** Bird's-eye framing, relevant methodology sections (per §8.2
+**Context:** Bird's-eye framing, relevant methodology sections (per §3a.4
 table), physics prompt, upstream artifacts, experiment log (if exists),
 experiment corpus (via RAG), phase CLAUDE.md
 
@@ -58,6 +58,18 @@ Evaluate:
 - Are the cross-checks adequate?
 - Would you approve this analysis for publication?
 
+Additionally, evaluate these method-health questions:
+- Does the method actually work? If a stress test or validation test
+  fails, is the failure at a scale relevant to the physics (e.g., a 50%
+  stress failure is different from a 5% one)? Can the measurement
+  actually discriminate between models, or does it merely reproduce the
+  MC prior?
+- Are any comparisons tautological? (E.g., comparing to the same MC
+  used to derive the correction — this is a closure check, not an
+  independent validation.)
+- Is the measurement scope adequate? If most bins are excluded or
+  uncertainties exceed 100%, is the remainder meaningful?
+
 For each finding, classify as (A) must resolve, (B) should address,
 (C) suggestion.
 ```
@@ -66,7 +78,14 @@ For each finding, classify as (A) must resolve, (B) should address,
 
 **Context:** Bird's-eye framing, review methodology (§6), applicable phase
 section from §3, artifact under review, upstream artifacts, experiment log,
-experiment corpus (via RAG)
+experiment corpus (via RAG).
+
+**RAG access:** The critical reviewer has access to the experiment corpus
+(MCP tools: `search_lep_corpus`, `get_paper`, `compare_measurements`).
+Use these to verify claims made in the artifact, check how reference
+analyses handled similar concerns, and identify published standards for
+systematic evaluation. When a finding seems unusual, query the corpus to
+see whether it aligns with or contradicts published practice.
 
 **Writes:** `{NAME}_CRITICAL_REVIEW.md`
 
@@ -80,8 +99,33 @@ Read the artifact and the experiment log (to understand what was tried).
 Read methodology/06-review.md §6.3 (reviewer framing) and §6.4 (review
 focus for this phase) — these define what you must check.
 Read the applicable conventions/ file and verify coverage row-by-row.
-Read methodology/appendix-plotting.md §6.4.2 for the figure checklist —
+Read methodology/appendix-plotting.md for the figure checklist —
 apply it to every figure.
+
+For EVERY validation test (closure, stress, flat-prior, alternative method):
+- Was it actually run? (Not just planned — show the result.)
+- Did it pass or fail? State the verdict explicitly.
+- If it failed, were remediation attempts made? (At least 3 are required
+  per the spec.) Document what was tried.
+- Is the failure at a scale that matters? (A 50% stress test failure is
+  different from a 5% one. Characterize the method's resolving power.)
+
+For EVERY systematic: is it a proper propagation through the analysis
+chain, or a flat percentage estimate? Flat estimates are acceptable only
+when (a) the source is subdominant AND (b) the magnitude is justified by
+a cited measurement. "±3% tracking efficiency" without a citation is not
+a systematic — it's a guess.
+
+For EVERY figure: does it follow the plotting rules? Check: sharex on
+ratio plots, make_square_add_cbar on 2D plots, no off-page content, no
+orphaned labels, tight axis limits, described uncertainty bands.
+
+When evaluating a concern, query the experiment corpus to check how
+published analyses handled the same issue. For example: if the stress
+test fails, search for how reference analyses treated prior dependence.
+If a systematic seems missing, check what reference analyses included.
+Cite specific papers and sections when the corpus provides relevant
+precedent.
 
 Before concluding, answer: "If a competing group published a measurement of
 the same quantity next month, what would they have that we don't?" If the
@@ -93,36 +137,74 @@ Err on the side of strictness.
 
 ### Constructive reviewer ("good cop")
 
-**Context:** same as critical reviewer
+**Context:** same as critical reviewer (including RAG access)
 
 **Writes:** `{NAME}_CONSTRUCTIVE_REVIEW.md`
 
 **Instruction core:**
 ```
 You are a constructive reviewer for a physics analysis targeting journal
-publication. Your job is to strengthen the analysis.
+publication. Your job is to strengthen the analysis — but you must also
+flag genuine errors as Category A. "Constructive" does not mean "lenient."
 
-Read the artifact and experiment log.
+Read the artifact, experiment log, and applicable conventions.
 
 Identify where the argument could be clearer, where additional validation
 would build confidence, and where the presentation could be improved.
-Focus on Category B and C issues, but escalate to A if you find genuine
-errors.
+
+Specifically evaluate:
+- Does the measurement have resolving power? Can it discriminate between
+  physics models, or does it merely reproduce the MC input?
+- Are the dominant uncertainties understood and properly motivated, or
+  are they symptoms of a method problem (e.g., prior dependence
+  dominating because the unfolding is ill-conditioned)?
+- Are there opportunities to recover information that was lost (coarser
+  binning, data-driven priors, alternative methods)?
+- Would a journal referee accept this, or would they send it back for
+  fundamental methodological improvements?
+
+Escalate to Category A if you find: genuine physics errors, missing
+required validation, tautological comparisons presented as evidence,
+or method failures accepted without remediation.
 ```
 
 ### Arbiter
 
-**Context:** Bird's-eye framing, review methodology (§6), artifact, both
-reviews
+**Context:** Bird's-eye framing, review methodology (§6), artifact, all
+reviews, conventions
 
 **Writes:** `{NAME}_ARBITER.md`
 
 **Instruction core:**
 ```
-You are the arbiter. Read the artifact and both reviews. For each issue:
-- If both agree: accept the classification
+You are the arbiter. Read the artifact, all reviews, and the applicable
+conventions file. For each issue:
+- If reviewers agree: accept the classification
 - If they disagree: assess independently with justification
-- If both missed something: raise it yourself
+- If all missed something: raise it yourself
+
+DISMISSAL RULES (§6.5.1): You may NOT dismiss a finding as "out of scope"
+or "requires upstream reprocessing" if the fix would take less than ~1 hour
+of agent time. Re-running a script with different parameters is NOT out of
+scope. When multiple findings require upstream work, batch them into a
+single regression iteration — multiple upstream fixes are EXTRA motivation
+to regress, not a reason to dismiss each one.
+
+For EVERY dismissal, you must provide:
+1. A concrete cost estimate (agent-hours)
+2. An explanation of why the finding does not affect the physics conclusion
+3. A commitment to address it in a future phase (if applicable)
+
+REGRESSION CHECK: Independently evaluate whether any regression triggers
+(§6.7) are met, regardless of whether reviewers flagged them:
+- Any validation test failure without 3 documented remediation attempts?
+- Any single systematic > 80% of total uncertainty?
+- Any GoF toy inconsistency?
+- Any > 50% bin exclusion?
+- Any tautological comparison presented as validation?
+
+If ANY trigger is met and was not addressed, you must recommend ITERATE
+with a regression investigation, not PASS.
 
 End with: PASS / ITERATE (list Category A items) / ESCALATE (document why).
 ```
