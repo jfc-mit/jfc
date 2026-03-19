@@ -280,7 +280,7 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
 
 **Goal:** Final analysis note — publication-quality, self-contained, 50-100 pages.
 
-Phase 5 has two distinct sub-tasks that should be handled by **separate
+Phase 5 has three distinct sub-tasks that should be handled by **separate
 subagents** (the AN is context-intensive and must not compete for context
 with figure generation or data processing):
 
@@ -300,9 +300,45 @@ with figure generation or data processing):
    It must produce a document that meets the completeness test: a physicist
    unfamiliar with the analysis can reproduce every number from the AN alone.
 
-The AN writing subagent runs AFTER the figures subagent completes (it needs
-the figure paths). The orchestrator should spawn figures first, then AN
-writing, then `pixi run build-pdf`, then the 5-bot review.
+3. **Typesetting subagent.** Runs AFTER the AN writing subagent. This agent
+   is a LaTeX typesetting expert. It:
+   - Runs `pandoc` to convert the markdown AN to `.tex` (not PDF):
+     `pandoc ANALYSIS_NOTE.md -o ANALYSIS_NOTE.tex --standalone
+     --include-in-header=../../conventions/preamble.tex
+     --number-sections --toc --filter pandoc-crossref --citeproc`
+   - Reads the generated `.tex` file and improves the typesetting:
+     - **Combine related figures** into `\begin{figure}` environments
+       with `\subfloat` or side-by-side `\includegraphics` where
+       applicable (e.g., data/MC comparisons for related variables,
+       systematic shift maps for similar sources, reco vs gen Lund
+       plane). Use `\begin{figure*}` for full-width composites.
+     - **Fix float placement** — ensure no figure overflows the page,
+       add `\clearpage` before dense figure sequences if needed.
+     - **Adjust table formatting** — ensure no column overflow, use
+       `\resizebox` or `\small` for wide tables, add `\toprule`,
+       `\midrule`, `\bottomrule` from booktabs if pandoc didn't.
+     - **Verify every section has prose** — no bare headings before
+       figures.
+     - **Check caption quality** — flag any caption under 2 sentences.
+     - **Optimize page breaks** — prevent awkward orphaned section
+       headings at the bottom of pages.
+     - **Add `\FloatBarrier`** at section boundaries to prevent figures
+       from drifting too far from their text.
+   - Compiles the `.tex` to PDF via `tectonic ANALYSIS_NOTE.tex` (or
+     `pdflatex`). Fixes any compilation errors.
+   - Reads the compiled PDF and verifies: no broken figures, no
+     unresolved cross-references, no overflow, no cut-off content.
+   - The final PDF is the deliverable, not the pandoc output.
+
+   **The typesetting agent does NOT modify physics content.** It changes
+   only layout, formatting, and figure grouping. It never changes
+   numbers, captions (except to fix grammar), or section structure. If
+   it finds a physics issue (e.g., missing figure, inconsistent number),
+   it flags it for the AN writing agent rather than fixing it.
+
+The execution order is: figures → AN writing → typesetting → 5-bot review.
+The orchestrator should spawn each in sequence since each depends on the
+previous output.
 
 See `analysis-note.md` for full AN specification.
 

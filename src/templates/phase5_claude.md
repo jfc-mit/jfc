@@ -7,9 +7,9 @@
 
 You are producing the final analysis note for a **{{analysis_type}}** analysis.
 
-## Phase 5 has two separate sub-tasks
+## Phase 5 has three separate sub-tasks
 
-These should be handled by **separate subagents**:
+These should be handled by **separate subagents** in sequence:
 
 ### Sub-task 1: Figures (code-writing subagent)
 
@@ -62,10 +62,87 @@ and is Category A.
 section structure, which figures go where, which results tables are needed.
 Execute after the plan is set.
 
-## Output artifact
+### Sub-task 3: Typesetting (LaTeX expert subagent)
 
-`exec/ANALYSIS_NOTE.md` — publication-quality analysis note in pandoc-compatible
-markdown.
+**This subagent runs AFTER the AN writing subagent.** It is a LaTeX
+typesetting expert that transforms the pandoc output into a
+publication-quality PDF. It does NOT modify physics content — only layout
+and formatting.
+
+**Workflow:**
+
+1. **Convert markdown to LaTeX** (not directly to PDF):
+   ```bash
+   cd phase5_documentation/exec
+   pandoc ANALYSIS_NOTE.md -o ANALYSIS_NOTE.tex --standalone \
+     --include-in-header=../../conventions/preamble.tex \
+     --number-sections --toc --filter pandoc-crossref --citeproc
+   ```
+
+2. **Read and improve the `.tex` file.** Specific tasks:
+
+   - **Combine related figures.** Pandoc produces one `\begin{figure}`
+     per markdown image. Group related figures into composite floats
+     using `\subfloat` or side-by-side `\includegraphics`. Candidates:
+     data/MC comparisons for related variables (p, pT, theta, phi →
+     2×2 grid), reco vs gen Lund plane (side-by-side), systematic shift
+     maps for related sources, closure check projections (kt + dtheta).
+     Use `\begin{figure*}` for full-width composites. Rewrite captions
+     to describe the composite ("(a) ... (b) ... (c) ...").
+
+   - **Fix float placement.** Add `\FloatBarrier` at section boundaries
+     (`\section`, `\subsection`) to prevent figures from drifting far
+     from their text. Add `\clearpage` before appendices and before
+     dense figure sequences.
+
+   - **Fix table formatting.** Use `booktabs` rules (`\toprule`,
+     `\midrule`, `\bottomrule`). Apply `\small` or `\resizebox` to
+     wide tables. Ensure no column overflows the text width.
+
+   - **Verify section content.** Every `\section` and `\subsection`
+     must have at least one paragraph of text before any `\begin{figure}`
+     or `\begin{table}`. If not, flag for the AN writing agent.
+
+   - **Optimize page breaks.** Prevent orphaned section headings at
+     page bottoms (`\needspace{4\baselineskip}` before headings).
+     Add `\newpage` before major sections (Results, Discussion) for
+     clean chapter starts.
+
+   - **Check cross-references and citations.** Grep for `??` (unresolved
+     refs) and `[?]` (unresolved citations) in the compiled output.
+
+3. **Compile to PDF:**
+   ```bash
+   tectonic ANALYSIS_NOTE.tex
+   ```
+   Fix any compilation errors. The final `ANALYSIS_NOTE.pdf` is the
+   deliverable.
+
+4. **Verify the PDF.** Read the compiled PDF and check:
+   - All figures render (no broken placeholders)
+   - No content overflows page boundaries
+   - Cross-references resolve (no "??")
+   - Citations resolve (no "[?]")
+   - Page count in 50-100 range
+   - Figure captions ≥ 2 sentences each
+   - Tables fit within margins
+
+**What the typesetting agent MUST NOT do:**
+- Change numbers, results, or physics conclusions
+- Rewrite captions beyond grammar/clarity fixes
+- Remove or add figures (only group existing ones)
+- Modify section structure or ordering
+- Change the bibliography
+
+If the agent finds a physics issue (missing figure, inconsistent number,
+empty section), it documents the issue and flags it for the orchestrator
+to route back to the AN writing agent. It does not fix physics content.
+
+## Output artifacts
+
+- `exec/ANALYSIS_NOTE.md` — pandoc-compatible markdown (from sub-task 2)
+- `exec/ANALYSIS_NOTE.tex` — typeset LaTeX (from sub-task 3)
+- `exec/ANALYSIS_NOTE.pdf` — final compiled PDF (from sub-task 3)
 
 ## Methodology references
 
@@ -78,7 +155,8 @@ markdown.
 
 Before submitting for review, these must succeed:
 1. `pixi run all` — full analysis chain reproduces from scratch
-2. `pixi run build-pdf` — PDF compiles with all figures rendering
+2. PDF compiles with all figures rendering (the typesetting agent
+   handles this as part of sub-task 3)
 
 If either fails, fix it before requesting review.
 
@@ -114,19 +192,12 @@ bibliography requirements.
   as "not reliably extractable" when appropriate.
 - **Completeness test.** A physicist unfamiliar with the analysis can
   reproduce every number from the AN alone.
-- **Machine-readable results.** `results/` directory with JSON for spectra,
-  uncertainties, and covariance matrices.
-
-## Building the PDF
-
-Run `pixi run build-pdf` from the analysis root. This converts
-`ANALYSIS_NOTE.md` to PDF via pandoc with tectonic, numbered sections,
-TOC, and `0.45\linewidth` figure width (single panels). Override with
-`width=100%` attribute for full-width figures.
-
-**Never use an LLM to convert markdown to LaTeX.** Pandoc handles this.
+- **Machine-readable results.** `results/` directory with CSV/JSON for
+  spectra, uncertainties, and covariance matrices.
 
 ## Review
 
 **5-bot review** — see `methodology/06-review.md` for protocol.
+The rendering reviewer inspects the **typeset PDF** (from sub-task 3),
+not the raw pandoc output.
 Write findings to `review/REVIEW_NOTES.md`.
