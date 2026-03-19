@@ -60,8 +60,8 @@ that may unconsciously rationalize problems. Be skeptical of:
   the known answer (check: is "consistent" hiding behind huge
   uncertainties?)
 - Calibrations derived by assuming the answer (circular reasoning —
-  if you fix R_b = world average and solve for corrections, of course
-  the corrected R_b matches the world average)
+  if you fix the result to a reference value and solve for corrections,
+  of course the corrected result matches the reference)
 - Limitations reframed as design choices ("methods validation" to
   excuse a wrong answer; "conservative" to excuse inflated
   uncertainties)

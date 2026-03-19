@@ -94,8 +94,9 @@ the executor's narrative is self-serving. Executors naturally frame
 their work favorably. Specific red flags:
 
 - A result that is "consistent with" the known value only because the
-  uncertainty is enormous. "R_b = 0.45 ± 0.30 is consistent with
-  0.216" is technically true but physically absurd.
+  uncertainty is enormous. A central value far from the reference that
+  "passes" a pull test due to inflated uncertainties is not a
+  measurement — it is a non-result dressed up as agreement.
 - A calibration that reproduces the expected answer because it was
   derived by assuming the expected answer. Check the independence of
   every calibration source (§6.8 Tier 2 step 3).
