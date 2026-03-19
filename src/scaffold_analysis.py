@@ -47,7 +47,7 @@ PHASES = [
     "phase5_documentation",
 ]
 
-PHASE_SUBDIRS = ["exec", "scripts", "figures", "review"]
+PHASE_SUBDIRS = ["outputs", "outputs/figures", "src", "review", "logs"]
 
 PHASE_TEMPLATE_MAP = {
     "phase1_strategy": "phase1_claude.md",
@@ -137,6 +137,16 @@ def scaffold(analysis_dir: Path, analysis_type: str):
         template = _read_template("pixi.toml")
         pixi_path.write_text(template.replace("{name}", variables["name"]))
         print(f"  wrote {pixi_path}")
+
+    # Stub references.bib for citations
+    bib_path = analysis_dir / "phase5_documentation" / "outputs" / "references.bib"
+    if not bib_path.exists():
+        bib_path.write_text(
+            "% BibTeX references for the analysis note.\n"
+            "% Add entries as you cite them with [@key] in the AN.\n"
+            "% Use get_paper from the RAG corpus to retrieve entries.\n"
+        )
+        print(f"  wrote {bib_path}")
 
     # Experiment log and retrieval log
     for log_name in ["experiment_log.md", "retrieval_log.md"]:

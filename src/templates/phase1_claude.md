@@ -10,7 +10,7 @@ structure will be. Execute after the plan is set.
 
 ## Output artifact
 
-`exec/STRATEGY.md` — analysis strategy with physics motivation, sample
+`outputs/STRATEGY.md` — analysis strategy with physics motivation, sample
 inventory, selection approach, systematic plan, and technique selection.
 
 ## Methodology references
@@ -73,6 +73,11 @@ These are the critical actionable items for Phase 1. See
 - Survey prior measurements — published data points become the primary
   validation target in Phase 4.
 - Identify theory predictions or MC generators for comparison.
+- **Flagship figures.** Identify ~6 figures that would represent the
+  measurement in a journal paper. Examples: the final spectrum with
+  uncertainties, the response matrix, the key data/MC comparison, the
+  systematic breakdown, the theory comparison overlay. These are defined
+  here and produced at the highest quality in Phase 5.
 
 ## Review
 

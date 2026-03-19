@@ -1,6 +1,6 @@
 <!-- Spec developer note: agent prompt templates live in
-     src/orchestration/agents.md. Context assembly rules are in
-     src/methodology/03a-orchestration.md §3a.4.2. -->
+     src/methodology/appendix-prompts.md. Context assembly rules are in
+     src/methodology/03a-orchestration.md §3a.4. -->
 
 # Analysis: {{name}}
 
@@ -66,6 +66,13 @@ All three sub-phases (4a → 4b → 4c) are required for both analysis types.
   Review + PDF render. Human gate after 4b review passes.
 - **4c:** Full data. Compare to **both** 10% and expected. Update AN with full results.
 
+**Systematic variation sizing:** Every systematic variation must be
+motivated by a measurement or published uncertainty. "±50% on the
+background" is Category A unless 50% IS the measured uncertainty. Use
+the actual uncertainty from the background estimation method (sideband
+fit uncertainty, MC normalization uncertainty, data-driven closure).
+Arbitrary conservative inflations mask the analysis's true sensitivity.
+
 **Context splitting:** Phase 4b and Phase 5 are context-intensive (AN writing
 alongside statistical analysis). When context pressure is high, split into
 separate subagent invocations: one for statistical analysis, another for AN
@@ -99,6 +106,17 @@ disk.
   properly — not minimally patched.
 - Trigger phase regression when ANY review finds physics issues traceable
   to an earlier phase.
+- **Regression checklist (mandatory after every review).** After reading
+  the arbiter's verdict, the orchestrator must independently evaluate:
+  - [ ] Any validation test failures without 3 documented remediation attempts?
+  - [ ] Any single systematic > 80% of total uncertainty?
+  - [ ] Any GoF toy distribution inconsistent with observed chi2?
+  - [ ] Any flat-prior gate excluding > 50% of bins?
+  - [ ] Any tautological comparison presented as independent validation?
+  - [ ] Any visually identical distributions that should be independent?
+  If ANY box is checked, the orchestrator must trigger regression or
+  re-run the affected phase — even if the arbiter said PASS. The
+  orchestrator is the last line of defense against process failures.
 
 **Subagent model selection:** All subagents — executors, reviewers, arbiters,
 fix agents — must be spawned with `model: "opus"`. Never use Sonnet or Haiku
@@ -148,6 +166,23 @@ calls to install packages.
 
 ---
 
+## Numeric Constants: Never From Memory
+
+**Every number that enters the analysis must come from a citable source.**
+PDG masses, widths, coupling constants, world-average measurements,
+QCD coefficients, radiative correction formulae — all must be fetched
+from the RAG corpus, web (PDG live tables, HEPData), or a cited paper.
+
+LLM training data is NOT a source. Quote $M_Z = 91.1876$ GeV? Cite
+where it came from. Use $\alpha_s = 0.1180$? Fetch and cite. Use the
+QCD correction coefficient 1.405? Cite the paper.
+
+**At review, any uncited numeric constant is Category A.**
+
+See `methodology/02-inputs.md` §2.3 for the full policy.
+
+---
+
 ## Tool Requirements
 
 Non-negotiable. Use these — not alternatives.
@@ -176,13 +211,13 @@ phase begins. No exceptions.
 
 | Phase | Required artifact | Review type |
 |-------|-------------------|-------------|
-| 1 | `phase1_strategy/exec/STRATEGY.md` | 4-bot |
-| 2 | `phase2_exploration/exec/EXPLORATION.md` | Self |
-| 3 | `phase3_selection/exec/SELECTION.md` | 1-bot |
-| 4a | `phase4_inference/exec/INFERENCE_EXPECTED.md` | 4-bot |
-| 4b | `phase4_inference/exec/INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_DRAFT.md` | 4-bot → human gate |
-| 4c | `phase4_inference/exec/INFERENCE_OBSERVED.md` | 1-bot |
-| 5 | `phase5_documentation/exec/ANALYSIS_NOTE.md` | 5-bot (4 + rendering) |
+| 1 | `phase1_strategy/outputs/STRATEGY.md` | 4-bot |
+| 2 | `phase2_exploration/outputs/EXPLORATION.md` | Self |
+| 3 | `phase3_selection/outputs/SELECTION.md` | 1-bot |
+| 4a | `phase4_inference/outputs/INFERENCE_EXPECTED.md` | 4-bot |
+| 4b | `phase4_inference/outputs/INFERENCE_PARTIAL.md` + `phase4_inference/outputs/ANALYSIS_NOTE_DRAFT.md` | 4-bot → human gate |
+| 4c | `phase4_inference/outputs/INFERENCE_OBSERVED.md` | 1-bot |
+| 5 | `phase5_documentation/outputs/ANALYSIS_NOTE.md` | 5-bot (4 + rendering) |
 
 **Review before advancing.** After each artifact, spawn a reviewer subagent.
 Self-review is only acceptable for Phase 2 (exploration). All other phases
@@ -207,29 +242,54 @@ The arbiter must not PASS with unresolved A or B items.
 
 | Phase | Review type |
 |-------|-------------|
-| 1: Strategy | 4-bot (physics + critical + constructive + arbiter) |
-| 2: Exploration | Self-review |
-| 3: Processing | 1-bot (single critical reviewer) |
-| 4a: Expected | 4-bot |
-| 4b: 10% validation | 4-bot → human gate |
+| 1: Strategy | 4-bot (physics + critical + constructive + plot validator + arbiter) |
+| 2: Exploration | Self-review + plot validator |
+| 3: Processing | 1-bot (critical + plot validator) |
+| 4a: Expected | 4-bot+bib (AN v1 has citations) |
+| 4b: 10% validation | 4-bot+bib (adds BibTeX validator) → human gate |
 | 4c: Full data | 1-bot |
-| 5: Documentation | 5-bot (4-bot + rendering reviewer) |
+| 5: Documentation | 5-bot (4-bot + rendering + BibTeX validator) |
 
 **Iteration limits:** 4/5-bot: warn at 3, strong warn at 5, hard cap at 10. 1-bot: warn at 2, escalate after 3. All subagents use `model: "opus"`.
+
+**Validation target rule (§6.8):** Any result with a pull > 3σ from a
+well-measured reference value (PDG, published measurement) is **Category A**
+unless the reviewer verifies: (1) a quantitative explanation for the
+deviation, (2) a demonstrated magnitude match (calculation/toy/fit variant),
+and (3) no simpler explanation (bugs, sign errors). A narrative list of
+"possible causes" does not satisfy this rule. Applies at Phases 4a–5.
 
 ---
 
 ## Phase Regression
 
 When a reviewer at Phase N finds a **physics issue** traceable to Phase M < N,
-this triggers regression. See `methodology/06-review.md` §6.8 for the full protocol.
+this triggers regression. See `methodology/06-review.md` §6.7 for the full protocol.
 
 **Regression trigger:** Spawn an Investigator to trace impact →
 `REGRESSION_TICKET.md` → fix origin phase → re-run affected downstream →
 resume review.
 
+**Concrete triggers (must not be rationalized away):**
+- Data/MC disagreement on observable or MVA inputs
+- Closure test failure (p < 0.05)
+- Stress test failure without successful remediation (3+ attempts required)
+- Operating point instability
+- Unexplained dominant systematic (single source > 80% of total)
+- Result > 3σ from a well-measured reference value (§6.8)
+- GoF toy distribution inconsistent with observed chi2 (outside 95% interval)
+- Wholesale bin exclusion (> 50% of bins excluded by flat-prior gate or
+  similar criterion)
+- Two distributions that should be independent appear visually identical
+
 **Not regression (local fix):** Axis labels, captions, current-phase code bugs
 → normal Category A fix-and-re-review cycle.
+
+**Arbiter dismissal rule:** The arbiter may NOT dismiss reviewer findings
+as "out of scope" if the fix requires less than ~1 hour of agent time.
+Re-running a Phase 4 script with different parameters is NOT out of scope.
+When multiple findings require upstream reprocessing, batch them into a
+single regression iteration. See `methodology/06-review.md` §6.5.1.
 
 ---
 
@@ -278,7 +338,15 @@ See `methodology/11-coding.md` for full coding practices.
 See `methodology/appendix-plotting.md` for full plotting standards. Essentials:
 
 - **Style:** `import mplhep as mh; mh.style.use("CMS")` (CMS style is the default mplhep preset — clean, widely used)
-- **Figure size:** `figsize=(10, 10)`. Subplots: `figsize=(10*ncols, 10*nrows)`.
+- **Experiment label:** `mh.label.exp_label(exp="<EXPERIMENT>", data=True, rlabel=r"$\sqrt{s} = X$ GeV", loc=0)` on every figure. **This is mandatory.**
+- **Figure size:** `figsize=(10, 10)` for all single-panel and ratio plots.
+- **No matplotlib grid plots.** Produce individual `(10, 10)` figures and
+  compose in the AN with LaTeX subfigures. Exception: ratio plots and
+  tightly-coupled panels that share axes (`sharex=True`, `hspace=0`).
+- **Ratio plot spacing:** `fig.subplots_adjust(hspace=0)` is non-negotiable.
+  Any visible gap between main and ratio panels is Category A.
+- **AN rendering:** Single-panel figures render at `0.45\linewidth` (default).
+  Multi-panel figures composed in LaTeX render at `\linewidth`.
 - **No titles.** Never `ax.set_title()`. Captions go in the analysis note.
 - **No absolute font sizes.** The CMS stylesheet sets sizes. Use `'x-small'` for legends.
 - **Save as PDF + PNG.** `bbox_inches="tight"`, `dpi=200`, `transparent=True`. Close after saving.
@@ -318,19 +386,31 @@ creating new conventions files.
 
 ## Analysis Note Format
 
+**The gold standard:** a physicist who has never seen the analysis should
+be able to reproduce every number from the AN alone. If they need to read
+the code, the AN has a gap. Target 50-100 pages; under 30 is Category A.
+
 The analysis note (`ANALYSIS_NOTE.md`) must be **pandoc-compatible markdown**:
 
 - **LaTeX math:** `$...$` inline, `$$...$$` display. Write `$\alpha_s$`, not `alpha_s`.
+  **Never use `$\pm$`, `$<$`, `$>$`, `$-$` as standalone math** — use
+  Unicode `±`, `<`, `>`, `−` instead. These break pandoc-crossref.
+  Never use `\mathrm{}` in captions or headers (use plain subscripts).
+  Never put `@ref` cross-references inside `$...$` math delimiters.
 - **Figures:** `![Caption text](figures/name.pdf)` — pandoc converts to `\includegraphics`.
+  Captions must be 2-5 sentences: `<Plot name>. <Full description.>`
+  Anything under two sentences is Category A.
 - **No raw HTML.** Pandoc markdown only.
-- **Tables:** Pipe tables (`| col1 | col2 |`).
+- **Tables:** Pipe tables (`| col1 | col2 |`). Keep columns narrow to
+  avoid overflow. Test with `build-pdf`.
 - **Cross-references:** pandoc-crossref syntax — `{#fig:label}`, `@fig:label`.
   At sentence start: `Figure @fig:name`. Every figure MUST have a label.
   Never use `[-@fig:...]`.
 - **Citations:** `[@key]` with a `references.bib` BibTeX file. `build-pdf` uses `--citeproc`.
 - **Sections:** `#`, `##`, `###` — pandoc adds numbering with `--number-sections`.
 
-Required AN sections — see `methodology/03-phases.md` → Phase 5 for the full list.
+Required AN sections — see `methodology/analysis-note.md` for the full
+specification including depth calibration and completeness test.
 
 ---
 
@@ -373,8 +453,8 @@ numpy = ">=1.24"
 # Named tasks
 [tasks]
 py = "python"
-select = "python phase3_selection/scripts/apply_selection.py"
-all = "python phase3_selection/scripts/apply_selection.py && ..."
+select = "python phase3_selection/src/apply_selection.py"
+all = "python phase3_selection/src/apply_selection.py && ..."
 ```
 
 **Common pitfalls:**

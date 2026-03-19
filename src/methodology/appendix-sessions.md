@@ -1,7 +1,7 @@
 # Orchestration Guide
 
-> See `../methodology/03a-orchestration.md` for the architectural rationale.
-> See `agents.md` for the agent prompt templates that populate this layout.
+> See `03a-orchestration.md` for the architectural rationale.
+> See `appendix-prompts.md` for the agent prompt templates that populate this layout.
 
 How to execute the methodology specification using Claude Code or any
 multi-session LLM agent system.
@@ -20,8 +20,8 @@ reads files, writes files, and exits. The files are the interface.
 └─────────────┘     └──────────┘     └──────────────┘
                          │
                          ▼
-                    session.log
-                (full conversation transcript)
+                    logs/{role}_{name}_{timestamp}.md
+                (full conversation transcript via cc /export)
 ```
 
 **Exception: the experiment log.** Each phase has an `experiment_log.md` that
@@ -69,6 +69,27 @@ the artifact type pattern (e.g., `STRATEGY_*_*.md`), sorted by timestamp.
 This eliminates the need to overwrite files on iteration — each session's
 work is preserved and the history is self-documenting.
 
+## Agent Transcript Logs
+
+Each phase has a `logs/` directory that centralizes all agent conversation
+transcripts. At the end of each session, the agent exports its full
+conversation via `cc /export` to:
+
+```
+logs/{role}_{session_name}_{YYYY-MM-DD}_{HH-MM}.md
+```
+
+Examples:
+- `logs/executor_gerald_2026-03-13_14-30.md`
+- `logs/critical_florence_2026-03-13_15-00.md`
+- `logs/arbiter_hiroshi_2026-03-13_15-30.md`
+
+This replaces the previous pattern of scattering `session.log` files
+across `outputs/` and `review/` subdirectories. All transcripts for a
+phase live in one auditable location.
+
+---
+
 ## Directory Layout
 
 ```
@@ -81,25 +102,26 @@ analysis_name/
       experiment_log.md          #   e.g., btag, jet_corrections, trigger_eff
       retrieval_log.md
       CALIBRATION_1.md
-      scripts/
-      figures/
+      src/
+      outputs/
+        figures/
     calibration_2/
       experiment_log.md
       retrieval_log.md
       CALIBRATION_2.md
-      scripts/
-      figures/
+      src/
+      outputs/
+        figures/
 
   phase1_strategy/
     experiment_log.md            # Lab notebook for this phase
     retrieval_log.md
     UPSTREAM_FEEDBACK.md         # Feedback from downstream phases (if any)
     REGRESSION_TICKET.md         # Regression investigation output (if triggered)
-    scripts/                     # Phase-level codebase (can grow to thousands of lines)
-    figures/
-    exec/
+    src/                         # Phase-level codebase (can grow to thousands of lines)
+    outputs/                     # All produced artifacts
+      figures/                   # Plots
       inputs_gerald_2026-03-13_14-30.md       # Session-named inputs
-      session.log
       plan_gerald_2026-03-13_14-30.md
       STRATEGY_gerald_2026-03-13_14-30.md     # Session-named artifact
       # On iteration, new files appear alongside (no overwrites):
@@ -108,26 +130,31 @@ analysis_name/
     review/
       critical/
         inputs_florence_2026-03-13_15-00.md
-        session.log
         STRATEGY_CRITICAL_REVIEW_florence_2026-03-13_15-00.md
       constructive/
         inputs_tomoko_2026-03-13_15-00.md
-        session.log
         STRATEGY_CONSTRUCTIVE_REVIEW_tomoko_2026-03-13_15-00.md
+      validation/                  # Plot validator (programmatic checks)
+        STRATEGY_PLOT_VALIDATION_kenji_2026-03-13_15-00.md
       arbiter/
         inputs_hiroshi_2026-03-13_15-30.md
-        session.log
         STRATEGY_ARBITER_hiroshi_2026-03-13_15-30.md
+    logs/                        # Agent conversation transcripts (cc /export)
+      executor_gerald_2026-03-13_14-30.md
+      critical_florence_2026-03-13_15-00.md
+      constructive_tomoko_2026-03-13_15-00.md
+      arbiter_hiroshi_2026-03-13_15-30.md
 
   phase2_exploration/
     experiment_log.md
     retrieval_log.md
     UPSTREAM_FEEDBACK.md
     REGRESSION_TICKET.md
-    scripts/
-    figures/
-    exec/
+    src/
+    outputs/
+      figures/
       ...
+    logs/
     # Self-review only — no review/ directory
 
   phase3_selection/              # Per-channel if multi-channel
@@ -137,28 +164,30 @@ analysis_name/
       sensitivity_log.md         # Tracks optimization attempts
       UPSTREAM_FEEDBACK.md
       REGRESSION_TICKET.md
-      scripts/                   # Per-channel codebase
-      figures/
-      exec/
+      src/                       # Per-channel codebase
+      outputs/
+        figures/
         ...
         SELECTION_CHANNEL_A.md
       review/
         critical/                # 1-bot review per channel
           ...
+      logs/
     channel_b/
       experiment_log.md
       retrieval_log.md
       sensitivity_log.md
       UPSTREAM_FEEDBACK.md
       REGRESSION_TICKET.md
-      scripts/
-      figures/
-      exec/
+      src/
+      outputs/
+        figures/
         ...
         SELECTION_CHANNEL_B.md
       review/
         critical/
           ...
+      logs/
     SELECTION_COMBINED.md        # Consolidation artifact
 
   phase4_inference/
@@ -167,11 +196,10 @@ analysis_name/
       retrieval_log.md
       UPSTREAM_FEEDBACK.md
       REGRESSION_TICKET.md
-      scripts/
-      figures/
-      exec/
+      src/
+      outputs/
+        figures/
         ...
-        INFERENCE_EXPECTED.md
         INFERENCE_EXPECTED.md
       review/
         physics/                # 4-bot review (agent gate)
@@ -182,14 +210,15 @@ analysis_name/
           ...
         arbiter/
           ...
+      logs/
     4b_partial/
       experiment_log.md
       retrieval_log.md
       UPSTREAM_FEEDBACK.md
       REGRESSION_TICKET.md
-      scripts/
-      figures/
-      exec/
+      src/
+      outputs/
+        figures/
         ...
         INFERENCE_PARTIAL.md
         ANALYSIS_NOTE_DRAFT.md
@@ -203,24 +232,27 @@ analysis_name/
           ...
         arbiter/
           ...
+      logs/
     4c_observed/                 # Created after human approval
       retrieval_log.md
       UPSTREAM_FEEDBACK.md
       REGRESSION_TICKET.md
-      scripts/
-      figures/
-      exec/
+      src/
+      outputs/
+        figures/
         ...
         INFERENCE_OBSERVED.md
       review/
         critical/               # 1-bot review
           ...
+      logs/
 
   phase5_documentation/
     retrieval_log.md
     UPSTREAM_FEEDBACK.md
     REGRESSION_TICKET.md
-    exec/
+    outputs/
+      figures/
       ...
       ANALYSIS_NOTE.md
     review/
@@ -234,4 +266,5 @@ analysis_name/
         ...
       arbiter/
         ...
+    logs/
 ```

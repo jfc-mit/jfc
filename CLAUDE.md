@@ -7,8 +7,7 @@ This is a HEP (High Energy Physics) analysis project using LLM-driven agents.
 ```
 reslop/
   src/                      # Spec infrastructure (do not modify during analysis)
-    methodology/              Methodology spec (human reference)
-    orchestration/            Session management spec (human reference)
+    methodology/              Full spec: phases, review, orchestration, appendices
     conventions/              Domain knowledge (symlinked into analyses)
     templates/                Templates for new analyses
     scaffold_analysis.py      Creates analysis directories
@@ -27,8 +26,8 @@ reslop/
 - Agents **never modify** files outside `analyses/<name>/` during execution.
 - Each analysis has its own git repo and pixi environment.
 - `src/conventions/` is updated **after** an analysis completes, not during.
-- `src/methodology/` and `src/orchestration/` are human reference only —
-  agents get their instructions from analysis-level CLAUDE.md files.
+- `src/methodology/` is the human reference spec — agents get their
+  instructions from analysis-level CLAUDE.md files.
 
 ## Environment: pixi is mandatory
 

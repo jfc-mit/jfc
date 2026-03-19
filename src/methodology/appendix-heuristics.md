@@ -32,7 +32,7 @@ library but for tool-level idioms and gotchas.
 
 ### mplhep
 
-**Version:** 0.3.x+
+**Version:** 1.1.0+
 
 **Key idioms:**
 - Use `mplhep.style.use("CMS")` for the default style sheet. This sets fonts,

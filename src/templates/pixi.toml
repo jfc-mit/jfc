@@ -24,11 +24,11 @@ boost-histogram = ">=1.4"
 numpy = ">=1.24"
 scipy = ">=1.11"
 matplotlib = ">=3.8"
-mplhep = ">=0.3.40"
+mplhep = ">=1.1.0"
 vector = ">=1.1"
 particle = ">=0.23"
 rich = ">=13.0"
-# --- Uncomment groups below as needed for your analysis ---
+# --- Uncomment groups below as needed (Phase 3/4 executors: uncomment what you need) ---
 # # Statistical models and fitting
 # pyhf = ">=0.7"
 # cabinetry = ">=0.6"
@@ -43,12 +43,12 @@ rich = ">=13.0"
 
 [tasks]
 py = "python"
-build-pdf = "cd phase5_documentation/exec && pandoc ANALYSIS_NOTE.md -o ANALYSIS_NOTE.pdf --pdf-engine=xelatex -V geometry:margin=1in -V documentclass:article -V fontsize:11pt --number-sections --toc --filter pandoc-crossref --citeproc -V header-includes='\\usepackage{graphicx}\\setkeys{Gin}{width=0.45\\linewidth,keepaspectratio}'"
+build-pdf = "cd phase5_documentation/outputs && pandoc ANALYSIS_NOTE.md -o ANALYSIS_NOTE.pdf --pdf-engine=tectonic -V geometry:margin=0.75in -V documentclass:article -V fontsize:11pt --number-sections --toc --filter pandoc-crossref --citeproc --include-in-header=../../conventions/preamble.tex"
 # --- Analysis tasks: add as you write scripts ---
 # Each script gets an independently runnable task.
 # The "all" task chains the full sequence — this is the reproducibility contract.
 # Example:
-#   select = "python phase3_selection/scripts/apply_selection.py"
-#   unfold = "python phase4_inference/scripts/unfold.py"
-#   systematics = "python phase4_inference/scripts/run_systematics.py"
-#   all = "python phase3_selection/scripts/apply_selection.py && python phase4_inference/scripts/unfold.py && python phase4_inference/scripts/run_systematics.py"
+#   select = "python phase3_selection/src/apply_selection.py"
+#   unfold = "python phase4_inference/src/unfold.py"
+#   systematics = "python phase4_inference/src/run_systematics.py"
+#   all = "python phase3_selection/src/apply_selection.py && python phase4_inference/src/unfold.py && python phase4_inference/src/run_systematics.py"

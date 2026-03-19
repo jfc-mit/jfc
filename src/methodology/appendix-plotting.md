@@ -1,8 +1,15 @@
 ## Appendix D: Plotting Template
 
-All plotting code must follow this template. This is the reference for any
-agent producing figures — whether the executor itself or a dedicated plotting
-subagent.
+All plotting code must follow this template. **These rules are
+non-negotiable and must be treated as gospel.** Any deviation requires an
+explicit, documented justification in the experiment log explaining why
+the rule cannot be followed — not a silent override. The rules exist
+because past analyses produced figures with broken aspect ratios, mangled
+labels, clipped content, and inconsistent styling. Following them exactly
+prevents these problems.
+
+This is the reference for any agent producing figures — whether the
+executor itself or a dedicated plotting subagent.
 
 ### Base template
 
@@ -73,18 +80,25 @@ plt.close(fig)
   annotation text). Any script that sets a numeric font size is a Category A
   review finding.
 - **Legend font size.** Always pass `fontsize="x-small"` to `ax.legend(...)`.
-- **Aspect.** Keep figures with square aspect. For 2D plots with colorbars,
-  you MUST use one of these to prevent the colorbar from squashing the plot:
+- **Aspect and colorbars (Category A if wrong).** Keep figures with square
+  aspect. For ANY 2D plot with a colorbar (`pcolormesh`, `imshow`,
+  `hist2dplot`), you MUST use one of these three patterns to prevent the
+  colorbar from squashing the main axes:
   - `mh.hist2dplot(H, cbarextend=True)` — preferred, handles it automatically
   - `cax = mh.utils.make_square_add_cbar(ax)` then `fig.colorbar(im, cax=cax)`
   - `cax = mh.utils.append_axes(ax, extend=True)` then `fig.colorbar(im, cax=cax)`
-  Never just do `fig.colorbar(im)`, `fig.colorbar(im, ax=ax, shrink=...)`,
-  or `plt.colorbar()` — these steal space from the axes and break the
-  square aspect.
+  **Any script that uses `fig.colorbar(im)`, `fig.colorbar(im, ax=ax)`,
+  `fig.colorbar(im, ax=ax, shrink=...)`, or `plt.colorbar(...)` is a
+  Category A review finding.** These patterns steal space from the main
+  axes, breaking the square aspect ratio. This applies to ALL 2D plots
+  including correlation matrices, migration matrices, response matrices,
+  2D systematic shift maps, and efficiency maps — not just the primary
+  result figure. Reviewers must grep for these patterns and flag every
+  occurrence.
 - **No titles.** Never `ax.set_title()`. Captions go in the analysis note.
   Instead additional info can go into `ax.legend(title="...")`. And when
-  truly necessary it can go into `mh.utils.add_text(text, ax=ax)`.
-- **No raw `ax.text()` or `ax.annotate()`.** Use `mh.utils.add_text(text,
+  truly necessary it can go into `mh.label.add_text(text, ax=ax)`.
+- **No raw `ax.text()` or `ax.annotate()`.** Use `mh.label.add_text(text,
   ax=ax)` for all text annotations — it respects mplhep styling and
   positioning. This includes panel labels like `(a)`, `(b)` in grids.
 - **Axis labels with units.** Always `ax.set_xlabel(...)` and
@@ -116,22 +130,67 @@ plt.close(fig)
   `height_ratios=[3, 1]`. For 2×2 subplots, use `figsize=(20, 20)`. The
   rule is: 10 inches per subplot column, 10 inches per subplot row.
   **Any script that uses a custom figsize is a Category A review finding.**
-- **PDF rendering size.** Single figures are rendered at `0.45\linewidth`
-  in the compiled analysis note PDF. Grid/multi-panel figures use
-  `\linewidth` (full width). The 10x10 matplotlib figure size produces
-  clean, readable plots at `0.45\linewidth`. The default in the pandoc
-  preamble is `0.45\linewidth`; override with pandoc-crossref attributes
-  when a figure genuinely needs full width (e.g., large correlation
-  matrices, multi-panel comparisons).
-- **Ratio plot hspace.** `fig.subplots_adjust(hspace=0)` is non-negotiable
-  for ratio plots. Any visible gap between the main panel and ratio panel
-  is a Category A review finding.
+- **PDF rendering size (height-based).** The pandoc preamble sets the
+  default image **height** (not width) to `0.45\linewidth`. Height-based
+  sizing is used because figures with colorbars (2D plots, correlation
+  matrices) have extended width from the colorbar axes. Setting size by
+  height gives consistent visual sizing: a 1D histogram and a 2D
+  colormap render at the same plot-area size even though the colormap
+  PDF is physically wider. This works because all figures are square
+  (`figsize=(10, 10)`), so height = plot-area width.
+
+  | Plot type | matplotlib figsize | AN height | Example |
+  |-----------|-------------------|-----------|---------|
+  | Single panel | `(10, 10)` | `0.45\linewidth` (default) | Distribution, spectrum |
+  | Ratio plot | `(10, 10)` | `0.45\linewidth` (default) | Data/MC with ratio |
+  | 2D with colorbar | `(10, 10)` | `0.45\linewidth` (default) | Lund plane, matrix |
+  | Side-by-side | Compose in LaTeX | `height=0.45\linewidth` each | See below |
+  | 2×2, 3×2 grid | Compose in LaTeX | `height=0.3\linewidth` each | See below |
+
+  **Prefer LaTeX subfigures over matplotlib grids.** Instead of producing
+  a 2×3 matplotlib figure, produce 6 individual `(10, 10)` figures and
+  compose them in the AN using pandoc-crossref subfigure syntax or
+  side-by-side image includes. This gives better control over layout,
+  captions, and cross-referencing, and avoids font-size scaling issues.
+
+  The one exception: **tightly-coupled panels that share axes** (ratio
+  plots, pull distributions below a fit) should be produced as a single
+  matplotlib figure because they require `sharex=True` and `hspace=0`.
+
+  To override the default width for a figure that genuinely needs full
+  width, use pandoc-crossref attributes in the markdown:
+  `![Caption](figures/name.pdf){#fig:name width=100%}`
+- **Ratio plot `sharex` and `hspace`.** Ratio plots MUST use
+  `sharex=True` in `plt.subplots()` AND `fig.subplots_adjust(hspace=0)`.
+  Both are non-negotiable. Without `sharex=True`, the upper panel shows
+  a redundant x-axis label (e.g., "Axis 0") — this is a Category A
+  review finding. Without `hspace=0`, a visible gap appears between the
+  main and ratio panels — also Category A.
 - **Log scale.** Use `ax.set_yscale("log")` when the y-axis range spans
   more than 2 orders of magnitude. Linear scale is appropriate otherwise.
 - **Prefer mplhep functions** (`mh.histplot`, `mh.hist2dplot`) over raw
   matplotlib `ax.hist` / `ax.pcolormesh`. They handle binning, styling,
   and error bars correctly for HEP conventions.
 - **Deterministic.** `np.random.seed(42)` if any randomness is involved.
+- **Ratio panel uncertainty bands.** When a ratio plot shows an
+  uncertainty band (e.g., MC statistical uncertainty), the band must be
+  described in either the legend or the caption. An unexplained shaded
+  band is a Category B finding. If the band is suspiciously flat
+  (constant width across all bins), verify the error computation —
+  constant uncertainty is unusual for binned distributions.
+- **Axis limits.** Set axis limits tight to the data range. Do not leave
+  large empty regions on either axis. Use `ax.set_xlim()` and
+  `ax.set_ylim()` explicitly when the auto-range includes too much
+  whitespace. Log-scale y-axes should start at ~0.5× the minimum
+  non-zero value, not at an arbitrary small number.
+- **Sanity check: visually identical distributions.** If two
+  distributions that should represent independent quantities (e.g.,
+  data from different years, different systematic variations, different
+  observables) appear visually indistinguishable in a plot, flag this
+  for investigation. It may indicate a bug (plotting the same array
+  twice), a tautological comparison, or genuinely high correlation —
+  but all three explanations must be considered. Do not silently accept
+  identical-looking distributions without explanation.
 
 ### Error propagation for derived quantities
 
@@ -153,15 +212,50 @@ quantities is a Category A review finding.
 
 ### Captions
 
-See §5.2 for caption requirements. Captions must be self-contained: state
-what is plotted, identify all curves/markers/bands, and state the key
-conclusion. Sparse captions are Category A.
+See §5.2 for caption requirements. Captions must be self-contained and
+follow the format: **`<Plot name>. <Context and conclusion.>`**
+
+A good caption is 2-4 sentences. It must:
+1. Name the plot (what observable, what selection stage, what comparison).
+2. State context not visible in the plot (selection applied, normalization
+   method, which phase/systematic this validates, connection to other results).
+3. State the key observation or conclusion the reader should draw.
+
+**Do NOT restate what is already in the legend or axis labels.** If the
+legend says "Data (black)" and "MC (blue)", the caption does not need to
+repeat this. The caption adds information the plot alone cannot convey.
+
+**Examples:**
+
+Bad (Category A — too sparse):
+> "Thrust distribution."
+
+Bad (redundant with legend):
+> "Data (black points) are compared to MC simulation (blue histogram).
+> The lower panel shows the data/MC ratio; the grey band indicates
+> the MC statistical uncertainty."
+
+Good:
+> "Charged hadron multiplicity after the hadronic event selection,
+> normalized to equal area. The mean multiplicity of ~20 is characteristic
+> of hadronic Z decays. Data/MC agreement is within 2% across the full
+> range; the low-multiplicity tail is sensitive to two-photon background
+> contamination (see §5.3)."
+
+Good:
+> "Measured hadronic cross-section as a function of centre-of-mass energy
+> with the best-fit BW+ISR curve. The fit uses statistical errors only
+> (inner bars); outer bars show total uncertainties including systematics.
+> The fit yields χ²/ndf = 3.07/2 (p = 0.22). The off-peak points at
+> 89.4 and 93.0 GeV provide the primary constraint on Γ_Z."
+
+Sparse captions — anything under two full sentences — are Category A.
 
 ### Subfigures and figure grouping
 
 Group related figures into grids rather than presenting them as separate
 figures. Use letter labels (`(a)`, `(b)`, etc.) with
-`mh.utils.add_text("(a)", ax=ax)` in each panel.
+`mh.label.add_text("(a)", ax=ax)` in each panel.
 Write a single caption describing all sub-panels. This keeps the note
 compact and makes comparisons easier for the reader.
 

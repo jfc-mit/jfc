@@ -11,7 +11,7 @@ after the plan is set.
 
 ## Output artifact
 
-`exec/EXPLORATION.md` — sample inventory, data quality assessment, key
+`outputs/EXPLORATION.md` — sample inventory, data quality assessment, key
 variable distributions, variable ranking, and preselection cutflow.
 
 ## Methodology references
@@ -36,9 +36,11 @@ Expect to discover the data format at runtime. See
 
 ## PDF build test (independent — can run in parallel)
 
-Run a stub PDF build (`pixi run build-pdf`) to verify the toolchain. This
-is independent of exploration and can be sub-delegated. See
-`methodology/03-phases.md` → Phase 2 "PDF build test" for details.
+Verify the PDF toolchain works by creating a minimal stub file at
+`phase5_documentation/outputs/ANALYSIS_NOTE.md` (a few lines of markdown with
+a math expression and a citation) and running `pixi run build-pdf`. Delete
+the stub after confirming. This is independent of exploration and can be
+sub-delegated.
 
 ## Key requirements
 

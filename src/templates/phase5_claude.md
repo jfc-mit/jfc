@@ -7,27 +7,170 @@
 
 You are producing the final analysis note for a **{{analysis_type}}** analysis.
 
+## Phase 5 has three separate sub-tasks
+
+These should be handled by **separate subagents** in sequence:
+
+### Sub-task 1: Figures (code-writing subagent)
+
+Produce any AN-specific figures not already generated in Phases 2-4.
+Read data/MC files, write plotting scripts, save to
+`phase5_documentation/outputs/figures/`. Also symlink existing phase figures:
+
+```bash
+ln -sf ../../../phase2_exploration/outputs/figures/*.pdf phase5_documentation/outputs/figures/
+ln -sf ../../../phase3_selection/outputs/figures/*.pdf phase5_documentation/outputs/figures/
+ln -sf ../../../phase4_inference/outputs/figures/*.pdf phase5_documentation/outputs/figures/
+```
+
+The AN typically needs ~30+ figures. Phases 2-4 produce some, but the AN
+usually needs additional per-variable distribution plots, per-cut before/after
+comparisons, and per-systematic impact figures.
+
+**Figure path verification (mandatory).** After aggregating figures, run:
+```bash
+# Verify every figure reference in the AN resolves to a file
+grep -oP 'figures/[^)]+\.pdf' outputs/ANALYSIS_NOTE.md | sort -u | while read f; do
+  [ -f "outputs/$f" ] || echo "MISSING: $f"
+done
+```
+Any missing figure is Category A. Fix before proceeding to the AN
+writing subagent.
+
+### Sub-task 2: AN writing (prose-writing subagent)
+
+**This subagent does NOT read data files or write code.** It reads:
+- All phase artifacts (STRATEGY.md, EXPLORATION.md, SELECTION.md,
+  INFERENCE_EXPECTED.md, INFERENCE_OBSERVED.md)
+- The figures directory (to reference figure paths)
+- The conventions files (for completeness checks)
+- The experiment log
+
+And writes: `outputs/ANALYSIS_NOTE.md` — the complete analysis note.
+
+**The gold standard:** a physicist who has never seen the analysis should
+be able to reproduce every number from the AN alone. Under 30 rendered
+pages is Category A.
+
+**No empty sections rule.** Every section heading (`##`, `###`) must be
+followed by at least one paragraph (2-3 sentences minimum) of prose
+before any figure or table. A bare heading followed immediately by a
+figure reference produces an empty-looking section in the rendered PDF
+and is Category A.
+
 **Start in plan mode.** Before writing any prose, produce a plan: the AN
 section structure, which figures go where, which results tables are needed.
 Execute after the plan is set.
 
-## Output artifact
+### Sub-task 3: Typesetting (LaTeX expert subagent)
 
-`exec/ANALYSIS_NOTE.md` — publication-quality analysis note in pandoc-compatible
-markdown.
+**This subagent runs AFTER the AN writing subagent.** It is a LaTeX
+typesetting expert that transforms the pandoc output into a
+publication-quality PDF. It does NOT modify physics content — only layout
+and formatting.
+
+**Workflow:**
+
+1. **Convert markdown to LaTeX** (not directly to PDF):
+   ```bash
+   cd phase5_documentation/outputs
+   pandoc ANALYSIS_NOTE.md -o ANALYSIS_NOTE.tex --standalone \
+     --include-in-header=../../conventions/preamble.tex \
+     --number-sections --toc --filter pandoc-crossref --citeproc
+   ```
+
+2. **Read and improve the `.tex` file.** Specific tasks:
+
+   - **Fix margins.** Pandoc's default margin (`margin=1in` or
+     `margin=0.75in`) may be too wide for a figure-heavy technical
+     note. Replace the geometry line in the preamble with
+     `\usepackage[margin=0.75in]{geometry}` for letter paper or
+     `\usepackage[a4paper,margin=2cm]{geometry}` for A4. The goal is
+     to maximize the usable text width for figures and tables.
+
+   - **Combine related figures.** Pandoc produces one `\begin{figure}`
+     per markdown image. Group related figures into composite floats
+     using `\subfloat` or side-by-side `\includegraphics`. Candidates:
+     data/MC comparisons for related variables (p, pT, theta, phi →
+     2×2 grid), reco vs gen Lund plane (side-by-side), systematic shift
+     maps for related sources, closure check projections (kt + dtheta).
+     Use `\begin{figure*}` for full-width composites. Rewrite captions
+     to describe the composite ("(a) ... (b) ... (c) ...").
+     **Sizing: measure actual PDF dimensions, then compute height.**
+     Before combining, use `pdfinfo` to get each figure's width and
+     height in points, compute aspect ratio (w/h). Then for N figures
+     side-by-side: `h = 0.95 / sum(aspects)` (in units of \linewidth).
+     This fills the page width while equalizing visual size across
+     figures with different aspect ratios (e.g., colorbars make wider).
+     See `appendix-prompts.md` typesetting agent for the full recipe.
+
+   - **Fix float placement.** Add `\FloatBarrier` at section boundaries
+     (`\section`, `\subsection`) to prevent figures from drifting far
+     from their text. Add `\clearpage` before appendices and before
+     dense figure sequences.
+
+   - **Fix table formatting.** Use `booktabs` rules (`\toprule`,
+     `\midrule`, `\bottomrule`). Apply `\small` or `\resizebox` to
+     wide tables. Ensure no column overflows the text width.
+
+   - **Verify section content.** Every `\section` and `\subsection`
+     must have at least one paragraph of text before any `\begin{figure}`
+     or `\begin{table}`. If not, flag for the AN writing agent.
+
+   - **Optimize page breaks.** Prevent orphaned section headings at
+     page bottoms (`\needspace{4\baselineskip}` before headings).
+     Add `\newpage` before major sections (Results, Discussion) for
+     clean chapter starts.
+
+   - **Check cross-references and citations.** Grep for `??` (unresolved
+     refs) and `[?]` (unresolved citations) in the compiled output.
+
+3. **Compile to PDF:**
+   ```bash
+   tectonic ANALYSIS_NOTE.tex
+   ```
+   Fix any compilation errors. The final `ANALYSIS_NOTE.pdf` is the
+   deliverable.
+
+4. **Verify the PDF.** Read the compiled PDF and check:
+   - All figures render (no broken placeholders)
+   - No content overflows page boundaries
+   - Cross-references resolve (no "??")
+   - Citations resolve (no "[?]")
+   - Page count in 50-100 range
+   - Figure captions ≥ 2 sentences each
+   - Tables fit within margins
+
+**What the typesetting agent MUST NOT do:**
+- Change numbers, results, or physics conclusions
+- Rewrite captions beyond grammar/clarity fixes
+- Remove or add figures (only group existing ones)
+- Modify section structure or ordering
+- Change the bibliography
+
+If the agent finds a physics issue (missing figure, inconsistent number,
+empty section), it documents the issue and flags it for the orchestrator
+to route back to the AN writing agent. It does not fix physics content.
+
+## Output artifacts
+
+- `outputs/ANALYSIS_NOTE.md` — pandoc-compatible markdown (from sub-task 2)
+- `outputs/ANALYSIS_NOTE.tex` — typeset LaTeX (from sub-task 3)
+- `outputs/ANALYSIS_NOTE.pdf` — final compiled PDF (from sub-task 3)
 
 ## Methodology references
 
-- Phase requirements: `methodology/03-phases.md` → Phase 5
+- AN specification: `methodology/analysis-note.md`
 - Review protocol: `methodology/06-review.md` → §6.2 (5-bot), §6.4
-- Plotting: `methodology/appendix-plotting.md`
+- Plotting / captions: `methodology/appendix-plotting.md`
 - Checklist: `methodology/appendix-checklist.md`
 
 ## Pre-review gate
 
 Before submitting for review, these must succeed:
 1. `pixi run all` — full analysis chain reproduces from scratch
-2. `pixi run build-pdf` — PDF compiles with all figures rendering
+2. PDF compiles with all figures rendering (the typesetting agent
+   handles this as part of sub-task 3)
 
 If either fails, fix it before requesting review.
 
@@ -35,7 +178,7 @@ If either fails, fix it before requesting review.
 
 The AN must be **pandoc-compatible markdown** (see root CLAUDE.md for syntax).
 See `methodology/analysis-note.md` for the full AN specification including
-all 11 required sections, depth calibration, completeness test, and
+all 12 required sections, depth calibration, completeness test, and
 bibliography requirements.
 
 **Cross-references and citations (quick reference):**
@@ -47,45 +190,28 @@ bibliography requirements.
 
 ## Key requirements
 
-These are the critical items for the analysis note. See
-`methodology/analysis-note.md` for full details.
-
-- **The AN is the complete record — not an executive summary or a
-  journal-length paper.** Every detail needed to reproduce the analysis
-  from scratch must be in the note. If a reviewer has to read the code to
-  understand a choice, the AN has a gap.
-- **Depth calibration.** ~50-100 rendered pages for a typical analysis.
-  Under 30 pages means detail is missing.
-- **Per-systematic subsections.** Each systematic source gets its own
-  subsection: description, method, impact figure, per-bin table.
-- **Cross-checks with their results.** Each cross-check appears as a
-  subsection within the relevant results section (not in a standalone
-  "Cross-checks" section). If large (>2 pages), move to appendix.
-- **Completeness test.** A physicist unfamiliar with the analysis should be
-  able to read the AN alone and reproduce every number.
+- **The AN is the complete record — not an executive summary.** Every detail
+  needed to reproduce the analysis must be present.
+- **Depth calibration.** ~50-100 rendered pages. Under 30 = Category A.
+  Rule of thumb: every cut needs a distribution plot, every systematic needs
+  an impact figure, every cross-check needs a comparison plot.
+- **Per-systematic subsections.** Each source gets its own subsection:
+  description, method, impact figure, per-bin table.
+- **Figure captions.** Follow `<Plot name>. <2-5 sentence description.>`
+  Anything under two sentences is Category A.
+- **Table formatting.** No monospace overflow. Short labels, consistent
+  numeric precision. Test with `build-pdf`.
+- **Derived quantity viability.** Don't quote results with >3σ pulls from
+  well-measured values without quantitative explanation (§6.8). Document
+  as "not reliably extractable" when appropriate.
+- **Completeness test.** A physicist unfamiliar with the analysis can
+  reproduce every number from the AN alone.
 - **Machine-readable results.** `results/` directory with CSV/JSON for
   spectra, uncertainties, and covariance matrices.
-
-## Figure setup
-
-Symlink phase figures into `phase5_documentation/exec/figures/` so that
-`![caption](figures/name.pdf)` references resolve correctly when pandoc
-compiles the PDF. The `build_pdf.py` script collects figures automatically;
-if setting up manually:
-```bash
-mkdir -p phase5_documentation/exec/figures
-ln -sf ../../phase*/figures/*.pdf phase5_documentation/exec/figures/
-```
-
-## Building the PDF
-
-Run `pixi run build-pdf` from the analysis root. This converts
-`ANALYSIS_NOTE.md` to PDF via pandoc with xelatex, numbered sections,
-TOC, and half-page-width figures.
-
-**Never use an LLM to convert markdown to LaTeX.** Pandoc handles this.
 
 ## Review
 
 **5-bot review** — see `methodology/06-review.md` for protocol.
+The rendering reviewer inspects the **typeset PDF** (from sub-task 3),
+not the raw pandoc output.
 Write findings to `review/REVIEW_NOTES.md`.

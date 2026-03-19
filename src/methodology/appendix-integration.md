@@ -89,5 +89,4 @@ Requirements:
 - Mechanism to pause for human review
 - Git integration
 
-The methodology spec is portable; this orchestration doc is the Claude Code
-adapter.
+The methodology spec is portable; this appendix is the Claude Code adapter.
