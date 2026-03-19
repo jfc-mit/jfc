@@ -273,9 +273,10 @@ structure established here with expected-only results; 4b/4c/5 update it).
     resolving power. Document whether it can distinguish the SM from
     alternatives at any meaningful confidence.
   - If the central value deviates from a well-measured reference by
-    more than 50% in relative terms (e.g., R_b = 0.45 vs. 0.216),
-    this is a **gross bias** — regardless of the pull — and triggers
-    mandatory investigation per §6.8.
+    more than 30% in relative terms, this triggers mandatory
+    investigation per §6.8. When MC closure passes but data deviates,
+    the first hypothesis is a calibration mismatch — follow the
+    calibration-first protocol in §6.8.
   - If intermediate steps produce unphysical values (negative widths,
     imaginary couplings), the quantity should be documented as "not
     reliably extractable" rather than quoted with an inflated uncertainty.

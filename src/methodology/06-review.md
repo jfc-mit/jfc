@@ -158,8 +158,9 @@ problems. Concrete triggers (must not be rationalized away):
   total uncertainty warrants investigation, not acceptance)
 - MC used for periods without corresponding simulation
 - Result > 3σ from a well-measured reference value (see §6.8)
-- Result with relative deviation > 50% from a well-measured reference
-  value, regardless of pull (see §6.8 — the "gross bias" clause)
+- Result with relative deviation > 30% from a well-measured reference
+  value, regardless of pull (see §6.8 — triggers calibration-first
+  investigation)
 - GoF toy distribution inconsistent with observed chi2 (the observed
   chi2 falls outside the 95% interval of the toy distribution)
 - Wholesale bin exclusion: flat-prior gate or similar criterion
@@ -191,52 +192,79 @@ next review gate.
 When the Phase 1 strategy defines validation targets (PDG values, published
 reference measurements), these create binding review obligations:
 
-**The rule:** Any extracted parameter that meets **either** of the
-following conditions is **Category A** (blocks advancement) unless the
-reviewer can verify the three checks below:
+**The rule has two tiers:**
+
+**Tier 1 — Mandatory investigation (Category A).** Any extracted
+parameter that meets **either** of the following triggers a mandatory
+investigation that blocks advancement until resolved:
 
 - **Pull threshold:** pull > 3σ from a well-measured reference value, OR
-- **Gross bias threshold:** relative deviation > 50% from a well-measured
-  reference value (i.e., |result − reference| / reference > 0.5),
-  regardless of the pull.
+- **Gross deviation threshold:** relative deviation > 30% from a
+  well-measured reference value (i.e., |result − reference| / reference
+  > 0.3), regardless of the pull.
 
-The gross bias clause exists because large uncertainties can mask
-obviously wrong results. A measurement of R_b = 0.45 ± 0.10 "passes"
-a 3σ pull test against R_b = 0.216, but the central value is more than
-double the known answer — this is not a statistical fluctuation, it is
-a method bias that must be investigated. Pull-based thresholds alone
-protect against precise-but-wrong results; the gross bias clause
-protects against imprecise-and-wrong ones.
+There is no single number that cleanly separates "method problem" from
+"new physics" — a 40% deviation could be either. The 30% threshold is
+guidance, not gospel. The point is to trigger investigation, not to
+render a verdict. A deviation of 25% with a clean calibration story
+may need no further work; a 15% deviation with no explanation may need
+deep investigation. Reviewers should use physics judgment, with 30% as
+the default trigger for mandatory formal investigation.
 
-The reviewer must verify **all three** of the following:
+**Tier 2 — Calibration-first investigation.** When the method passes
+MC closure (correct result on MC) but produces a deviant result on
+data, this is the classic signature of a calibration mismatch — not
+new physics, not a bug, but MC-derived corrections that don't match
+the data. The investigation protocol is:
 
-1. **Quantitative explanation.** A specific, identified cause (not a
-   narrative list of possible factors) that accounts for the observed
-   deviation. "Luminosity strategy limitations" is not sufficient;
-   "the Tier 2 luminosity derivation biases Γ_Z low by X MeV because Y"
-   is.
+1. **Identify what needs calibrating.** Back-substitute: given the
+   observed data rates and the known reference value, solve for the
+   implied MC-derived parameters (efficiencies, corrections, scale
+   factors). Compare implied vs. nominal MC values. The shifts tell
+   you which parameters are miscalibrated and by how much.
 
-2. **Demonstrated magnitude.** A calculation, fit variant, or toy study
-   showing the identified cause produces a bias of the right size and
-   sign. A qualitative argument that "this could bias the result" does
-   not satisfy this requirement.
+2. **Check physical plausibility.** Are the implied shifts consistent
+   with known data/MC differences (resolution, tracking efficiency,
+   alignment)? A 5% efficiency shift consistent with a 5% resolution
+   difference is plausible. A 50% shift with no known mechanism is a
+   red flag.
 
-3. **No simpler explanation.** The reviewer has checked for bugs, sign
-   errors, unit mistakes, and wrong input values before accepting a
-   physics explanation.
+3. **Calibrate and re-extract.** Apply data-derived corrections
+   (scale factors, reweighting, or direct parameter substitution) and
+   re-run the extraction. The calibrated result is the measurement;
+   the uncalibrated-vs-calibrated difference quantifies the
+   calibration systematic. Do not simply report the uncalibrated
+   result with an inflated uncertainty — apply the correction.
 
-**If the > 3σ pull cannot be quantitatively explained**, the reviewer must
-classify it as Category A and recommend one of:
-- Phase regression to investigate the upstream cause
-- A dedicated systematic study to bound the bias
-- Downscoping the affected parameter (document as not reliably extracted)
+4. **Verify magnitude closure.** The calibration must account for the
+   full observed deviation, not just part of it. "Correcting eps_nonb
+   explains 40% of the bias" is not sufficient — the remaining 60%
+   must be traced to other parameters (correlations, additional
+   efficiencies) or flagged as unexplained.
+
+5. **Document the calibration chain.** The analysis note must contain:
+   the uncalibrated result, the identified miscalibrations, the
+   correction procedure, the calibrated result, and the residual
+   calibration systematic. A reader should understand exactly what
+   was corrected and why.
+
+If the investigation reveals the deviation **cannot** be explained by
+calibration (the implied parameter shifts are unphysical, or the
+calibrated result still deviates significantly), then:
+- Check for bugs, sign errors, unit mistakes, wrong input values
+- If no mundane explanation, document as a genuine tension and
+  consider downscoping the affected parameter
+- Do not claim new physics without exhausting mundane explanations
 
 **Rationale:** Accepting large discrepancies with well-known physics values
 erodes the credibility of the entire analysis. A 3σ pull may be a
 statistical fluctuation, but the burden of proof is on the analysis to
 demonstrate this — not on the reviewer to accept it. An analysis that
 reports N_ν = 2.88 ± 0.03 without rigorous investigation of the 3.9σ
-tension has a gap that a referee would immediately flag.
+tension has a gap that a referee would immediately flag. Conversely,
+a measurement where MC closure works perfectly but data deviates is
+almost always a calibration issue — the standard HEP response is to
+calibrate, not to panic or to shrug.
 
 **This rule applies to all review tiers** (1-bot, 4-bot, 5-bot) at Phases
 4a, 4b, 4c, and 5. It does not apply to Phase 1 (where targets are
