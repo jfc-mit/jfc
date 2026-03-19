@@ -97,8 +97,13 @@ each was properly addressed.
 
 Markdown → PDF via **pandoc** (≥3.0) + tectonic (or xelatex). The
 `build-pdf` pixi task runs pandoc with
-`--number-sections --toc --filter pandoc-crossref --citeproc`, default
-figure width `0.45\linewidth`. Do not use an LLM for conversion.
+`--number-sections --toc --filter pandoc-crossref --citeproc
+--include-in-header=../../conventions/preamble.tex`. The preamble
+(`conventions/preamble.tex`, symlinked from `src/conventions/`) sets:
+default figure width `0.45\linewidth`, narrowed caption width (75%),
+relaxed float placement (90% max per page), and widow/orphan penalties.
+**Do not modify the preamble per-analysis** unless you have a specific
+documented reason. Do not use an LLM for LaTeX conversion.
 
 ### Pandoc pitfalls (mandatory rules)
 

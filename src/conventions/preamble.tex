@@ -1,0 +1,37 @@
+% Standard preamble for reslop analysis notes.
+% Included via pandoc: --include-in-header=preamble.tex
+% Do not edit per-analysis unless you have a specific reason.
+
+% --- Graphics and floats ---
+\usepackage{graphicx}
+\usepackage{placeins}
+\usepackage{float}
+
+% Default figure width: 0.45\linewidth for single-panel figures.
+% Override per-figure with pandoc-crossref width= attribute.
+\setkeys{Gin}{width=0.45\linewidth,keepaspectratio}
+
+% --- Caption formatting ---
+% Narrow captions prevent half-page table captions.
+% font=small keeps captions visually distinct from body text.
+\usepackage[width=0.75\linewidth,font=small]{caption}
+
+% --- Float placement (relaxed) ---
+% LaTeX defaults are too conservative for figure-heavy technical docs.
+% These settings allow up to 90% of a page to be floats, preventing
+% overfull vbox warnings and figure cutoffs.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.6}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+
+% --- Paragraph and page breaking ---
+% Prevent widows and orphans (single lines at top/bottom of page).
+\widowpenalty=10000
+\clubpenalty=10000
+% Allow ragged page bottoms rather than stretching vertical glue
+% (which creates ugly spacing between paragraphs).
+\raggedbottom
