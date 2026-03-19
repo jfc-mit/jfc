@@ -260,8 +260,11 @@ Read ANALYSIS_NOTE.tex. Improve it:
    - Reco vs gen level of the same observable → side-by-side
    - Systematic shifts for related sources → grouped
    - 1D projections (kt + dtheta) → side-by-side
-   Use 0.45\linewidth per sub-figure for 2-across, 0.32\linewidth for
-   3-across (only if text remains readable at that size).
+   Use HEIGHT-based sizing (not width) because figures with colorbars
+   are wider than plain plots at the same figsize. All figures are
+   produced at figsize=(10,10) so height = plot-area width.
+   For 2-across: \includegraphics[height=0.45\linewidth]{...}
+   For 3-across: \includegraphics[height=0.3\linewidth]{...}
    Use \begin{figure*} for full-width composites. Rewrite captions to
    describe all sub-panels: "(a) ..., (b) ..., (c) ...".
 

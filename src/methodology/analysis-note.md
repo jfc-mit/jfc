@@ -100,8 +100,10 @@ Markdown → PDF via **pandoc** (≥3.0) + tectonic (or xelatex). The
 `--number-sections --toc --filter pandoc-crossref --citeproc
 --include-in-header=../../conventions/preamble.tex`. The preamble
 (`conventions/preamble.tex`, symlinked from `src/conventions/`) sets:
-default figure width `0.45\linewidth`, narrowed caption width (75%),
-relaxed float placement (90% max per page), and widow/orphan penalties.
+default figure **height** `0.45\linewidth` (height-based, not width-based,
+so figures with colorbars render at the same plot-area size as plain
+plots), narrowed caption width (75%), relaxed float placement (90% max
+per page), and widow/orphan penalties.
 **Do not modify the preamble per-analysis** unless you have a specific
 documented reason. Do not use an LLM for LaTeX conversion.
 

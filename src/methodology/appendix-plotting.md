@@ -130,17 +130,22 @@ plt.close(fig)
   `height_ratios=[3, 1]`. For 2×2 subplots, use `figsize=(20, 20)`. The
   rule is: 10 inches per subplot column, 10 inches per subplot row.
   **Any script that uses a custom figsize is a Category A review finding.**
-- **PDF rendering size.** The pandoc preamble sets the default image width
-  to `0.45\linewidth`. This is correct for **single-panel** figures
-  (including ratio plots, which are one logical figure with a main+ratio
-  panel). The sizing rules:
+- **PDF rendering size (height-based).** The pandoc preamble sets the
+  default image **height** (not width) to `0.45\linewidth`. Height-based
+  sizing is used because figures with colorbars (2D plots, correlation
+  matrices) have extended width from the colorbar axes. Setting size by
+  height gives consistent visual sizing: a 1D histogram and a 2D
+  colormap render at the same plot-area size even though the colormap
+  PDF is physically wider. This works because all figures are square
+  (`figsize=(10, 10)`), so height = plot-area width.
 
-  | Plot type | matplotlib figsize | AN width | Example |
-  |-----------|-------------------|----------|---------|
+  | Plot type | matplotlib figsize | AN height | Example |
+  |-----------|-------------------|-----------|---------|
   | Single panel | `(10, 10)` | `0.45\linewidth` (default) | Distribution, spectrum |
-  | Ratio plot (main + ratio) | `(10, 10)` | `0.45\linewidth` (default) | Data/MC with ratio |
-  | Side-by-side comparison | **Don't** — compose in LaTeX | `\linewidth` | See below |
-  | 2×2, 3×2 grid | **Don't** — compose in LaTeX | `\linewidth` | See below |
+  | Ratio plot | `(10, 10)` | `0.45\linewidth` (default) | Data/MC with ratio |
+  | 2D with colorbar | `(10, 10)` | `0.45\linewidth` (default) | Lund plane, matrix |
+  | Side-by-side | Compose in LaTeX | `height=0.45\linewidth` each | See below |
+  | 2×2, 3×2 grid | Compose in LaTeX | `height=0.3\linewidth` each | See below |
 
   **Prefer LaTeX subfigures over matplotlib grids.** Instead of producing
   a 2×3 matplotlib figure, produce 6 individual `(10, 10)` figures and

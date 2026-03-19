@@ -7,10 +7,22 @@
 \usepackage{placeins}
 \usepackage{float}
 
-% Default figure width: 0.45\linewidth for single-panel figures.
-% This allows two standard figures side-by-side in pandoc markdown.
-% The typesetting agent uses explicit widths for composites.
-\setkeys{Gin}{width=0.45\linewidth,keepaspectratio}
+% Default figure sizing: HEIGHT-based, not width-based.
+%
+% All figures are produced at figsize=(10,10) — square. But figures
+% with colorbars (2D plots, correlation matrices) have extended width
+% (e.g., 12x10 effective) due to the colorbar axes. Setting size by
+% width makes these figures smaller than 1D plots at the same nominal
+% width fraction, because the extra colorbar width eats into the budget.
+%
+% Setting size by HEIGHT avoids this: a 0.45\linewidth height gives
+% consistent visual sizing regardless of colorbars, because the plot
+% area height is always 10 inches. Two figures side-by-side at
+% height=0.45\linewidth will have matching plot areas even if one has
+% a colorbar and the other doesn't.
+%
+% We unset the default width and set height instead.
+\setkeys{Gin}{height=0.45\linewidth,keepaspectratio}
 
 % --- Caption formatting ---
 % Narrow captions prevent half-page table captions.
