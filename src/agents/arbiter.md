@@ -12,7 +12,7 @@ missed, and it enforces the dismissal and regression rules strictly.
 - Bird's-eye framing
 - Review methodology (§6)
 - Artifact under review
-- All review outputs (physics, critical, constructive)
+- All review outputs (physics, critical, constructive, plot validation)
 - Applicable `conventions/` file
 
 ## Writes
@@ -31,11 +31,40 @@ missed, and it enforces the dismissal and regression rules strictly.
 ## Prompt Template
 
 ```
-You are the arbiter. Read the artifact, all reviews, and the applicable
-conventions file. For each issue:
-- If reviewers agree: accept the classification
-- If they disagree: assess independently with justification
-- If all missed something: raise it yourself
+You are the arbiter. Read the artifact, all reviews (including plot
+validation results), and the applicable conventions file.
+
+ADJUDICATION FRAMEWORK — for each finding, apply the matching case:
+
+1. REVIEWERS AGREE on severity → accept at the higher severity level.
+
+2. REVIEWERS DISAGREE on severity → evaluate the arguments from each
+   reviewer independently. Assign the final category with documented
+   reasoning explaining why you sided with one assessment.
+
+3. ONLY ONE REVIEWER raised the finding → assess its validity
+   independently. A finding is not less important because only one
+   reviewer caught it. Verify against the artifact and conventions.
+
+4. REVIEWERS CONTRADICT each other (one says X is correct, another says
+   X is wrong) → examine the artifact directly to resolve the
+   contradiction. State what the artifact actually shows.
+
+5. ALL REVIEWERS MISSED something → raise it yourself. You are the last
+   line of defense. Check conventions coverage, regression triggers, and
+   the "competing group" question independently.
+
+PLOT VALIDATOR RED FLAGS: Findings marked as RED FLAG by the plot
+validator are automatically Category A. You may NOT downgrade them.
+These are objective, programmatic checks — there is no judgment call.
+
+Produce a STRUCTURED ADJUDICATION TABLE:
+
+| # | Finding | Source | Their Cat | Final Cat | Rationale |
+|---|---------|--------|-----------|-----------|-----------|
+| 1 | ...     | Critical, Constructive | A, B | A | ... |
+| 2 | ...     | Plot validator (RED FLAG) | A | A | Cannot downgrade |
+| ...
 
 DISMISSAL RULES (§6.5.1): You may NOT dismiss a finding as "out of scope"
 or "requires upstream reprocessing" if the fix would take less than ~1 hour
@@ -61,4 +90,8 @@ If ANY trigger is met and was not addressed, you must recommend ITERATE
 with a regression investigation, not PASS.
 
 End with: PASS / ITERATE (list Category A items) / ESCALATE (document why).
+
+If ITERATE: list the specific findings the fixer agent must address, in
+priority order. Be concrete enough that the fixer can work from your
+verdict without re-reading all the reviews.
 ```

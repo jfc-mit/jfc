@@ -20,14 +20,15 @@ Review is mandatory at every phase gate. Skipping review is a process failure.
 | 4c: Full data | 1-bot | Methodology already human-approved |
 | 5: Documentation | 5-bot (4 + rendering) | Final product |
 
-**4-bot:** Physics + critical + constructive reviewers (parallel), then
-arbiter. Physics reviewer receives ONLY physics prompt + artifact. See
-`appendix-prompts.md` for literal prompts.
+**4-bot:** Physics + critical + constructive + plot validator (parallel),
+then arbiter. Physics reviewer receives ONLY physics prompt + artifact.
+Plot validator performs programmatic code/data checks (red flags are
+auto-Category A). See `agents/` for full definitions.
 
-**5-bot:** Adds rendering reviewer who runs `pixi run build-pdf` and
-inspects the compiled PDF.
+**5-bot:** Adds rendering reviewer who compiles and inspects the PDF.
 
-**1-bot:** Single critical reviewer. Category A items → fix → re-submit.
+**1-bot:** Critical reviewer + plot validator (parallel). Category A items
+→ fixer agent → re-submit.
 
 **No self-review fallback.** All phases except Phase 2 require independent
 reviewer subagents.

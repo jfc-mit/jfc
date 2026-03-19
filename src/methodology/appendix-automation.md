@@ -47,8 +47,8 @@ run_regression_check() {
       --output "$origin_phase/REGRESSION_TICKET.md" \
       "Investigate regression trigger from $dir."
 
-    # Fix the origin phase
-    run_agent --name "$(pick_session_name)" \
+    # Fix the origin phase (uses fixer agent — see agents/fixer.md)
+    run_agent --role fixer --name "$(pick_session_name)" \
       --output "$origin_phase/outputs" \
       "Fix regression described in $origin_phase/REGRESSION_TICKET.md"
 
@@ -93,13 +93,15 @@ run_4bot_review() {
       echo "STRONG WARNING: review iteration $i for $dir"
     fi
 
-    # Physics, critical, and constructive reviewers run in parallel (independent)
-    run_agent --name "$(pick_session_name)" \
+    # Physics, critical, constructive, and plot validator run in parallel
+    run_agent --role physics_reviewer --name "$(pick_session_name)" \
       --output "$dir/review/physics" "physics review" &
-    run_agent --name "$(pick_session_name)" \
+    run_agent --role critical_reviewer --name "$(pick_session_name)" \
       --output "$dir/review/critical" "critical review" &
-    run_agent --name "$(pick_session_name)" \
+    run_agent --role constructive_reviewer --name "$(pick_session_name)" \
       --output "$dir/review/constructive" "constructive review" &
+    run_agent --role plot_validator --name "$(pick_session_name)" \
+      --output "$dir/review/validation" "plot validation" &
     wait
 
     # Arbiter reads all reviews and the artifact
@@ -120,10 +122,11 @@ run_4bot_review() {
         # Includes: arbiter assessment, Category A issues, original upstream
         # artifacts. No file is overwritten — session naming ensures each
         # iteration's inputs and outputs coexist on disk.
+        # Fixer addresses specific findings (see agents/fixer.md)
         exec_name=$(pick_session_name)
         write_iteration_inputs "$dir" "$i" "$exec_name"
-        run_agent --name "$exec_name" \
-          --output "$dir/outputs" "iterate v$((i+1))"
+        run_agent --role fixer --name "$exec_name" \
+          --output "$dir/outputs" "fix iteration v$((i+1))"
         ;;
       ESCALATE)
         present_for_human_review "$dir"
@@ -150,10 +153,14 @@ run_1bot_review() {
       echo "WARNING: 1-bot review iteration $i for $dir"
     fi
 
-    run_agent --name "$(pick_session_name)" \
-      --output "$dir/review/critical" "critical review"
+    # Critical reviewer and plot validator run in parallel
+    run_agent --role critical_reviewer --name "$(pick_session_name)" \
+      --output "$dir/review/critical" "critical review" &
+    run_agent --role plot_validator --name "$(pick_session_name)" \
+      --output "$dir/review/validation" "plot validation" &
+    wait
 
-    if ! review_has_category_a_or_b "$dir/review/critical"; then
+    if ! review_has_category_a_or_b "$dir/review/critical" "$dir/review/validation"; then
       # No Category A or B issues — review passes
       if ! run_regression_check "$dir"; then
         return 1
@@ -172,10 +179,11 @@ run_1bot_review() {
     fi
 
     # Iterate
+    # Fixer addresses specific findings (see agents/fixer.md)
     exec_name=$(pick_session_name)
     write_iteration_inputs_1bot "$dir" "$i" "$exec_name"
-    run_agent --name "$exec_name" \
-      --output "$dir/outputs" "iterate v$((i+1))"
+    run_agent --role fixer --name "$exec_name" \
+      --output "$dir/outputs" "fix iteration v$((i+1))"
   done
 
   # Fell through — hit the hard cap

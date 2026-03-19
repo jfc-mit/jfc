@@ -134,6 +134,8 @@ analysis_name/
       constructive/
         inputs_tomoko_2026-03-13_15-00.md
         STRATEGY_CONSTRUCTIVE_REVIEW_tomoko_2026-03-13_15-00.md
+      validation/                  # Plot validator (programmatic checks)
+        STRATEGY_PLOT_VALIDATION_kenji_2026-03-13_15-00.md
       arbiter/
         inputs_hiroshi_2026-03-13_15-30.md
         STRATEGY_ARBITER_hiroshi_2026-03-13_15-30.md

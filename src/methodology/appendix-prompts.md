@@ -14,12 +14,36 @@ that will read those files.
 
 ### Agent summary
 
+**Executor agents:**
+
 | Role | Definition | Context | Writes |
 |------|-----------|---------|--------|
 | Executor | `agents/executor.md` | Full methodology + RAG | `outputs/` artifacts, `../src/` code, `outputs/figures/` |
+| Note writer | `agents/note_writer.md` | Phase artifacts + conventions | `outputs/ANALYSIS_NOTE.md` |
+| Fixer | `agents/fixer.md` | Arbiter verdict or regression ticket + existing code | Updated artifact + code |
+
+**Reviewer agents:**
+
+| Role | Definition | Context | Writes |
+|------|-----------|---------|--------|
 | Physics reviewer | `agents/physics_reviewer.md` | Physics prompt + artifact only | `review/physics/` |
 | Critical reviewer | `agents/critical_reviewer.md` | Full methodology + RAG | `review/critical/` |
 | Constructive reviewer | `agents/constructive_reviewer.md` | Full methodology + RAG | `review/constructive/` |
+| Plot validator | `agents/plot_validator.md` | Plotting scripts + histogram data | `review/validation/` |
+| Rendering reviewer | `agents/rendering_reviewer.md` | Compiled PDF only | `review/rendering/` |
+
+**Adjudication and specialist agents:**
+
+| Role | Definition | Context | Writes |
+|------|-----------|---------|--------|
 | Arbiter | `agents/arbiter.md` | All reviews + artifact + conventions | `review/arbiter/` |
-| Typesetter | `agents/typesetter.md` | LaTeX + figures only | `outputs/ANALYSIS_NOTE.{tex,pdf}` |
 | Investigator | `agents/investigator.md` | Review output + origin phase | `REGRESSION_TICKET.md` |
+| Typesetter | `agents/typesetter.md` | LaTeX + figures only | `outputs/ANALYSIS_NOTE.{tex,pdf}` |
+
+### Review panel composition
+
+| Review tier | Parallel agents | Sequential |
+|-------------|----------------|------------|
+| 4-bot | physics + critical + constructive + plot validator | arbiter |
+| 5-bot | physics + critical + constructive + plot validator + rendering | arbiter |
+| 1-bot | critical + plot validator | (check findings directly) |
