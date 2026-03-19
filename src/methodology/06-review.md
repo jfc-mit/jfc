@@ -15,7 +15,7 @@ Review is mandatory at every phase gate. Skipping review is a process failure.
 | 1: Strategy | 4-bot | Sets direction; physics errors propagate |
 | 2: Exploration | Self-review | Mechanical; errors caught in Phase 3 |
 | 3: Processing | 1-bot | External eye on closure/modeling |
-| 4a: Expected | 4-bot | Gates 10% validation |
+| 4a: Expected | 4-bot+bib | Gates 10% validation; AN v1 has citations |
 | 4b: 10% validation | 4-bot+bib → human gate | Draft AN must be polished; bibtex validated |
 | 4c: Full data | 1-bot | Methodology already human-approved |
 | 5: Documentation | 5-bot (4 + rendering + bibtex) | Final product |

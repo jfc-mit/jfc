@@ -357,10 +357,19 @@ done
 # (scale factors, corrections) are required inputs for inference.
 wait
 
-# Phase 4a — agent gate (4-bot review must PASS to proceed)
+# Phase 4a — expected results + AN v1 (agent gate)
+# Three sequential execution steps:
+#   1. Executor: systematic evaluation, expected results on Asimov
+#   2. Note writer: establish AN structure with expected-only results
+#   3. Typesetter: compile for review
 run_agent --name "$(pick_session_name)" \
-  --output "phase4_inference/4a_expected/outputs" "execute phase 4a"
-run_4bot_review "phase4_inference/4a_expected" || {
+  --output "phase4_inference/4a_expected/outputs" "execute phase 4a statistics"
+run_agent --role note_writer --name "$(pick_session_name)" \
+  --output "phase4_inference/4a_expected/outputs" "write AN v1 (expected results)"
+run_agent --role typesetter --name "$(pick_session_name)" \
+  --output "phase4_inference/4a_expected/outputs" "compile AN v1"
+# Review includes bibtex validation (AN has citations)
+run_4bot_review_with_bibtex "phase4_inference/4a_expected" || {
   echo "Phase 4a review did not pass."
   exit 1
 }

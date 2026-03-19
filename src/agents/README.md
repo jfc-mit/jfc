@@ -40,53 +40,58 @@ The orchestrator uses these definitions when spawning subagents.
 
 ## Phase activation
 
-### Execution agents
+### Execution pipeline
+
+Each phase runs execution agents in sequence. Later agents depend on
+earlier outputs.
+
+| Phase | Step 1 | Step 2 | Step 3 |
+|-------|--------|--------|--------|
+| Ph1 | executor (strategy) | | |
+| Ph2 | executor (explore) | | |
+| Ph3 | executor (selection) | | |
+| Ph4a | executor (stats) | note writer (AN v1) | typesetter (compile) |
+| Ph4b | executor (10% stats) | note writer (update AN) | typesetter (compile) |
+| Ph4c | executor (full stats) | note writer (update AN) | |
+| Ph5 | executor (figures) | note writer (final AN) | typesetter (final PDF) |
+
+The fixer replaces the executor during ITERATE cycles at any phase.
+
+### Review panel by phase
+
+"x" = agent is active at that phase's review gate.
 
 | Agent | Ph1 | Ph2 | Ph3 | Ph4a | Ph4b | Ph4c | Ph5 |
 |-------|-----|-----|-----|------|------|------|-----|
-| Executor | strategy | explore | selection | stats | stats | stats | figures |
-| Note writer | | | | | draft AN | update AN | final AN |
-| Typesetter | | | | | compile draft | | final PDF |
-| Fixer | on ITERATE | — | on ITERATE | on ITERATE | on ITERATE | on ITERATE | on ITERATE |
-
-Phase 4b execution is three sequential steps: executor (statistical
-analysis) → note writer (draft AN from artifacts) → typesetter (compile
-PDF for human gate review). Phase 4c: executor → note writer. Phase 5:
-executor (figures) → note writer (final AN) → typesetter (final PDF).
-
-### Review agents
-
-| Agent | Ph1 | Ph2 | Ph3 | Ph4a | Ph4b | Ph4c | Ph5 |
-|-------|-----|-----|-----|------|------|------|-----|
-| Physics reviewer | 4-bot | | | 4-bot | 4-bot | | 5-bot |
-| Critical reviewer | 4-bot | | 1-bot | 4-bot | 4-bot | 1-bot | 5-bot |
-| Constructive reviewer | 4-bot | | | 4-bot | 4-bot | | 5-bot |
-| Plot validator | | self | 1-bot | 4-bot | 4-bot | 1-bot | 5-bot |
-| BibTeX validator | | | | | 4-bot | | 5-bot |
-| Rendering reviewer | | | | | | | 5-bot |
-| Arbiter | 4-bot | | | 4-bot | 4-bot | | 5-bot |
+| Physics reviewer | x | | | x | x | | x |
+| Critical reviewer | x | | x | x | x | x | x |
+| Constructive reviewer | x | | | x | x | | x |
+| Plot validator | | x | x | x | x | x | x |
+| BibTeX validator | | | | x | x | | x |
+| Rendering reviewer | | | | | | | x |
+| Arbiter | x | | | x | x | | x |
 
 **Plot validator** runs at every phase that produces figures (Phases 2-5).
 At Phase 2 (self-review), it runs alongside the executor's self-check.
-At Phase 1, it is skipped unless the executor produced figures.
+At Phase 1, it is skipped (strategy phase typically has no figures).
 
-**BibTeX validator** runs at phases that produce an AN with citations
-(4b draft, 5 final). It verifies DOIs, arXiv IDs, and INSPIRE records
-actually resolve to the expected papers — catching hallucinated entries.
+**BibTeX validator** runs at phases where the AN exists and has citations
+(4a, 4b, 5). It verifies DOIs, arXiv IDs, and INSPIRE records actually
+resolve to the expected papers — catching hallucinated entries.
 
 **Rendering reviewer** runs only at Phase 5 where the final PDF is the
-deliverable. At Phase 4b, the typesetter's compilation serves as the
+deliverable. At Phase 4a/4b, the typesetter's compilation serves as the
 rendering check.
 
 ## Review panel composition
 
-| Review tier | Agents (parallel) | Then |
-|-------------|-------------------|------|
-| 4-bot | physics + critical + constructive + plot validator | arbiter |
-| 4-bot+bib | physics + critical + constructive + plot validator + bibtex validator | arbiter |
-| 5-bot | physics + critical + constructive + plot validator + rendering + bibtex validator | arbiter |
-| 1-bot | critical + plot validator | (no arbiter — check findings directly) |
-| Self | executor self-check + plot validator | (Phase 2 only) |
+| Review tier | Phases | Parallel agents | Then |
+|-------------|--------|----------------|------|
+| 4-bot | 1 | physics + critical + constructive | arbiter |
+| 4-bot+bib | 4a, 4b | physics + critical + constructive + plot validator + bibtex | arbiter |
+| 5-bot | 5 | physics + critical + constructive + plot validator + rendering + bibtex | arbiter |
+| 1-bot | 3, 4c | critical + plot validator | (no arbiter) |
+| Self | 2 | executor self-check + plot validator | — |
 
 ## Context assembly
 

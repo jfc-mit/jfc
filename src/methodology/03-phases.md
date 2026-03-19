@@ -236,19 +236,21 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
   the fallback was chosen. Failed attempts are valuable because they
   prevent future analysts from repeating the same dead end.
 
-**Artifact:** `INFERENCE_EXPECTED.md`. **Review:** 4-bot (§6).
+**Artifact:** `INFERENCE_EXPECTED.md` + `ANALYSIS_NOTE.md` (v1 — AN
+structure established here with expected-only results; 4b/4c/5 update it).
+**Review:** 4-bot+bib (§6).
 
 #### Phase 4b: 10% Data Validation
 
-**Goal:** Reality-check with 10% subsample + produce draft AN.
+**Goal:** Reality-check with 10% subsample + update AN with 10% results.
 
 - 10% data (fixed seed), MC normalized to 10% luminosity
 - Run full chain, evaluate GoF, NP pulls, impact ranking
 - Compare to Phase 4a expected (overlay, chi2). Discrepancies documented.
 - For extraction: include diagnostics sensitive to data/MC differences
   (not just the final quantity). See `conventions/extraction.md` check #5.
-- **Draft AN:** Complete AN per `analysis-note.md`. Structure written here;
-  Phases 4c/5 update results only.
+- **Update AN:** Update the AN (established in 4a) with 10% data results.
+  Phases 4c/5 update results and finalize.
 
 **Artifact:** `INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_DRAFT.md`.
 **Review:** 4-bot (§6) → **human gate** (§4.2).
