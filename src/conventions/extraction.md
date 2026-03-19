@@ -58,6 +58,17 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
   Relying on uncalibrated MC efficiencies without justification is
   Category A.
 
+  **Calibration independence is mandatory.** Each calibration must come
+  from an observable that is independent of the primary result. For
+  example, tagging efficiency can be calibrated from the d0 resolution
+  (measured in a lifetime-independent way), or from a tag-and-probe
+  method on a known sample. Deriving the correction by assuming the
+  primary result equals a reference value (back-substitution) is a
+  diagnostic, not a calibration — see `methodology/06-review.md` §6.8
+  Tier 2 for the full independence classification. When a parameter
+  cannot be independently calibrated, use the MC value with an inflated
+  systematic covering the data-implied range.
+
 ---
 
 ## Required systematic sources
