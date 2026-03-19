@@ -271,13 +271,13 @@ Read ANALYSIS_NOTE.tex. Improve it:
    - 2 colorbar plots: height=0.38\linewidth (0.46+0.46=0.92)
    - 3 square plots: height=0.32\linewidth (0.32*3=0.96)
    - 2 square + 1 colorbar: height=0.32\linewidth (0.32+0.32+0.38=1.02, OK)
-   - 3 colorbar plots: height=0.27\linewidth (0.33*3=0.99)
+   - 3 colorbar plots: height=0.23\linewidth (empirically validated)
    - 3x3 grid (square): height=0.30\linewidth
    - 3x3 grid (with colorbars): height=0.25\linewidth
-   **CRITICAL: if 3 figures ALL have colorbars, use height=0.27\linewidth
-   not 0.32. At 0.32, three colorbar plots sum to ~1.14\linewidth and
-   the third wraps to a new line. Always check: N × (height × aspect)
-   must be ≤ \linewidth.**
+   **CRITICAL: if 3 figures ALL have colorbars, use height=0.23\linewidth
+   (empirically validated). At 0.27 or larger, three colorbar plots
+   wrap to a new line. For 2 colorbar plots, use height=0.38\linewidth.
+   Always verify: if figures wrap to two lines, decrease the height.**
    Use \hfill between figures. If figures are too small and leave
    whitespace, increase the height. If figures wrap to a new line,
    decrease the height.
