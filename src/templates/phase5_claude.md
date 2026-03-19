@@ -96,12 +96,13 @@ and formatting.
      maps for related sources, closure check projections (kt + dtheta).
      Use `\begin{figure*}` for full-width composites. Rewrite captions
      to describe the composite ("(a) ... (b) ... (c) ...").
-     **Sizing in composites: use WIDTH to fill the page.** The goal is
-     minimal whitespace — figures should nearly touch. Use `\hfill`
-     between them. For 2-across: `width=0.48\linewidth`. For 3-across:
-     `width=0.32\linewidth`. For 2×2/3×3: same widths with `\\` between
-     rows. (The default height-based sizing in the preamble is for
-     single standalone figures only.)
+     **Sizing in composites: use HEIGHT to equalize and fill the page.**
+     Figures with colorbars are physically wider than plain plots.
+     Setting height ensures matching visual size while the wider
+     colorbar figures naturally fill more horizontal space. Together
+     they fill the page. For 2-across: `height=0.45\linewidth`.
+     For 3-across: `height=0.32\linewidth`. Use `\hfill` between
+     figures. If too much whitespace remains, increase the height.
 
    - **Fix float placement.** Add `\FloatBarrier` at section boundaries
      (`\section`, `\subsection`) to prevent figures from drifting far
