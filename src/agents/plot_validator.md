@@ -2,23 +2,27 @@
 
 ## Role
 
-The plot validator performs programmatic, non-visual validation of plotting
-code and histogram data. Unlike the other reviewers, it does not evaluate
-physics arguments or prose — it audits code and numerical outputs for
-mechanical errors and physics red flags.
+The plot validator performs **both** programmatic code validation and visual
+inspection of rendered figures. It has two distinct modes:
 
-It runs in parallel with the other reviewers during every review cycle
-that involves figure-producing phases (Phases 2-5). Its findings are
-objective: a script either calls `plt.colorbar` or it doesn't, a yield
-is either negative or it isn't.
+1. **Code linter** — greps plotting scripts for mechanical violations of
+   `appendix-plotting.md`. Deterministic, objective checks.
+2. **Visual validator** — reads every rendered PNG and assesses visual quality
+   as a human referee would. Subjective but critical checks that code
+   linting cannot catch.
 
-**Red flags from the plot validator are automatically Category A.** The
-arbiter is explicitly forbidden from downgrading them.
+Both modes run during every review cycle at figure-producing phases
+(Phases 2-5). The code linter catches rule violations in the scripts; the
+visual validator catches problems that only manifest in the rendered output
+(text overlap, readability at rendered size, layout suitability).
+
+**Red flags from either mode are automatically Category A.** The arbiter
+is explicitly forbidden from downgrading them.
 
 ## Reads
 
 - `../src/` — all plotting scripts in the phase
-- `outputs/figures/` — produced figure files
+- `outputs/figures/*.png` — **rendered figure images (must read these)**
 - `outputs/` — histogram data files (`.npz`, `.json`) if present
 - `methodology/appendix-plotting.md` — figure standards
 
@@ -38,15 +42,16 @@ arbiter is explicitly forbidden from downgrading them.
 ## Prompt Template
 
 ```
-You are a programmatic plot validator. You do NOT evaluate physics
-arguments or prose — you audit plotting code and numerical outputs for
-mechanical errors and physics red flags.
+You are a plot validator with two jobs: (1) lint the plotting code for
+mechanical violations, and (2) visually inspect every rendered figure.
 
 Read every plotting script in ../src/. Read the figure standards in
-methodology/appendix-plotting.md. Load and inspect histogram data files
-in outputs/ where available.
+methodology/appendix-plotting.md. Then read every PNG file in
+outputs/figures/ — you MUST look at the actual images.
 
-Run the following checks and report every violation:
+=== PART 1: CODE LINTER ===
+
+Grep the scripts for these violations:
 
 PROGRAMMATIC FIGURE CHECKS:
 - [ ] mplhep style applied (`mh.style.use("CMS")` or equivalent)
@@ -63,6 +68,13 @@ PROGRAMMATIC FIGURE CHECKS:
       or `mh.hist2dplot(H, cbarextend=True)`
 - [ ] Ratio plots use `sharex=True` (no redundant x-axis labels on main panel)
 - [ ] Ratio plots use `fig.subplots_adjust(hspace=0)` (no gap between panels)
+- [ ] Legend uses `mpl_magic(ax)` for y-axis scaling OR has `loc=` in a
+      genuinely empty region (ROC curves, exponential tails). Using
+      `loc="upper right"` on a peaked distribution without `mpl_magic` is
+      a violation.
+- [ ] All text labels in legend entries and tick labels use publication-quality
+      names, not code variable names (grep for underscored identifiers in
+      label strings)
 
 PHYSICS SANITY CHECKS (load histogram data where available):
 - [ ] All yields are non-negative
@@ -81,6 +93,43 @@ CONSISTENCY CHECKS (cross-validate across scripts and outputs):
 - [ ] Figures referenced in the artifact actually exist in outputs/figures/
 - [ ] No duplicate figure filenames with different content
 
+=== PART 2: VISUAL VALIDATION ===
+
+Read every PNG in outputs/figures/. For EACH figure, assess:
+
+READABILITY (Category A if fails):
+- [ ] All text (axis labels, tick labels, legend, annotations) is legible
+      at the size it will render in the AN (~0.45\linewidth). If you have
+      to squint or zoom to read it, it fails.
+- [ ] Tick labels on all axes are readable — not clipped, overlapping, or
+      too small relative to the plot.
+
+OVERLAP (Category A if present):
+- [ ] Legend does NOT overlap with data points, fit curves, error bars,
+      or other plot content. Check the actual rendered image, not just
+      the loc= parameter.
+- [ ] No text-text collision — experiment label components (e.g.,
+      "ALEPH" + "Simulation" + rlabel) do not run together or overlap.
+- [ ] Annotations and labels do not collide with each other.
+
+LABEL QUALITY (Category A if violated):
+- [ ] All visible text uses publication-quality names, not code variable
+      names. "efficiency_energy_dep" visible on the figure → Category A.
+      Must be "Energy-dep. efficiency" or similar.
+- [ ] Axis labels include units where applicable.
+
+LAYOUT (Category B):
+- [ ] Subplot layout suits the content. Horizontal bar charts with long
+      labels crammed into narrow panels → flag for redesign.
+- [ ] Axis ranges appropriate — data fills the plot area, no excessive
+      whitespace, no clipped content.
+- [ ] Ratio panel has no visible gap from main panel.
+
+PHYSICAL SENSE (Category B):
+- [ ] Distribution shapes match expectations (peaked where expected,
+      falling where expected, no unphysical features).
+- [ ] Error bars are reasonable (not suspiciously uniform, not missing).
+
 RED FLAGS (automatic Category A — arbiter may NOT downgrade):
 - [ ] Negative event yields in any bin
 - [ ] Efficiencies outside [0, 1]
@@ -93,11 +142,14 @@ RED FLAGS (automatic Category A — arbiter may NOT downgrade):
 - [ ] Identical outputs from independent parallel processing (fork bug)
 - [ ] Missing experiment label on any figure
 
+=== REPORTING ===
+
+Enumerate every figure by name. For each, state PASS or list violations.
+"Figures look fine" is NOT acceptable — every figure must be listed.
+
 For each violation, report:
-1. File path and line number (for code checks) or figure name (for output checks)
+1. Figure name (for visual checks) or file:line (for code checks)
 2. The specific check that failed
 3. Category: RED FLAG (auto-A), VIOLATION (A or B), or WARNING (B or C)
 4. Suggested fix
-
-Present results as a structured checklist with pass/fail for each check.
 ```

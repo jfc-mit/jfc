@@ -21,7 +21,7 @@ The orchestrator uses these definitions when spawning subagents.
 | Physics reviewer | `physics_reviewer.md` | Senior collaboration member review ("would I approve?") |
 | Critical reviewer | `critical_reviewer.md` | Find all flaws in correctness and completeness |
 | Constructive reviewer | `constructive_reviewer.md` | Strengthen the analysis — clarity, validation, presentation |
-| Plot validator | `plot_validator.md` | Programmatic validation of plotting code and histogram data |
+| Plot validator | `plot_validator.md` | Code linting + visual inspection of rendered figures |
 | BibTeX validator | `bibtex_validator.md` | Verify citations resolve to real, accurate bibliographic records |
 | Rendering reviewer | `rendering_reviewer.md` | PDF compilation and rendering inspection |
 
@@ -74,6 +74,10 @@ The fixer replaces the executor during ITERATE cycles at any phase.
 **Plot validator** runs at every phase that produces figures (Phases 2-5).
 At Phase 2 (self-review), it runs alongside the executor's self-check.
 At Phase 1, it is skipped (strategy phase typically has no figures).
+The plot validator has two modes: (1) code linting — greps scripts for
+mechanical violations, and (2) visual validation — reads rendered PNGs
+and checks readability, overlap, label quality, and layout. Both modes
+run every time. The visual validator must enumerate every figure by name.
 
 **BibTeX validator** runs at phases where the AN exists and has citations
 (4a, 4b, 5). It verifies DOIs, arXiv IDs, and INSPIRE records actually

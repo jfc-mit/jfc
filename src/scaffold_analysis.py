@@ -118,6 +118,12 @@ def scaffold(analysis_dir: Path, analysis_type: str):
         methodology_link.symlink_to(methodology_src.resolve())
         print(f"  linked {methodology_link} -> {methodology_src}")
 
+    agents_link = analysis_dir / "agents"
+    agents_src = HERE / "agents"
+    if not agents_link.exists() and agents_src.exists():
+        agents_link.symlink_to(agents_src.resolve())
+        print(f"  linked {agents_link} -> {agents_src}")
+
     # .analysis_config (for isolation hook — set data_dir before running)
     config_path = analysis_dir / ".analysis_config"
     if not config_path.exists():

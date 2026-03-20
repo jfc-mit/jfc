@@ -25,12 +25,26 @@ it will produce, what the artifact structure will be. The subagent executes
 only after the plan is set. This prevents agents from diving into code
 without thinking.
 
+**Agent definitions (mandatory).** Before spawning any subagent, the
+orchestrator MUST read the agent's definition from `agents/{role}.md`.
+Each definition contains: role description, reads/writes spec, methodology
+references, and a prompt template. Use the prompt template as the basis
+for the subagent's instructions — do NOT write ad-hoc prompts from scratch.
+Add phase-specific context (physics prompt, data paths, upstream artifact
+paths) on top of the template. See `agents/README.md` for the index and
+phase activation matrix.
+
+The orchestrator may still spawn ad-hoc subagents for tasks not covered by
+the defined roles (e.g., one-off data exploration, debugging). But every
+role listed in `agents/README.md` must use its definition file.
+
 **The orchestrator loop for each phase:**
 
 ```
 for each phase in [1, 2, 3, 4a, 4b, 4c, 5]:
 
-  1. EXECUTE — spawn a phase executor subagent (start in plan mode) with:
+  1. EXECUTE — read `agents/executor.md`, spawn executor with:
+     - The prompt template from the agent definition
      - The physics prompt
      - The phase CLAUDE.md (read from disk, pass in prompt)
      - Paths to upstream artifacts (subagent reads from disk)
@@ -38,11 +52,14 @@ for each phase in [1, 2, 3, 4a, 4b, 4c, 5]:
      - The conventions directory path (for phases that need it)
      - Instruction to write the phase artifact to disk
 
-  2. REVIEW — spawn reviewer subagent(s) with:
+  2. REVIEW — read the agent definitions for each reviewer role active
+     at this phase (see `agents/README.md` activation matrix). Spawn
+     reviewer subagent(s) with:
+     - The prompt template from the agent definition
      - Path to the phase artifact just written
      - The review criteria for this phase
      - The conventions directory path
-     - Instruction to write REVIEW_NOTES.md in the phase directory
+     - Instruction to write review output per the agent's Writes spec
 
   3. CHECK — read the review findings (short).
      If regression trigger (physics issue from earlier phase):
@@ -87,6 +104,9 @@ disk.
 - Accepting reviewer PASS too easily — the arbiter should ITERATE liberally
 - Spawning subagents without `model: "opus"` — this silently degrades quality
 - Subagents reading files with `cat | sed | head` instead of the Read tool
+- **Writing ad-hoc prompts for defined agent roles** — read `agents/{role}.md`
+  and use its prompt template. Ad-hoc prompts drift from the spec, miss
+  important checks (e.g., plot validator red flags), and are not auditable
 
 **What the orchestrator does NOT do:**
 - Read full scripts or data files (subagents do this)
