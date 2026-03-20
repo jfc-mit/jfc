@@ -96,9 +96,34 @@ seeds, fixed output paths).
 Split scripts exceeding ~5 min into stages with intermediate outputs.
 Update `pixi.toml` whenever scripts are added or removed.
 
-### 11.6 Debug Code
+### 11.6 Debug Code and Diagnostic Outputs
 
-Prefix with `debug_` or place in `scratch/`. Never include in `all` task.
-Clean up before review.
+Debug scripts are prefixed with `debug_` or placed in `scratch/`. They are
+never included in the `all` task and are not part of the reproducibility
+chain.
+
+**But debug outputs are valuable — preserve them in logs.** Debug plots,
+diagnostic tables, intermediate sanity checks, and exploratory figures
+should NOT be deleted or "cleaned up before review." They should be saved
+to `logs/` or `outputs/debug/` and referenced in the experiment log. A
+reviewer or future analyst tracing a decision ("why did you choose this
+binning?") should be able to find the debug plot that motivated it.
+
+What goes where:
+- **`outputs/`** — production artifacts (JSON, NPZ). These enter the
+  analysis chain and the AN.
+- **`outputs/figures/`** — publication-quality figures for the AN.
+- **`outputs/debug/`** — diagnostic figures and intermediate outputs.
+  Not in the AN, but preserved and referenced in the experiment log.
+  Examples: alternative binning comparisons, failed fit attempts,
+  variable correlations checked during exploration, quick-and-dirty
+  plots used to make decisions.
+- **`logs/`** — session logs, experiment log entries. The narrative
+  record of what was tried and why.
+
+The rule is: anything that informed a decision should be traceable.
+"I chose 8 bins because the 12-bin version had empty bins" is only
+useful if the 12-bin plot is in `outputs/debug/` and referenced in the
+experiment log.
 
 ---
