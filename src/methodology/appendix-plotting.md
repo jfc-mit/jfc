@@ -80,17 +80,32 @@ plt.close(fig)
   annotation text). Any script that sets a numeric font size is a Category A
   review finding.
 - **Legend font size.** Always pass `fontsize="x-small"` to `ax.legend(...)`.
-- **Legend placement (Category A if overlapping data).** The legend must not
-  overlap with data points, fit curves, or other plot content. For plots
-  where the signal/fit curve peaks in the upper region (e.g., resonance
-  lineshapes, mass distributions), use `loc="center right"` or
-  `loc="lower right"` instead of `loc="upper right"`. For distributions
-  peaking at the left, use `loc="upper right"`. **The plot validator must
-  visually inspect every figure for legend-data overlap** — checking the
-  `loc=` parameter in the script is necessary but not sufficient, since
-  the overlap depends on the data range. When in doubt, use
-  `loc="best"` (matplotlib's auto-placement) or explicitly position with
-  `bbox_to_anchor`.
+- **Legend placement.** The default approach is to **scale the y-axis to
+  accommodate the legend** using mplhep's `mpl_magic` utility:
+  ```python
+  from mplhep.plot import mpl_magic
+  mpl_magic(ax)  # auto-scales y-axis to fit legend without overlap
+  ```
+  Place legends in the upper right (`loc="upper right"`) and call
+  `mpl_magic(ax)` after all plotting is done — it extends the y-range so
+  the legend sits in empty space above the data. This is the preferred
+  method for most plots (distributions, spectra, fits).
+
+  Use manual placement (`loc="center right"`, `loc="lower right"`, or
+  `bbox_to_anchor`) **only** when the plot has a genuinely empty region
+  that the legend fits into without y-axis scaling — e.g., ROC curves
+  (upper-left empty), exponential tails with no turn-on (upper-right
+  empty), or log-scale plots with large dynamic range.
+
+  **Legend-data overlap is Category A.** The plot validator must visually
+  inspect every rendered figure for overlap — checking the `loc=`
+  parameter in the script is necessary but not sufficient.
+- **Text labels must be publication-quality.** Axis labels, legend entries,
+  and tick labels must use human-readable names, not code variable names
+  or Python identifiers. "Energy-dep. efficiency" not "efficiency_energy
+  _dep". "Two-photon bkg" not "two_photon_bkg". "$\Gamma_l$ (external)"
+  not "ext_lep_wid". Any raw code identifier visible in a rendered figure
+  is Category A.
 - **Aspect and colorbars (Category A if wrong).** Keep figures with square
   aspect. For ANY 2D plot with a colorbar (`pcolormesh`, `imshow`,
   `hist2dplot`), you MUST use one of these three patterns to prevent the

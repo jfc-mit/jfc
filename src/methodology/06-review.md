@@ -81,18 +81,42 @@ Cross-check conventions "required validation checks" against the artifact.
 
 #### 6.4.2 Figure Review
 
-**Reviewers must read every plot** and verify it makes physical sense. See
-`appendix-plotting.md` for the complete figure checklist and standards.
-Key Category A items: wrong metadata (√s, experiment, luminosity), missing
-axis labels, no figure titles, clipped content, inappropriate scales.
+Figure review has two components that catch different failure modes:
 
-**Figure-by-figure verification.** The reviewer must enumerate every figure
-and state whether it passes or fails the plotting checklist. Specifically
-check: `sharex=True` on ratio plots (no redundant x-axis labels),
-`make_square_add_cbar` on 2D plots (colorbar same height as main axes),
-no off-page content, described uncertainty bands in ratio panels, tight
-axis limits. A blanket "figures look fine" is not acceptable — list each
-figure number with its status.
+**Code linter (batch, automated).** A script or pixi task that greps all
+plotting scripts for mechanical violations of `appendix-plotting.md`.
+Catches: absolute `fontsize=N` values, wrong colorbar patterns, missing
+`hspace=0`, `figsize` violations, `ax.set_title()`, `data=False` +
+`rlabel`/`llabel` stacking. This runs before the review agent and
+produces a machine-readable report. Any violation is auto-Category A.
+The linter does NOT read rendered figures — it reads code.
+
+**Visual validator (agent, reads rendered PNGs).** The plot validator
+agent must **read every rendered figure image** (PNG) and assess visual
+quality as a human referee would. This is NOT a code review — the agent
+looks at the picture. The visual checklist:
+
+- [ ] All text (labels, legends, tick marks, annotations) legible at
+  the rendered size in the AN? Text that is technically present but
+  unreadable at 0.45\linewidth is Category A.
+- [ ] Legend overlaps with data points, fit curves, or other content?
+  Category A.
+- [ ] Any text elements collide with each other (e.g., experiment label
+  stacking "ALEPHSimulation Expected")? Category A.
+- [ ] Axis labels and legend entries use publication-quality names, not
+  code variable names ("efficiency_energy_dep" → Category A)?
+- [ ] Subplot layout suits the content? (Horizontal bar charts need
+  width; narrow panels with long labels are unreadable.)
+- [ ] Axis ranges appropriate? (No excessive whitespace, no clipped
+  content, data fills the plot area.)
+- [ ] Ratio panel gap? (Any visible gap between main and ratio panels
+  is Category A.)
+- [ ] Physical sense? (Does the distribution shape match expectations?
+  Are error bars reasonable? Any suspicious features?)
+
+A blanket "figures look fine" is not acceptable — list each figure
+number with its status. The visual validator runs during each phase's
+review, not just at Phase 5.
 
 #### 6.4.3 Documentation Review (Phase 5)
 
