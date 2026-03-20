@@ -111,8 +111,28 @@ looks at the picture. The visual checklist:
   content, data fills the plot area.)
 - [ ] Ratio panel gap? (Any visible gap between main and ratio panels
   is Category A.)
-- [ ] Physical sense? (Does the distribution shape match expectations?
-  Are error bars reasonable? Any suspicious features?)
+- [ ] **Physics content check (Category A if failed).** The visual
+  validator and ALL prose reviewers must look at every figure and
+  check whether the physics makes sense — not just whether the
+  formatting is correct. Concrete red flags:
+  - Data/MC normalization mismatch: MC visibly above or below data
+    by more than ~20% across the bulk of the distribution. This
+    indicates a normalization bug, wrong cross-section, or missing
+    background — not a systematic uncertainty.
+  - Postfit data/MC worse than prefit: if the fit is supposed to
+    improve agreement but the postfit plot shows larger residuals,
+    the fit is broken.
+  - Empty bins where events are expected, or vice versa.
+  - Ratio panel systematically above or below 1.0 across all bins
+    (global offset, not a shape effect).
+  - Efficiency or purity outside [0, 1] in any bin.
+  - Unphysical distribution shapes: negative yields, rising spectrum
+    where it should fall, sharp features with no physics explanation.
+  - Two distributions that should differ (e.g., signal vs background)
+    appearing identical.
+  Any of these visible in a figure that the AN presents without
+  comment is Category A. The reviewer must state what the figure
+  shows and whether it is consistent with the accompanying text.
 
 A blanket "figures look fine" is not acceptable — list each figure
 number with its status. The visual validator runs during each phase's

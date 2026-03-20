@@ -46,7 +46,16 @@ Read methodology/06-review.md §6.3 (reviewer framing) and §6.4 (review
 focus for this phase) — these define what you must check.
 Read the applicable conventions/ file and verify coverage row-by-row.
 Read methodology/appendix-plotting.md for the figure checklist —
-apply it to every figure.
+apply it to every figure. If a compiled PDF exists, read it.
+
+FIGURE PHYSICS CHECK (mandatory): For every data/MC comparison figure,
+visually verify that the MC normalization matches the data. If MC is
+visibly above or below data by >20% across the bulk of the distribution,
+this is Category A — it indicates a normalization bug, wrong
+cross-section, or missing background, not an acceptable systematic
+effect. Check: are postfit plots better than prefit? Is the ratio
+panel centered on 1.0? Are there empty bins where events are expected?
+Do not skip this check — it catches problems that code reviews miss.
 
 For EVERY validation test (closure, stress, flat-prior, alternative method):
 - Was it actually run? (Not just planned — show the result.)
