@@ -49,4 +49,51 @@ to the analysis or as a validation target.
 The reviewer must verify that validation targets (PDG values, reference
 measurements) were fetched from a source, not recalled from training data.
 
+### 2.4 Self-Consistency Check for Derived Constants
+
+For every derived constant used in the extraction (e.g., $R_l^{\mathrm{EW}}$,
+QCD correction coefficients, radiative correction parameters), verify
+self-consistency before using it: substitute the PDG world-average values
+into the formula and confirm it reproduces the known PDG result within
+the quoted precision. A discrepancy exceeding ~1% indicates a wrong input,
+a convention mismatch, or an approximation level that doesn't match the
+analysis precision. This check catches errors like using a Born-level
+parametrization where higher-order corrections matter.
+
+### 2.5 External Input Validation
+
+When the analysis uses an external measurement as input (e.g., published
+leptonic widths, theoretical cross-sections, borrowed efficiencies),
+the executor must attempt a data-driven estimate of the same quantity
+as a cross-check — even a rough one.
+
+**Protocol:**
+1. **Identify** every external input: list the quantity, its source, and
+   its role in the extraction chain.
+2. **Estimate from data** where feasible. Even an order-of-magnitude or
+   low-precision estimate is valuable. Examples: if using a published
+   $\Gamma_l$, attempt to estimate the leptonic rate from the data
+   (even with poor efficiency); if using a theoretical cross-section,
+   compare to a simple counting estimate; if using MC-derived
+   efficiencies, cross-check with data-driven tag-and-probe.
+3. **Compare.** If the data-driven estimate is broadly consistent with
+   the external input (within ~2σ of its own uncertainty), use the
+   external input as the primary value and document the cross-check.
+   If the estimates are inconsistent, investigate before proceeding —
+   the disagreement may indicate a calibration issue or a problem with
+   the external input's applicability.
+4. **Report both.** When an external input dominates the uncertainty
+   (contributes >30% of the total), report the result both with the
+   external input and with the data-driven estimate (if feasible). This
+   shows the reader what the measurement would look like with full
+   internal information vs. borrowed precision.
+5. **Document infeasibility.** If no data-driven estimate is possible
+   (e.g., no leptonic events in a hadronic-only dataset), document why
+   and what would be needed to make it feasible.
+
+This is not about replacing external inputs with worse estimates. It is
+about verifying that external inputs are compatible with the data before
+trusting them, and showing the reader what the analysis can determine
+independently.
+
 ---

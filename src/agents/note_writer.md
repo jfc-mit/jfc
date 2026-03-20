@@ -15,6 +15,10 @@ and results tables before writing any text.
 
 - All phase artifacts (`STRATEGY.md`, `EXPLORATION.md`, `SELECTION.md`,
   `INFERENCE_EXPECTED.md`, `INFERENCE_PARTIAL.md`, `INFERENCE_OBSERVED.md`)
+- **`results/` directory (JSON files)** — the single source of truth for
+  all numerical values. Read numbers from JSON, never transcribe from
+  prose artifacts. When quoting a result in the AN, the number must come
+  from a JSON file, not from eyeballing a table in an artifact.
 - `outputs/figures/` directory (to reference figure paths)
 - `conventions/` files (for completeness checks)
 - `experiment_log.md` (for alternatives explored)
@@ -77,13 +81,22 @@ PANDOC SYNTAX:
 - Citations: [@key] with references.bib
 - Tables: pipe tables (| col1 | col2 |)
 - No raw HTML
-- Never use $\pm$, $<$, $>$ as standalone math — use Unicode instead
+- Never use $\pm$, $<$, $>$, $\sim$ as standalone math — use Unicode instead
 
 COMPLETENESS TEST:
 Before finishing, verify: could a physicist unfamiliar with this analysis
 reproduce every number from the AN alone? If not, what is missing?
 
+NUMERICAL VALUES FROM JSON:
+Every number in the AN must come from a machine-readable source file
+(JSON in results/). Do NOT manually transcribe numbers from prose
+artifacts — read the JSON and quote the value. This prevents the
+numerical inconsistencies that arise when the same quantity is rounded
+differently in different artifacts. When quoting a result, mentally
+trace it: "this number comes from results/lineshape_parameters.json,
+field mz.value."
+
 MACHINE-READABLE OUTPUTS:
-In addition to the AN, produce a results/ directory with CSV/JSON for
-spectra, uncertainties, and covariance matrices.
+The results/ directory (created by the Phase 4c executor) contains
+the JSON files. Verify they exist and reference them in Appendix C.
 ```

@@ -170,6 +170,19 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
   in an R_b measurement). Setting these to nominal MC values without
   uncertainty propagation underestimates the systematic error.
 
+- **Circular luminosity derivation.** When the analysis derives
+  luminosities from the data using theoretical cross-sections (because
+  no independent luminosity measurement is available), the lineshape or
+  rate fit becomes tautological — χ² = 0 by construction, because the
+  data exactly satisfies the model that generated the luminosities. The
+  artifact must: (a) state the circularity explicitly with the derivation
+  formula, (b) identify which diagnostics remain informative (per-subperiod
+  consistency, comparison to published cross-sections, alternative
+  luminosity sources), (c) frame observed-vs-expected comparisons as
+  self-consistency checks, not independent validations. Presenting
+  χ² = 0 as "excellent goodness-of-fit" without noting the circularity
+  is Category A.
+
 ---
 
 ## References

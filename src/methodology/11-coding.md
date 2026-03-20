@@ -14,6 +14,17 @@ passes.
 ### 11.2 Code Quality
 
 - **KISS/YAGNI.** Scripts, not frameworks. No CLIs, config systems, plugins.
+- **`__file__`-relative output paths.** Scripts must resolve output paths
+  relative to the script file, not the current working directory:
+  ```python
+  HERE = Path(__file__).resolve().parent
+  OUT = HERE.parent / "outputs"
+  FIG = OUT / "figures"
+  ```
+  This ensures `pixi run py path/to/script.py` produces the same output
+  regardless of the shell's CWD. CWD-relative paths like
+  `Path("phase4_inference/outputs/figures")` break when the script is
+  invoked from a different directory.
 - **Columnar.** Arrays + masks, not event loops.
 - **Logging, not printing.** `logging` + `rich.logging.RichHandler`. Ruff
   `T201` enforces no `print()`. Standard setup:

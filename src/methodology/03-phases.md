@@ -290,6 +290,17 @@ A review that starts without a compiled PDF is a process failure.
 
 **Artifact:** `INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_DRAFT.md`.
 
+**Figure reference verification (mandatory before PDF compilation).**
+Before compiling the AN draft to PDF, verify all figure references
+resolve to existing files:
+```bash
+grep -oP 'figures/[^)]+\.pdf' ANALYSIS_NOTE_DRAFT.md | sort -u | \
+  while read f; do [ -f "$f" ] || echo "MISSING: $f"; done
+```
+Copy or symlink any missing figures from earlier phases into the output
+figures directory. A missing figure is Category A — do not compile until
+all references resolve.
+
 **PDF compilation is mandatory at 4b.** The human gate requires a
 publication-quality draft AN as a compiled PDF. The typesetting
 subagent compiles and verifies the updated AN before the review panel
@@ -323,6 +334,14 @@ and before the human sees it. The human reviews the PDF, not markdown.
   Quoting a result with a > 3σ pull OR > 50% relative deviation from a
   well-measured value without a quantitative explanation is not
   acceptable (§6.8).
+
+**Machine-readable results (mandatory).** The Phase 4c executor must create
+`phase5_documentation/outputs/results/` and populate it with JSON files
+containing all numerical results: fitted parameters with uncertainties,
+derived quantities, systematic shifts per source, covariance matrices, and
+per-energy-point cross-sections. These are the single source of truth for
+numbers in the AN — the note writer reads from these files, not from
+prose artifacts.
 
 **Artifact:** `INFERENCE_OBSERVED.md` + updated `ANALYSIS_NOTE.md`.
 

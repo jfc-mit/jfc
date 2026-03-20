@@ -415,8 +415,9 @@ the code, the AN has a gap. Target 50-100 pages; under 30 is Category A.
 The analysis note (`ANALYSIS_NOTE.md`) must be **pandoc-compatible markdown**:
 
 - **LaTeX math:** `$...$` inline, `$$...$$` display. Write `$\alpha_s$`, not `alpha_s`.
-  **Never use `$\pm$`, `$<$`, `$>$`, `$-$` as standalone math** — use
-  Unicode `±`, `<`, `>`, `−` instead. These break pandoc-crossref.
+  **Never use `$\pm$`, `$<$`, `$>$`, `$-$`, `$\sim$` as standalone math** — use
+  Unicode `±`, `<`, `>`, `−`, `~` instead. These break pandoc-crossref
+  and/or tectonic compilation.
   Never use `\mathrm{}` in captions or headers (use plain subscripts).
   Never put `@ref` cross-references inside `$...$` math delimiters.
 - **Figures:** `![Caption text](figures/name.pdf)` — pandoc converts to `\includegraphics`.
@@ -429,6 +430,11 @@ The analysis note (`ANALYSIS_NOTE.md`) must be **pandoc-compatible markdown**:
   At sentence start: `Figure @fig:name`. Every figure MUST have a label.
   Never use `[-@fig:...]`.
 - **Citations:** `[@key]` with a `references.bib` BibTeX file. `build-pdf` uses `--citeproc`.
+  **BibTeX titles must use plain text, not LaTeX math.** Write
+  `title = "The O(alpha-s-cubed) corrections to sigma-tot"` not
+  `title = "{The $O(\alpha_s^3)$ corrections to $\sigma_{\mathrm{tot}}$}"`.
+  Citeproc double-escapes math in title fields, producing uncompilable
+  LaTeX. Use plain-text approximations for math in titles.
 - **Sections:** `#`, `##`, `###` — pandoc adds numbering with `--number-sections`.
 
 Required AN sections — see `methodology/analysis-note.md` for the full

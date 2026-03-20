@@ -11,9 +11,15 @@
 #   allow=/yet/another
 
 INPUT=$(cat)
-TOOL=$(echo "$INPUT" | jq -r '.tool_name')
-CWD=$(echo "$INPUT" | jq -r '.cwd')
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.path // empty')
+
+# Bail out gracefully if jq is not available
+if ! command -v jq &>/dev/null; then
+    exit 0
+fi
+
+TOOL=$(echo "$INPUT" | jq -r '.tool_name' 2>/dev/null) || exit 0
+CWD=$(echo "$INPUT" | jq -r '.cwd' 2>/dev/null) || exit 0
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.path // empty' 2>/dev/null) || exit 0
 
 # No file path → allow (not a file-access call)
 [ -z "$FILE_PATH" ] && exit 0

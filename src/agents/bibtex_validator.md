@@ -50,6 +50,9 @@ FORMATTING CHECKS:
 - [ ] No duplicate keys
 - [ ] Every [@key] in the AN has a matching entry in references.bib
 - [ ] No orphaned entries (in .bib but never cited) — warning only
+- [ ] Title fields do NOT contain LaTeX math commands ($...$, \alpha,
+      \mathrm, etc.) — citeproc double-escapes these, breaking tectonic.
+      Use plain text in titles: "alpha-s" not "$\alpha_s$"
 
 LINK VALIDATION (verify each link resolves to the expected paper):
 - [ ] If `doi` field present: fetch https://doi.org/{doi} and verify:
