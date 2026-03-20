@@ -68,6 +68,14 @@ the full protocol. The bar is high: ITERATE liberally.
 - **Commit before spawning** each subagent (checkpoint).
 - **Respawn stalled agents** — no commit in >10 min and no progress → terminate, respawn from last commit.
 - **Context splitting** for Phase 4b/5: separate subagents for statistical analysis and AN writing.
+- **Phase 4/5 execution pipeline (non-negotiable).** At sub-phases that
+  produce or update the AN (4a, 4b, 4c, 5), the orchestrator must spawn
+  three subagents in sequence: (1) executor (statistics/results),
+  (2) note writer (write/update AN markdown), (3) typesetter (compile
+  PDF, verify rendering). The PDF must exist before review begins at
+  4a and 4b. Skipping the note writer or typesetter — e.g., having the
+  executor write the AN, or submitting for review without a compiled
+  PDF — is a process failure. The review panel reads the PDF.
 - **Session logs survive crashes.** Every agent writes an incremental
   session log to `logs/` as it works (see `appendix-sessions.md`). If an
   agent is terminated or crashes, the log up to that point is on disk.

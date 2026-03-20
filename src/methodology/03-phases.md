@@ -266,6 +266,14 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
 **Artifact:** `INFERENCE_EXPECTED.md` + `ANALYSIS_NOTE.md` (v1 — complete
 AN with all detail using expected-only results; 4b/4c update numbers,
 Phase 5 polishes prose and typesets).
+
+**PDF compilation is mandatory at 4a.** After the AN writing subagent
+produces `ANALYSIS_NOTE.md`, the typesetting subagent must compile it
+to PDF via `build-pdf` and verify: all figures render, no broken
+cross-references, no table overflow. The compiled PDF is a review
+input — the 4-bot+bib review panel reads the PDF, not the markdown.
+A review that starts without a compiled PDF is a process failure.
+
 **Review:** 4-bot+bib (§6).
 
 #### Phase 4b: 10% Data Validation
@@ -281,6 +289,12 @@ Phase 5 polishes prose and typesets).
   Phases 4c/5 update results and finalize.
 
 **Artifact:** `INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_DRAFT.md`.
+
+**PDF compilation is mandatory at 4b.** The human gate requires a
+publication-quality draft AN as a compiled PDF. The typesetting
+subagent compiles and verifies the updated AN before the review panel
+and before the human sees it. The human reviews the PDF, not markdown.
+
 **Review:** 4-bot (§6) → **human gate** (§4.2).
 
 #### Phase 4c: Full Data
@@ -310,7 +324,16 @@ Phase 5 polishes prose and typesets).
   well-measured value without a quantitative explanation is not
   acceptable (§6.8).
 
-**Artifact:** `INFERENCE_OBSERVED.md`. **Review:** 1-bot (§6).
+**Artifact:** `INFERENCE_OBSERVED.md` + updated `ANALYSIS_NOTE.md`.
+
+**AN update is mandatory at 4c.** The AN writing subagent updates the
+AN with full data results (replacing 10% numbers from 4b). PDF
+compilation is recommended but not required at 4c — the Phase 5
+typesetter will do the final compilation. However, if the 4c review
+finds issues in the AN text, a compilation may be needed to verify
+fixes.
+
+**Review:** 1-bot (§6).
 
 ---
 
