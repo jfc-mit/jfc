@@ -86,6 +86,12 @@ foundation.
 - Validate data quality (pathologies, outliers, unphysical values)
 - Apply standard object definitions (from corpus), verify data/MC agreement
 - Survey discriminating variables, rank by separation power
+- **Data/MC agreement on candidate variables.** For every variable that
+  may enter a classifier or selection, produce a data/MC comparison and
+  report the χ²/ndf. This survey is an input to Phase 3's variable
+  quality gate — variables with poor data/MC agreement should be flagged
+  here so Phase 3 can decide to discard or calibrate them before
+  training any MVA.
 - Establish baseline yields after preselection
 
 **Data discovery:** Metadata first → small slice (~1000 events) → identify

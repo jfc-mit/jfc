@@ -158,12 +158,42 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
   sample statistically independent from the one used to derive corrections
   and efficiencies. Using the same sample tests self-consistency, not the
   method's validity. If only one MC sample is available, split it (using a
-  documented fixed seed) into derivation and validation halves.
+  documented fixed seed) into derivation and validation halves. **A
+  self-consistent extraction (deriving efficiencies and counting yields
+  from the same sample) always recovers the correct answer by
+  construction — this is an algebra check, not a closure test.** If a
+  closure test produces pull = 0.00 at every operating point, this is
+  a red flag that it is self-consistent rather than independent.
+  Investigate before proceeding.
 
 - **Assuming hemisphere independence.** Double-tag methods often assume that
   tagging in one hemisphere is independent of the other. QCD correlations
   (gluon splitting, color reconnection) violate this. Evaluate the
   correlation coefficient from MC and propagate its uncertainty.
+
+- **MVA-induced hemisphere correlations.** When using an MVA (BDT, NN)
+  for hemisphere tagging in a double-tag analysis, classifier inputs
+  that are correlated with event-level properties (total multiplicity,
+  event shapes, or hemisphere quantities like mass that are coupled
+  across hemispheres) inflate the hemisphere correlation factors C_q.
+  Check C_q at the working point: values far from 1.0 (C_b < 0.8 or
+  C_b > 1.3) indicate the classifier introduces correlations beyond
+  the QCD effects. Identify which inputs cause the correlation and
+  consider removing them — the loss in AUC may be small while the
+  gain in C_b stability is large. The self-calibrating advantage of
+  the double-tag method relies on C_b ≈ 1; large corrections amplify
+  the systematic uncertainty on C_b.
+
+- **MVA inputs correlated with the discriminant.** Every MVA input is
+  correlated with the classifier output (the discriminant) — that is
+  why it is an input. If the input is poorly modelled in MC (data/MC
+  χ²/ndf > 5), the discriminant distribution will differ between data
+  and MC, and the efficiency at a given cut will not transfer. This
+  failure mode is invisible to MC closure tests (which use only MC).
+  The input variable quality gate (§3, Phase 3) exists to catch this
+  before training. Inputs that are strong discriminators but poorly
+  modelled should be calibrated (reweighted) or discarded — see §7.6
+  for the required before/after verification.
 
 - **Neglecting non-primary flavours.** Extraction formulas typically include
   terms for non-signal flavours (e.g., charm and light quark contributions
