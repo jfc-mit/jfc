@@ -44,21 +44,24 @@ fig, ax = plt.subplots(figsize=(10, 10))
 #   fig.colorbar(im, cax=cax)
 # For data/MC comparisons: use mh.histplot on subaxes with ratio panel
 
-# --- Labels (required on EVERY axes in multi-panel figures) ---
+# --- Labels (required on EVERY independent axes, NOT on ratio panels) ---
+# For open/archived data (this project), use "Open Data" / "Open Simulation":
+#   Data plots:  exp="ALEPH", data=True,  llabel="Open Data"
+#   MC plots:    exp="ALEPH", data=True,  llabel="Open Simulation"
+# NOTE: always set data=True and use llabel to control the left label.
+# Setting data=False auto-adds "Simulation" which stacks with llabel.
 mh.label.exp_label(
-    exp="<EXPERIMENT>",  # MANDATORY — set to your experiment, e.g. "ALEPH", "CMS"
+    exp="<EXPERIMENT>",  # MANDATORY — e.g. "ALEPH", "CMS", "DELPHI"
     text="",         # e.g. "Preliminary" (leave "" for final)
     loc=0,
-    data=False,      # True when real data is used (suppresses "Simulation")
+    data=True,       # Always True for open data — control label via llabel
+    llabel="Open Data",  # "Open Data" for data, "Open Simulation" for MC
     year=None,       # e.g. "1992-1995"
     lumi=None,       # e.g. 160 (in pb^-1 or fb^-1)
     lumi_format="{0}",
     com=None,        # centre-of-mass energy — NOTE: CMS style prints "TeV",
                      # so for non-LHC experiments use rlabel instead, e.g.
                      # rlabel=r"$\sqrt{s} = 91.2$ GeV"
-    llabel=None,     # Overwrites left side (after exp). NOTE: when data=False,
-                     # "Simulation" is auto-added. If you set llabel, also set
-                     # text="" to avoid "Simulation" + llabel stacking.
     rlabel=None,     # Overwrites right side — use for custom annotations
     ax=ax,
 )
@@ -139,14 +142,26 @@ plt.close(fig)
   on the ratio panel. The ratio panel is a subsidiary display, not an
   independent plot. Putting the experiment label on the ratio panel
   clutters it and is Category A.
+- **Open data labeling (mandatory for this project).** All analyses in
+  this project use archived/open data, not official collaboration data.
+  The experiment label must reflect this:
+  - **Data plots:** `exp="ALEPH", data=True, llabel="Open Data"` →
+    displays "ALEPH Open Data"
+  - **MC/simulation plots:** `exp="ALEPH", data=True, llabel="Open Simulation"` →
+    displays "ALEPH Open Simulation"
+  - Replace "ALEPH" with the appropriate experiment (DELPHI, L3, OPAL, CMS, etc.)
+  - Always use `data=True` with explicit `llabel` — never `data=False`
+    (which auto-adds "Simulation" and causes stacking).
+  Labeling a plot as just "ALEPH" without "Open Data"/"Open Simulation"
+  implies an official collaboration result and is Category A.
 - **Label stacking pitfall (Category A).** When `data=False`, mplhep
   auto-adds "Simulation" as the left label. Do NOT also set `llabel` or
-  `text` to something containing "MC", "Simulation", "truth", etc. — this
-  produces mangled labels like "Simulation MC truth". The rules:
-  - For simulation plots: `data=False` alone → displays "Simulation"
-  - For data plots: `data=True` alone → displays nothing (or "Preliminary")
-  - For full control: `data=True, llabel="your text"` to override entirely
-  - Never combine `data=False` with `llabel` or `text` — this always stacks
+  `text` — this produces mangled labels like "Simulation Open Simulation".
+  The safe pattern is always `data=True` with explicit `llabel`:
+  - `data=True, llabel="Open Data"` → "ALEPH Open Data"
+  - `data=True, llabel="Open Simulation"` → "ALEPH Open Simulation"
+  - `data=True, llabel=""` → "ALEPH" (only for non-open-data contexts)
+  - Never use `data=False` with `llabel` — this always stacks
 - **Save as PDF and PNG.** PDF for the note, PNG for quick inspection.
   Always `bbox_inches="tight", dpi=200, transparent=True`.
 - **Never use `tight_layout()` or `constrained_layout=True` with mplhep.**

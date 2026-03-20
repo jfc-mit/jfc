@@ -360,7 +360,10 @@ See `methodology/11-coding.md` for full coding practices.
 See `methodology/appendix-plotting.md` for full plotting standards. Essentials:
 
 - **Style:** `import mplhep as mh; mh.style.use("CMS")` (CMS style is the default mplhep preset — clean, widely used)
-- **Experiment label:** `mh.label.exp_label(exp="<EXPERIMENT>", data=True, rlabel=r"$\sqrt{s} = X$ GeV", loc=0)` on every figure. **This is mandatory.**
+- **Experiment label:** On every figure (mandatory). For open/archived data:
+  - Data: `mh.label.exp_label(exp="<EXPERIMENT>", data=True, llabel="Open Data", rlabel=r"$\sqrt{s} = X$ GeV", loc=0)`
+  - MC: `mh.label.exp_label(exp="<EXPERIMENT>", data=True, llabel="Open Simulation", rlabel=r"$\sqrt{s} = X$ GeV", loc=0)`
+  - On main panel only — never on ratio panels.
 - **Figure size:** `figsize=(10, 10)` for all single-panel and ratio plots.
 - **No matplotlib grid plots.** Produce individual `(10, 10)` figures and
   compose in the AN with LaTeX subfigures. Exception: ratio plots and

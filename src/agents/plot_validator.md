@@ -70,6 +70,9 @@ PROGRAMMATIC FIGURE CHECKS:
 - [ ] Ratio plots use `fig.subplots_adjust(hspace=0)` (no gap between panels)
 - [ ] Ratio plots: `exp_label` called on MAIN panel only, NOT on ratio panel
       (grep for `exp_label` calls and verify the axes argument is the main panel)
+- [ ] Open data labeling: `llabel="Open Data"` for data plots,
+      `llabel="Open Simulation"` for MC plots. A bare experiment name
+      without "Open Data"/"Open Simulation" implies an official result.
 - [ ] Legend uses `mpl_magic(ax)` for y-axis scaling OR has `loc=` in a
       genuinely empty region (ROC curves, exponential tails). Using
       `loc="upper right"` on a peaked distribution without `mpl_magic` is
