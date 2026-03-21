@@ -167,6 +167,19 @@ MC coverage matches data? Validation targets (§6.8)?
 
 ## Review
 
-**4-bot review** (4a, 4b) / **1-bot review** (4c) — see `methodology/06-review.md`
-for protocol. Write findings to `review/{role}/` using session-named files
-(see `methodology/appendix-sessions.md` for naming conventions).
+**Review is mandatory at all three sub-phases — 4a, 4b, and 4c.**
+
+| Sub-phase | Review tier | Panel composition | Then |
+|-----------|-------------|-------------------|------|
+| 4a | 4-bot+bib | physics + critical + constructive + plot validator + bibtex | arbiter |
+| 4b | 4-bot+bib | physics + critical + constructive + plot validator + bibtex | arbiter → human gate |
+| 4c | 1-bot | critical + plot validator | (no arbiter) |
+
+4b is NOT "human gate only" — it gets the full 4-bot+bib review panel
+first, then the human gate after the arbiter returns PASS. 4c is NOT
+unreviewed — it gets 1-bot (critical + plot validator). Skipping or
+omitting these reviews is a process failure.
+
+See `methodology/06-review.md` for protocol. Write findings to
+`review/{role}/` using session-named files (see
+`methodology/appendix-sessions.md` for naming conventions).

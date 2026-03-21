@@ -19,6 +19,25 @@ Feasibility / Reference Analyses / Pixi Reference / Git
 delegate to subagents. Your context stays small; heavy work happens in
 subagent contexts.
 
+**Progress tracking (mandatory).** Before any phase work, create a task
+list showing all phases with their execution pipeline and review tier.
+Use this exact structure:
+
+```
+Phase 1: Strategy — executor + 4-bot review
+Phase 2: Exploration — executor + self-review
+Phase 3: Selection — executor + 1-bot review
+Phase 4a: Expected results — executor + note writer + typesetter + 4-bot+bib review
+Phase 4b: 10% data validation — executor + note writer + typesetter + 4-bot+bib review + human gate
+Phase 4c: Full data results — executor + note writer + 1-bot review
+Phase 5: Final documentation — executor + note writer + typesetter + 5-bot review
+```
+
+Mark each phase complete as it finishes. This gives the human visibility
+into progress and ensures the orchestrator has internalized the review
+requirements for every phase — especially 4b (full review panel, not just
+human gate) and 4c (1-bot review, not unreviewed).
+
 **All executor subagents start in plan mode.** When spawning an executor,
 instruct it to first produce a plan: what scripts it will write, what figures
 it will produce, what the artifact structure will be. The subagent executes
