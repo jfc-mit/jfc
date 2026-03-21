@@ -54,6 +54,23 @@ measurements substitute: fiducial region, sidebands, purity optimization.
   without a comparison plan is acceptable only when the strategy documents
   why alternatives are infeasible (not merely suboptimal) — and the Phase 1
   review must validate this justification.
+- **Method parity with published analyses (binding).** When reference
+  analyses are identified, the strategy must compare the proposed method
+  to the method used in those publications — not just the systematics,
+  but the statistical extraction method itself. If published analyses
+  used a more sophisticated method (e.g., differential fit vs mean value,
+  NLO+NLL vs NLO, profile likelihood vs chi2), the strategy must either:
+  (a) commit to using the same or better method, or (b) justify why a
+  simpler method is adequate AND commit to implementing the published
+  method as a cross-check. "We use the simpler method because it's
+  easier" is not a justification. "We use the simpler method because
+  [specific technical limitation], with the published method as a
+  planned cross-check" is acceptable.
+
+  This is a binding commitment reviewed at Phase 4a. Silent downscoping
+  to a simpler method than what published analyses used — without
+  documenting the decision and implementing the published method as a
+  cross-check — is Category A at review.
 - **Systematic plan:** read applicable `conventions/` document, enumerate
   every required source with "Will implement" or "Not applicable because
   [reason]." This is binding — Phase 4a reviews against it.
@@ -173,15 +190,12 @@ test in VRs (p > 0.05 or Category A).
 - **Early diagonal fraction check (gate).** Before building the full
   correction chain, compute the response matrix on a small MC subset
   (~10K events) and report the diagonal fraction. If diagonal fraction
-  < 50%, the **first** action is to check whether the matching strategy
-  is appropriate for the observable type (see `conventions/unfolding.md`
-  → "Matching strategy"). For variable-multiplicity observables (Lund
-  declusterings, subjet splits, fragmentation functions), sub-object
-  matching produces artificially low diagonal fractions; switching to
-  histogram-level (event-response) matching typically fixes this. Only
-  after verifying the matching strategy should coarser binning, SVD, or
-  dimensionality reduction be considered. Do not conclude that unfolding
-  is impossible from a single matching strategy.
+  < 50%, investigate — read how published analyses of the same or
+  similar observable constructed their response matrix. A low diagonal
+  fraction may indicate a methodological choice (e.g., wrong matching
+  strategy) rather than a fundamental limitation of the observable.
+  Do not conclude that unfolding is impossible without checking how
+  published analyses handled the same correction.
 - Closure + stress tests on MC. Failure (p < 0.05) is Category A.
 - Prototype full chain on data.
 - Binning must be justified (resolution, statistics, physics features).
@@ -269,6 +283,32 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
   all three conditions documented in the artifact. A perfectly flat
   relative shift across all bins of a shape measurement is physically
   suspect and likely indicates the systematic was not propagated.
+- **Extraction method hierarchy (parameter measurements).** When
+  extracting a physical parameter (coupling constant, mass, width) from
+  a measured distribution, the extraction method must use ALL available
+  information. The hierarchy, from best to acceptable:
+
+  1. **Differential fit** (default): fit the theory prediction to the
+     binned corrected distribution using the full covariance matrix.
+     This uses shape information and is less sensitive to power
+     corrections and endpoint effects than scalar summaries.
+  2. **Moment fit**: fit to one or more moments (mean, variance) of
+     the distribution. Acceptable when the differential prediction
+     is unavailable or when the moment has a cleaner theoretical
+     interpretation.
+  3. **Total rate / mean value**: extract from a single number
+     (total cross-section, mean of a distribution). Acceptable only
+     as a cross-check, or when the distribution is not corrected
+     (e.g., integrated luminosity measurement).
+
+  When a corrected differential distribution AND its covariance matrix
+  are available, using only the mean value for the primary extraction
+  discards information and is a downscoping that must be justified.
+  The differential fit is the default; the mean-value extraction is
+  the cross-check. If the strategy committed to a mean-value method
+  but the corrected distributions are available by Phase 4a, the
+  executor must implement both and use the differential fit as primary.
+
 - Construct binned likelihood (Asimov data, systematic terms)
 - Validate: NP pulls small, fit converges, results sensible
 - Signal injection tests (searches) or closure tests (measurements)

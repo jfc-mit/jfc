@@ -257,6 +257,42 @@ may need no further work; a 15% deviation with no explanation may need
 deep investigation. Reviewers should use physics judgment, with 30% as
 the default trigger for mandatory formal investigation.
 
+**Tier 1b — Method-improvement investigation (Category B, upgradable to A).**
+When the result deviates from a well-measured reference by 1–3σ (or 10–30%
+relative) and the deviation has a **known directional bias from the choice
+of method** (e.g., NLO vs NNLO, mean value vs differential fit, leading-order
+vs resummed), the reviewer must check:
+
+1. **Is a better method feasible with the available data and tools?** If
+   the analysis has corrected differential distributions but only used the
+   mean value, the differential fit is feasible. If NLO+NLL predictions
+   exist in the literature and the analysis used NLO only, implementing
+   NLL is feasible if the coefficients are published.
+
+2. **Did the reference analyses use a better method?** Compare the
+   extraction method (not just systematics) to the Phase 1 reference
+   table. If every published analysis used method X and this analysis
+   used a simpler method Y without attempting X, this is a **method
+   parity failure** (see §3 Phase 1) — Category A if it was committed
+   to in the strategy, Category B if it was not discussed.
+
+3. **Would the better method plausibly resolve the deviation?** Estimate
+   the expected shift from published comparisons (e.g., "NLO→NNLO shifts
+   α_s by −0.007 in published analyses").
+
+If all three answers are yes, the reviewer must require the executor to
+implement the better method as the primary result (or at minimum as a
+documented cross-check) before advancing. "The deviation is a known
+limitation of our method" is not sufficient when the better method is
+feasible — the analysis should use the best feasible method, not explain
+why the suboptimal method gives a biased answer.
+
+This tier exists because a 1.7σ deviation with a known directional
+cause is qualitatively different from a 1.7σ statistical fluctuation.
+The former can be reduced by improving the method; the latter cannot.
+Accepting a known-biased result without attempting the unbiased method
+wastes the data.
+
 **Tier 2 — Calibration-first investigation.** When the method passes
 MC closure (correct result on MC) but produces a deviant result on
 data, this is the classic signature of a calibration mismatch — not

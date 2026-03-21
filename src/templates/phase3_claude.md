@@ -37,12 +37,12 @@ omissions are Category A at review.
    report the diagonal fraction. If < 50%, reassess the binning/method
    before building the full chain.
 
-**If ANY validation test fails (closure, stress, flat-prior, alternative
-method):** You MUST attempt at least 3 independent remediations from the
-hierarchy in `conventions/unfolding.md` BEFORE writing the artifact.
-Start with SVD (singular value truncation), then coarser binning, then
-alternative priors. Documenting a failure without remediation attempts
-is Category A at review.
+**If ANY validation test fails (closure, stress, alternative method):**
+You MUST attempt at least 3 independent remediation approaches BEFORE
+writing the artifact. Read how published analyses of the same observable
+handled the correction — if they succeeded with a method you haven't
+tried, try it. Documenting a failure without remediation attempts is
+Category A at review.
 
 ## Methodology references
 
