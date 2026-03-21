@@ -57,6 +57,12 @@ Before writing code, produce plan.md. As you work:
 
 Before producing your artifact, self-check:
 - [ ] Every "Will implement" commitment from the strategy is addressed
+- [ ] Every decision label [D1]-[DN] from the strategy is implemented
+      AS STATED — not replaced with an approximation or alternative
+      approach. If a committed input (published luminosity, external
+      measurement, cited coefficient) cannot be found via RAG, escalate
+      the lookup (get_paper → fetch PDF → orchestrator blocker). Do NOT
+      silently substitute a derived value for a committed published value.
 - [ ] Every validation test failure has 3+ documented remediation attempts
 - [ ] Every systematic is propagated through the chain (not flat borrowed)
 - [ ] Every section heading has prose content (not just figures)

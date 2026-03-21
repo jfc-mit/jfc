@@ -213,18 +213,32 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
   in an R_b measurement). Setting these to nominal MC values without
   uncertainty propagation underestimates the systematic error.
 
-- **Circular luminosity derivation.** When the analysis derives
-  luminosities from the data using theoretical cross-sections (because
-  no independent luminosity measurement is available), the lineshape or
-  rate fit becomes tautological — chi^2 = 0 by construction, because the
-  data exactly satisfies the model that generated the luminosities. The
-  artifact must: (a) state the circularity explicitly with the derivation
-  formula, (b) identify which diagnostics remain informative (per-subperiod
-  consistency, comparison to published cross-sections, alternative
-  luminosity sources), (c) frame observed-vs-expected comparisons as
-  self-consistency checks, not independent validations. Presenting
-  chi^2 = 0 as "excellent goodness-of-fit" without noting the circularity
-  is Category A.
+- **Circular luminosity derivation is Category A when published
+  luminosities exist.** When the analysis derives luminosities from
+  the data using theoretical cross-sections (L = N / (epsilon *
+  sigma_theory)), the lineshape or rate fit recovers the input
+  parameters by construction — chi^2 = 0 algebraically, and ALL
+  fitted parameters (not just the normalization) equal the theory
+  input. This is not a measurement; it is an identity.
+
+  If published luminosity values exist for the dataset — from a
+  dedicated luminometer (SICAL, LCAL, or equivalent), from a cited
+  paper's data table, or from HEPData — they MUST be used.
+  Acknowledging the circularity and reframing as a "self-consistency
+  check" is necessary but NOT SUFFICIENT when published values are
+  available. The executor must exhaust all options for obtaining
+  independent luminosity before falling back to derivation:
+  (a) search the cited reference paper for per-energy-point luminosity
+  tables, (b) check HEPData for the published dataset, (c) check
+  the LEP EWWG combination inputs. Only after demonstrating that
+  no published per-point luminosities exist for this specific dataset
+  may luminosity be derived from event counts — and in that case
+  the results section must use the heading "Self-consistency check"
+  and the abstract must not present the fitted values as measurements.
+
+  Deriving luminosity from data when a luminosity table exists in a
+  paper cited by the strategy is Category A — it is a silent violation
+  of a binding commitment, not a legitimate methodology choice.
 - **Inflated uncertainties from MC-evaluated systematics.** When a
   systematic is evaluated by scanning a parameter (e.g., kappa, binning
   choice, alternative method) on MC pseudo-data and then applied to the

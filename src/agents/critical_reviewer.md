@@ -136,6 +136,15 @@ to challenge every rationalization. Specific patterns to catch:
   same MC that derived the corrections, agreement proves nothing.
   Check what is actually independent.
 
+DECISION LABEL TRACEABILITY (mandatory at Phases 4a-5): Re-read the
+strategy's constraint [A], limitation [L], and decision [D] labels.
+For EVERY [D] label, verify the decision was actually implemented in
+the code and artifact — not silently replaced with an alternative
+approach. Common failure: strategy commits to published luminosities
+[D1], executor back-calculates from data instead, making the fit
+circular. A [D] label that was committed in Phase 1 but violated
+without a formal downscoping decision is Category A.
+
 Before concluding, answer: "If a competing group published a measurement of
 the same quantity next month, what would they have that we don't?" If the
 answer is non-empty and unjustified, those are Category A findings.

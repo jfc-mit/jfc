@@ -167,6 +167,17 @@ disk.
   - [ ] Any visually identical distributions that should be independent?
   - [ ] Any result with > 30% relative deviation from a well-measured
         reference value (§6.8 — triggers calibration investigation)?
+  - [ ] All binding commitments [D1]-[DN] from the strategy fulfilled?
+        Re-read STRATEGY.md decision labels. A decision committed in
+        Phase 1 but silently replaced with an alternative approach is
+        Category A — even if the alternative is reasonable, because the
+        decision was never formally revised. Common failure: strategy
+        commits to published luminosities [D], executor back-calculates
+        from data instead, making the fit circular.
+  - [ ] Is the fit chi2 identically zero (or within numerical precision)?
+        If so, investigate whether the methodology is algebraically
+        circular before accepting. chi2 = 0.000 is an alarm, not a
+        result. See Phase 4c "Fit triviality gate" in §3.
   If ANY box is checked, the orchestrator must trigger regression or
   re-run the affected phase — even if the arbiter said PASS. The
   orchestrator is the last line of defense against process failures.

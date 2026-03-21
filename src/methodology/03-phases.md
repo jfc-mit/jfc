@@ -274,6 +274,24 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
 
 **Goal:** Systematics, statistical model, expected results on Asimov only.
 
+- **Published input lookup protocol.** When the strategy commits to a
+  published value from a cited paper (e.g., "luminosity from
+  hep-ex/9904007" [D1]), the executor must obtain the actual published
+  values — not derive them from the data. RAG passage retrieval may
+  fail to surface specific tables; this does not mean the values are
+  unavailable. Escalation order:
+  1. Query RAG with specific terms (paper ID + "Table" + quantity name)
+  2. Use `get_paper` to retrieve the paper's section structure, then
+     search for the relevant section
+  3. Fetch the actual PDF and read the relevant pages
+  4. If still not found: escalate to the orchestrator as a **blocker**
+
+  "I searched the corpus and didn't find it, so I derived the values
+  from the data instead" is NOT an acceptable resolution of a binding
+  commitment. The paper exists; the table is in it; read the paper.
+  Substituting a data-derived value for a committed published value
+  is a silent violation of the strategy and Category A at review.
+
 - Evaluate experimental + theory systematics as rate/shape variations.
   **Variation sizing:** every systematic variation must be motivated by
   a measurement, calibration, or published uncertainty — not an arbitrary
@@ -496,6 +514,27 @@ it. The human reviews the PDF, not markdown.
   configuration at even higher statistics or under different conditions.
   Silently switching to a different configuration without investigation
   is Category B.
+- **Fit triviality gate (mandatory).** If the fit chi^2 is identically
+  zero (or within numerical precision of zero), OR if the fitted
+  parameters exactly equal the input assumptions used elsewhere in the
+  analysis chain, the executor must STOP and investigate whether the
+  methodology is algebraically circular. chi^2 = 0.000 is not
+  "excellent fit quality" — it is an alarm that the measurement may
+  be trivially self-consistent. Before proceeding:
+  1. Trace every input to the cross-section formula: where does each
+     luminosity, efficiency, and background fraction come from?
+  2. If any input was derived using the same theoretical cross-section
+     that the fit is trying to measure, the fit is circular.
+  3. If circular: investigate whether independent inputs exist
+     (published luminosities, external efficiency measurements).
+     Check the cited reference papers for data tables.
+  4. Only after exhausting alternatives may the analysis proceed with
+     circular inputs, and in that case the results must be presented
+     as "self-consistency check" values, not measurements.
+  This gate applies even if the executor already acknowledges the
+  circularity. Acknowledgment is not remediation. A measurement
+  that is circular when non-circular inputs exist is Category A.
+
 - **Viability check (every reported measurement).** Before quoting
   any result — primary observable, secondary observable, or derived
   quantity — verify the extraction is meaningful. This applies to ALL
