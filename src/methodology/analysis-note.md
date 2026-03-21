@@ -17,6 +17,13 @@ has a gap. If a reader can't tell how a systematic was evaluated without
 reading the script, the AN has a gap. If a reader can't reconstruct the
 event selection from the AN text and figures, the AN has a gap.
 
+**Notation consistency.** Every physical quantity must use a single,
+consistent symbol throughout the AN. The same variable appearing under
+different names in different sections (e.g., $f_s$ in the formalism but
+$f_t$ in results tables) is Category A. Define symbols at first use and
+maintain a consistent convention. When adopting notation from a reference
+paper, note it explicitly if it differs from notation used earlier in the AN.
+
 The AN is the complete record — not a journal paper, not an executive
 summary, not a set of results with a brief methods section. ~50-100
 rendered pages for a typical measurement. **Under 30 pages means detail

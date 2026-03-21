@@ -428,9 +428,46 @@ it. The human reviews the PDF, not markdown.
 - Compare to **both** 10% and expected. Flag >2-sigma disagreement with expected
   or disagreement with 10% beyond statistical scaling.
 - Investigate anomalies (large NP pulls, poor GoF)
-- **Viability check (primary and derived quantities).** Before quoting
-  any result — primary observable or derived quantity — verify the
-  extraction is meaningful:
+- **Re-evaluate systematics on full data.** The MC-derived systematic
+  budget from Phase 4a is a starting point, not the final answer. For each
+  systematic source that involves a scan or comparison across configurations
+  (e.g., kappa values, binning schemes, alternative methods), re-evaluate
+  on the full data. If the data-evaluated systematic differs from the MC
+  evaluation by more than a factor of 2, the artifact must document the
+  discrepancy and justify which evaluation is used. Transferring the entire
+  systematic budget from MC to data without validation is a form of
+  borrowed flat systematic — the same prohibition applies.
+- **Configuration selection must include GoF.** When multiple analysis
+  configurations are evaluated (kappa values, working points, binning
+  schemes, fit variants), the primary configuration must satisfy both
+  statistical precision AND goodness-of-fit. A configuration with
+  chi2/ndf > 3 (p < 0.01) must not be selected as primary without:
+  (a) investigation of the source of poor GoF, (b) documented
+  justification that the GoF failure does not invalidate the result,
+  (c) explicit comparison to configurations with acceptable GoF.
+  Selecting a configuration solely for its small statistical error while
+  ignoring fit quality is Category A. If the best-precision configuration
+  has poor GoF, either fix the model, choose a configuration with
+  acceptable GoF, or quote the result from the acceptable-GoF
+  configuration with the poor-GoF configuration as a cross-check.
+- **Fit pathologies must be investigated.** Parameter degeneracies,
+  near-singular Hessians, near-flat likelihood directions, or parameters
+  hitting boundaries are anomalies — not configuration choices. If a fit
+  that worked on MC pseudo-data develops a pathology on full data, the
+  artifact must document: what changed, why (e.g., a degeneracy exposed
+  by higher statistics), and whether the pathology could affect the chosen
+  configuration at even higher statistics or under different conditions.
+  Silently switching to a different configuration without investigation
+  is Category B.
+- **Viability check (every reported measurement).** Before quoting
+  any result — primary observable, secondary observable, or derived
+  quantity — verify the extraction is meaningful. This applies to ALL
+  measurements reported in the AN, not just the primary one. If a
+  secondary measurement fails a viability criterion, either: (a)
+  investigate and explain, (b) explicitly label as non-competitive with
+  the failed criterion noted in the results text, or (c) remove from
+  the results if it adds no information. Silently omitting the viability
+  check for a secondary measurement is Category B. Verify:
   - If the total uncertainty exceeds 50% of the central value, or
     exceeds 10x the world-average precision, the measurement may lack
     resolving power. Document whether it can distinguish the SM from

@@ -128,6 +128,18 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
    not just a systematic: it means the result depends critically on an
    arbitrary choice. Investigate before proceeding.
 
+   **The stability scan must include fit quality.** Report chi2/ndf (or
+   equivalent GoF metric) at each scan point alongside the extracted
+   value. A configuration that produces a small statistical uncertainty
+   but poor GoF (chi2/ndf > 3) is not a stable operating point — it
+   indicates the model does not describe the data at that configuration.
+   When selecting among multiple configurations (e.g., kappa values,
+   binning choices), the selection criterion must balance precision and
+   GoF. If the minimum-variance configuration has poor GoF while other
+   configurations have acceptable GoF, the latter should be preferred
+   unless the GoF failure is understood and demonstrated not to bias the
+   result.
+
 4. **Per-subperiod consistency.** Extract the result independently for each
    data-taking period. Compute chi2/ndof across periods. A chi2/ndof >> 1
    indicates time-dependent effects (detector aging, calibration drift) not
