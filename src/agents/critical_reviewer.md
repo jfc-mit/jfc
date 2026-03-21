@@ -71,6 +71,18 @@ when (a) the source is subdominant AND (b) the magnitude is justified by
 a cited measurement. "±3% tracking efficiency" without a citation is not
 a systematic — it's a guess.
 
+NUMERICAL SELF-CONSISTENCY CHECK (mandatory at Phases 4a–5 when an AN
+exists): For each systematic source, verify that the per-section
+subsection table, the summary table, and any discussion prose all quote
+the SAME numerical value. Also verify derived quantities (N_nu, alpha_s,
+etc.) are consistent with their input values from the fit results. Read
+results/*.json and spot-check at least 5 key values against the AN
+text. The most common failure mode after a fix cycle: the summary table
+is updated but per-section tables, discussion paragraphs, or appendix
+tables retain stale pre-fix values. Flag any inconsistency as
+Category A — a reader who trusts the per-section table will get a
+different answer than one who trusts the summary table.
+
 For EVERY systematic shift: verify the shift is BIN-DEPENDENT. A
 perfectly flat relative shift (identical percentage in every bin) across
 a shape measurement is physically impossible — it means the systematic

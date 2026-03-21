@@ -150,6 +150,30 @@ differently in different artifacts. When quoting a result, mentally
 trace it: "this number comes from results/lineshape_parameters.json,
 field mz.value."
 
+NUMBERS CONSISTENCY LINT (mandatory before submitting):
+When UPDATING an existing AN (4b from 4a, 4c from 4b, 5 from 4c),
+you are carrying forward text that may contain stale values from a
+previous version — especially if a fix cycle changed results between
+versions. Before submitting the AN, perform this mechanical check:
+
+1. Read the results JSON files (all of them in results/).
+2. For every key numerical value in the JSON (fitted parameters,
+   systematic shifts, derived quantities, uncertainties), search the
+   AN for ALL instances of that quantity.
+3. Verify each instance matches the JSON within rounding tolerance.
+4. Pay special attention to values that appear in MULTIPLE locations:
+   per-section tables, summary tables, discussion prose, derived-
+   quantity calculations, appendix tables. A single quantity may
+   appear 3-6 times in the AN — all must be consistent.
+5. Report: "Verified N numerical values across M tables; K
+   inconsistencies found and corrected."
+
+The most common failure mode is a fixer changing a result (e.g., a
+systematic from 8.6 to 2.1 MeV) and updating the summary table but
+leaving the old value in the per-section table, discussion paragraph,
+completeness table, and derived-quantity calculation. This check
+catches exactly that failure.
+
 MACHINE-READABLE OUTPUTS:
 The results/ directory (created by the Phase 4c executor) contains
 the JSON files. Verify they exist and reference them in Appendix C.

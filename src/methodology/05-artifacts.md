@@ -71,6 +71,17 @@ mode that teaches a generalizable lesson (e.g., a subtle resolution
 definition error that others would likely repeat) — these deserve a
 brief methodological discussion.
 
+**Numerical self-consistency.** Every numerical value in the AN must
+appear consistently wherever it is quoted — per-section tables, summary
+tables, discussion prose, derived-quantity calculations, and appendix
+tables. When a fix cycle changes a result, ALL instances must be
+updated. The `results/*.json` files are the single source of truth;
+the AN is a rendering of those values into prose. A per-section table
+that contradicts the summary table is Category A regardless of which
+one is correct — the inconsistency itself is the problem. See the
+fixer agent's PROPAGATE step and the note writer's NUMBERS CONSISTENCY
+LINT for the enforcement mechanisms.
+
 **Supplementary files** (`.npz`, `.json`, workspaces, trained models) must
 include a brief description in the artifact: what the file contains, how to
 load it, which pixi task produced it.

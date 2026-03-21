@@ -23,10 +23,16 @@ def fix_margins(lines):
                 return None  # already correct
             lines[i] = target
             return 'margins'
-    # Insert after \documentclass
+    # Insert after \documentclass (handle multiline \documentclass[...]{...})
     for i, line in enumerate(lines):
         if line.strip().startswith('\\documentclass'):
-            lines.insert(i + 1, target)
+            # Find the closing brace of \documentclass{...}
+            insert_pos = i + 1
+            for j in range(i, min(i + 5, len(lines))):
+                if '{article}' in lines[j] or '{report}' in lines[j] or '{book}' in lines[j]:
+                    insert_pos = j + 1
+                    break
+            lines.insert(insert_pos, target)
             return 'margins'
     return None
 
@@ -217,6 +223,99 @@ def fix_duplicate_labels(lines):
     return f'{count} dup-labels' if count else None
 
 
+def fix_references_placement(lines):
+    """Move CSLReferences block to immediately after the References heading.
+
+    pandoc-citeproc places the bibliography at the end of the document,
+    after appendix content.  This function moves the CSLReferences block
+    to appear right after the \\section*{References} heading, before
+    \\appendix.
+    """
+    # Find the References heading
+    ref_heading = None
+    for i, line in enumerate(lines):
+        if re.search(r'\\section\*\{References\}', line):
+            ref_heading = i
+            break
+    if ref_heading is None:
+        return None
+
+    # Find the CSLReferences block
+    csl_start = None
+    csl_end = None
+    for i, line in enumerate(lines):
+        if '\\begin{CSLReferences}' in line:
+            # Include the \phantomsection\label{refs} line before it
+            csl_start = i
+            if i > 0 and 'phantomsection' in lines[i - 1]:
+                csl_start = i - 1
+        if '\\end{CSLReferences}' in line:
+            csl_end = i + 1  # inclusive
+            break
+
+    if csl_start is None or csl_end is None:
+        return None
+
+    # Check if CSLReferences is already right after the References heading
+    # (within a few lines)
+    if csl_start <= ref_heading + 5:
+        return None
+
+    # Extract the CSLReferences block
+    csl_block = lines[csl_start:csl_end]
+
+    # Remove the CSLReferences block from its current position
+    del lines[csl_start:csl_end]
+
+    # Re-find the References heading (may have shifted)
+    ref_heading = None
+    for i, line in enumerate(lines):
+        if re.search(r'\\section\*\{References\}', line):
+            ref_heading = i
+            break
+    if ref_heading is None:
+        return None
+
+    # Find the insertion point: after the References heading line,
+    # skip any \clearpage that follows it
+    insert_pos = ref_heading + 1
+    while insert_pos < len(lines) and lines[insert_pos].strip() in (
+            '\\clearpage', ''):
+        # Remove \clearpage between References heading and bibliography
+        if lines[insert_pos].strip() == '\\clearpage':
+            del lines[insert_pos]
+        else:
+            insert_pos += 1
+
+    # Insert the CSLReferences block
+    for j, bline in enumerate(csl_block):
+        lines.insert(insert_pos + j, bline)
+
+    # Insert \clearpage and \appendix after the CSLReferences block
+    after_csl = insert_pos + len(csl_block)
+    # Check if \appendix already follows
+    has_appendix = False
+    for k in range(after_csl, min(after_csl + 5, len(lines))):
+        if '\\appendix' in lines[k]:
+            has_appendix = True
+            break
+    if not has_appendix:
+        lines.insert(after_csl, '\\appendix\n')
+        lines.insert(after_csl, '\\clearpage\n')
+
+    return 'references-placement'
+
+
+def fix_table_crossref(lines):
+    """Fix 'Table tbl.~\\ref{...}' to 'Table~\\ref{...}'."""
+    count = 0
+    for i, line in enumerate(lines):
+        if 'tbl.~\\ref{' in line:
+            lines[i] = line.replace('tbl.~\\ref{', '~\\ref{')
+            count += 1
+    return f'{count} table-crossrefs' if count else None
+
+
 def fix_appendix(lines):
     """Insert \\appendix before appendix marker comments."""
     for i, line in enumerate(lines):
@@ -285,6 +384,7 @@ def postprocess(path):
         fix_margins,
         fix_abstract,
         fix_references,
+        fix_table_crossref,
         fix_table_spacing,
         fix_float_barriers,
         fix_needspace,
@@ -292,6 +392,7 @@ def postprocess(path):
         fix_duplicate_labels,
         fix_appendix,
         fix_clearpage,
+        fix_references_placement,
     ]:
         result = fix_fn(lines)
         if result:

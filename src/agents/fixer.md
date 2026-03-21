@@ -69,7 +69,18 @@ FOR EACH FINDING, follow this protocol:
    If the finding was "systematic not propagated," verify the systematic
    now shows bin-dependent shifts. If the finding was "missing validation
    test," verify the test now exists and has a result.
-5. REGRESSION CHECK — verify the fix did not break anything that was
+5. PROPAGATE — if the fix changed any numerical result (code change →
+   rerun → new JSON/artifact values), grep ALL downstream documents
+   (the phase artifact, the AN if it exists, appendix tables) for every
+   instance of the OLD value and update them to the NEW value. A number
+   that appears in a per-section table, a summary table, a discussion
+   paragraph, a derived-quantity calculation, and an appendix table must
+   be updated in ALL FIVE locations. Report the propagation count:
+   "Updated N instances of [old] → [new] across M files."
+   This step is mandatory whenever a fix changes a number that appears
+   in the AN. Stale values left in per-section tables or discussion
+   prose are Category A at re-review.
+6. REGRESSION CHECK — verify the fix did not break anything that was
    previously working. Run affected pixi tasks. Check that other
    validation tests still pass.
 

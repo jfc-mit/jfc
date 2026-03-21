@@ -34,6 +34,13 @@ review finding if absent:
 - [ ] **No empty sections:** every heading has >=1 paragraph of prose before
   any figure or table. A bare heading followed by only a figure reference
   produces an empty-looking section in the rendered PDF.
+- [ ] **Numerical self-consistency:** every per-section systematic table
+  matches the summary systematic table. Every derived quantity matches
+  the calculation from its inputs. Every number quoted in prose matches
+  the corresponding table entry. Cross-check against `results/*.json`.
+  The most common failure: a fix cycle updates the summary table but
+  leaves stale values in per-section tables, discussion paragraphs,
+  derived-quantity calculations, or appendix completeness tables.
 
 ### Experiment log minimum content
 
