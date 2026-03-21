@@ -48,12 +48,26 @@ Read ANALYSIS_NOTE.tex. Improve it:
    geometry line exists, add \usepackage[margin=0.75in]{geometry}
    in the preamble.
 
-1. COMBINE RELATED FIGURES. Pandoc puts each image in its own float.
-   Group related figures using \subfloat or side-by-side \includegraphics:
-   - Data/MC distributions for similar variables -> 2x2 or 3x3 grid
-   - Reco vs gen level of the same observable -> side-by-side
-   - Systematic shifts for related sources -> grouped
-   - 1D projections (kt + dtheta) -> side-by-side
+1. COMBINE RELATED FIGURES — with guardrails. The default is
+   individual full-width figures. Combination is an optimization that
+   MUST NOT sacrifice readability. Before combining any pair, apply
+   the decision tree:
+
+   **DO NOT COMBINE (keep full-width individual figures):**
+   - Figures with colorbars (response matrices, correlation matrices,
+     2D heatmaps) — the colorbar + axis labels need full width
+   - Figures with > 3 legend entries (systematic breakdowns, multi-curve
+     overlays, operating point scans) — legend becomes illegible
+   - Figures with text annotations (chi2 values, fit parameters,
+     efficiency numbers) — annotations become unreadable
+   - Any figure where the computed per-panel height would be < 0.3\linewidth
+
+   **MAY COMBINE (side-by-side pairs):**
+   - Simple distributions with <= 2 legend entries (data/MC comparisons)
+   - Correction factor plots (simple errorbar + reference line)
+   - Efficiency plots (simple curve, no dense annotations)
+   - Closure test results (if legend is compact)
+
    **Sizing: measure actual figure dimensions, then compute.**
 
    BEFORE combining any figures, run this script to get every figure's
@@ -76,20 +90,24 @@ Read ANALYSIS_NOTE.tex. Improve it:
      total_width = h * (aspect_1 + aspect_2 + ... + aspect_N)
      We want total_width <= 0.95\linewidth (leave 5% for \hfill gaps)
      So: h = 0.95 / sum(aspects)
-   - Example: 3 colorbar figures each with aspect 1.10:
-     h = 0.95 / (1.10 + 1.10 + 1.10) = 0.95 / 3.30 = 0.288
-     -> use height=0.28\linewidth
-   - Example: 2 square (aspect 0.97) + 1 colorbar (aspect 1.10):
-     h = 0.95 / (0.97 + 0.97 + 1.10) = 0.95 / 3.04 = 0.312
-     -> use height=0.31\linewidth
-   - For 2x2 or 3x3 grids, compute per-row and use the tighter value.
+   - **MINIMUM HEIGHT: 0.3\linewidth per panel.** If the computed height
+     is below 0.3\linewidth, do NOT combine — use individual figures.
+     At 0.3\linewidth, axis tick labels are approximately 6pt, which is
+     the minimum readable size.
+   - Round DOWN slightly (e.g., 0.288 -> 0.28) to ensure no wrapping.
 
    Use HEIGHT (not width) so figures with different aspect ratios
    appear at the same visual size. Use \hfill between figures.
-   Round DOWN slightly (e.g., 0.288 -> 0.28) to ensure no wrapping.
 
    Use \begin{figure*} for full-width composites. Rewrite captions to
    describe all sub-panels: "(a) ..., (b) ..., (c) ...".
+
+   **READABILITY VERIFICATION (mandatory after combining).** After
+   compiling, read the PDF and check every combined figure. If any
+   text (axis labels, tick marks, legend, annotations) requires
+   zooming to read, split the figure back to individual full-width.
+   Readability at rendered size is non-negotiable — a compact layout
+   that cannot be read is worse than a longer document.
 
 2. FIX FLOAT PLACEMENT. Add \FloatBarrier at \section boundaries.
    Add \clearpage before appendices and before figure-dense sections.
@@ -105,8 +123,13 @@ Read ANALYSIS_NOTE.tex. Improve it:
 4. VERIFY SECTIONS. Every \section and \subsection must have text before
    any \begin{figure}. Flag empty sections.
 
-5. OPTIMIZE PAGE BREAKS. No orphaned headings at page bottom. Major
-   sections (Results, Discussion, each Appendix) start on new pages.
+5. OPTIMIZE PAGE BREAKS. No orphaned headings at page bottom.
+   Use \clearpage ONLY before Appendices and References — not before
+   every major section. Excessive \clearpage creates blank half-pages
+   when a section ends mid-page. Use \needspace{4\baselineskip} before
+   section headings to prevent orphaned headings without forcing page
+   breaks. After compilation, scan for pages that are >50% blank
+   (excluding intentional section starts) and remove unnecessary breaks.
 
 6. COMPILE. Run tectonic (or pdflatex) and fix errors. Check for
    unresolved references (??) and citations ([?]).

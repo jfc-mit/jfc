@@ -215,9 +215,24 @@ plt.close(fig)
   main and ratio panels — also Category A.
 - **Log scale.** Use `ax.set_yscale("log")` when the y-axis range spans
   more than 2 orders of magnitude. Linear scale is appropriate otherwise.
-- **Prefer mplhep functions** (`mh.histplot`, `mh.hist2dplot`) over raw
-  matplotlib `ax.hist` / `ax.pcolormesh`. They handle binning, styling,
-  and error bars correctly for HEP conventions.
+- **Mandatory `mh.histplot()` for all binned data (Category A if violated).**
+  When plotting histogram-like data (binned distributions, spectra, event
+  counts, correction factors per bin, systematic shifts per bin), ALWAYS use
+  `mh.histplot()`. Never use `ax.step()`, `ax.bar()`, `ax.plot()` with bin
+  centers, or `ax.fill_between()` for binned data. These produce incorrect
+  bin edge handling and inconsistent styling.
+
+  | Data type | Correct | Wrong |
+  |-----------|---------|-------|
+  | Data (error bars) | `mh.histplot(h, bins=edges, histtype="errorbar")` | `ax.errorbar(centers, h)` |
+  | MC prediction | `mh.histplot(h, bins=edges, histtype="fill")` | `ax.fill_between()`, `ax.bar()` |
+  | Stacked MC | `mh.histplot([h1,h2], bins=edges, stack=True)` | `ax.bar(..., bottom=...)` |
+  | Ratio panel | `mh.histplot(ratio, bins=edges, histtype="errorbar")` | `ax.plot(centers, ratio, 'o')` |
+  | Correction factors | `mh.histplot(C, bins=edges, histtype="errorbar")` | `ax.plot(centers, C, 'o-')` |
+  | Theory curve (continuous) | `ax.plot(x, y)` | (correct — not binned) |
+
+  The only exception is continuous functions (fit curves, theory predictions)
+  which are not binned and correctly use `ax.plot()`.
 - **Deterministic.** `np.random.seed(42)` if any randomness is involved.
 - **Ratio panel uncertainty bands.** When a ratio plot shows an
   uncertainty band (e.g., MC statistical uncertainty), the band must be
@@ -238,6 +253,69 @@ plt.close(fig)
   twice), a tautological comparison, or genuinely high correlation —
   but all three explanations must be considered. Do not silently accept
   identical-looking distributions without explanation.
+
+### Pre-commit figure verification (executor responsibility)
+
+Before committing any plotting script, the executor MUST self-verify every
+figure. This catches issues before they reach review, saving a full
+review-fix cycle (~30 minutes of reviewer + fixer time per issue). The
+plot validator exists as a safety net, not the primary check.
+
+**Step 1: Code grep.** Run these checks on every plotting script:
+
+```python
+# Mandatory violations check — run before committing
+import re
+with open(script_path) as f:
+    code = f.read()
+checks = [
+    ('ax.step(', 'ax.step -> use mh.histplot'),
+    ('ax.bar(', 'ax.bar -> use mh.histplot (unless colorbar-related)'),
+    ('ax.text(', 'ax.text -> use mh.label.add_text'),
+    ('tight_layout', 'tight_layout forbidden with mplhep'),
+    ('plt.colorbar', 'plt.colorbar -> use make_square_add_cbar'),
+    ('set_title(', 'set_title forbidden — use caption in AN'),
+]
+for pattern, msg in checks:
+    if pattern in code:
+        print(f"VIOLATION: {msg}")
+# Regex checks
+if re.search(r'fig\.colorbar\(.*, ax=', code):
+    print("VIOLATION: fig.colorbar(ax=) -> use cax=")
+if re.search(r'fontsize=\d', code):
+    print("VIOLATION: absolute fontsize forbidden — use 'x-small' etc.")
+```
+
+**Step 2: Visual inspection of every rendered PNG.** Read the PNG at actual
+rendered size and check:
+
+- [ ] Legend does not overlap any data, error bars, or curves
+- [ ] All text (axis labels, tick marks, legend entries) is readable
+- [ ] No duplicate experiment labels (main panel only, never on ratio)
+- [ ] Variable names are publication-quality (no `_` outside LaTeX math)
+- [ ] Histogram data uses `histplot` step/errorbar style (not smooth lines)
+- [ ] Axis ranges are tight to the data (no excessive whitespace)
+
+**Step 3: Label quality grep.** Check that no code variable names leaked
+into labels:
+
+```python
+# Check legend labels and axis labels for code variable names
+label_strings = re.findall(r'label=["\']([^"\']+)["\']', code)
+label_strings += re.findall(r'set_xlabel\(["\']([^"\']+)["\']', code)
+label_strings += re.findall(r'set_ylabel\(["\']([^"\']+)["\']', code)
+for s in label_strings:
+    # Skip LaTeX subscripts (underscore inside $...$)
+    clean = re.sub(r'\$[^$]+\$', '', s)
+    if '_' in clean:
+        print(f"CODE VARIABLE NAME IN LABEL: '{s}' — use publication name")
+```
+
+Any violations found in Steps 1-3 must be fixed before committing. The
+executor who produces a figure with `ax.step()` for histogram data or
+`cos_th` in a legend is responsible for the resulting review cycle.
+
+---
 
 ### Error propagation for derived quantities
 
