@@ -113,6 +113,14 @@ their work favorably. Specific red flags:
 - "Will be addressed later" without consequences for the current
   verdict. If the deferred item could change the result, it blocks
   NOW.
+- Inflated uncertainties that make validation trivial. If all pulls
+  are below 0.5σ and the total uncertainty is large, check whether the
+  dominant systematic was evaluated on the actual data or transferred
+  from MC. An MC-evaluated systematic applied to data when the
+  data-evaluated value is 2-3x smaller is inflation, not conservatism.
+  A measurement where the dominant systematic could be halved by
+  re-evaluation is Category B — the measurement is not reporting its
+  true precision.
 
 DEEP INVESTIGATION: When reviewers disagree about a factual matter
 (e.g., whether a systematic was properly propagated, whether a

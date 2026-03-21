@@ -225,6 +225,20 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
   self-consistency checks, not independent validations. Presenting
   chi^2 = 0 as "excellent goodness-of-fit" without noting the circularity
   is Category A.
+- **Inflated uncertainties from MC-evaluated systematics.** When a
+  systematic is evaluated by scanning a parameter (e.g., kappa, binning
+  choice, alternative method) on MC pseudo-data and then applied to the
+  full data result, verify that the data-evaluated spread is consistent
+  with the MC spread. If the data spread is significantly smaller (>2x),
+  the MC evaluation may be inflated — the MC configuration space may
+  include unphysical or irrelevant variations that the data naturally
+  constrains. Use the data evaluation as the primary systematic, with
+  the MC evaluation as an upper bound only if the data scan has too few
+  points to be reliable. Inflated systematics are not "conservative" —
+  they obscure the measurement's true sensitivity and make validation
+  checks (pull < 2σ) meaningless. A measurement where the dominant
+  systematic is 3x larger than necessary is not a measurement of the
+  observable — it's a measurement of the systematic evaluation procedure.
 - **Correlated uncertainties in combinations.** When combining results
   from multiple observables, methods, or subsamples, identify which
   systematic sources are shared (e.g., renormalization scale variation

@@ -293,6 +293,43 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
   all three conditions documented in the artifact. A perfectly flat
   relative shift across all bins of a shape measurement is physically
   suspect and likely indicates the systematic was not propagated.
+- **No inflated uncertainties.** Uncertainty inflation is as harmful as
+  underestimation — it makes pull checks pass trivially, masks method
+  biases, and destroys resolving power. A measurement that is "consistent
+  with everything" is not a measurement. Apply these checks:
+
+  1. **Re-evaluate, don't transfer.** When a systematic was evaluated on
+     MC in Phase 4a and a data-based evaluation is available in 4c, the
+     data evaluation takes precedence. Using the MC value when it is >2x
+     the data value is inflation unless the MC value is justified as more
+     representative (e.g., the data spread is artificially small due to
+     statistical fluctuation in a finite scan). Document the comparison.
+  2. **No "conservative" rounding up.** A systematic of 0.006 evaluated
+     on data does not become 0.017 because the MC gave 0.017. Use the
+     value that corresponds to the actual dataset the result is quoted on.
+  3. **Resolving power check.** If the total uncertainty means the result
+     cannot distinguish the SM from a ±20% deviation at 2-sigma, state
+     this explicitly. A result whose error bars span the entire
+     physically interesting range is honest only if it says so.
+  4. **Budget cross-check.** Compare the total uncertainty to the naive
+     expectation from the data size and method. If the observed total is
+     significantly larger than what a simple sqrt(N) scaling from a
+     published result would predict (after accounting for differences in
+     b-purity, acceptance, etc.), identify which systematic is responsible
+     and verify it is not inflated.
+  5. **Pull distribution sanity.** If the analysis reports multiple
+     independent results or cross-checks, the distribution of pulls
+     versus reference values should be roughly unit-Gaussian. If all
+     pulls are < 0.5σ and the uncertainties are large, this is a sign
+     of inflation — properly sized uncertainties produce ~32% of pulls
+     above 1σ. (This check requires ≥5 independent quantities to be
+     meaningful.)
+
+  At review, the question is symmetric: "Is this uncertainty too small?"
+  AND "Is this uncertainty too large?" A reviewer who only checks for
+  missing systematics but never questions inflated ones is doing half the
+  job.
+
 - **Extraction method hierarchy (parameter measurements).** When
   extracting a physical parameter (coupling constant, mass, width) from
   a measured distribution, the extraction method must use ALL available

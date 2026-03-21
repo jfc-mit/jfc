@@ -52,6 +52,19 @@ Before concluding, the reviewer must answer:
    systematic coverage?
 3. If a competing group published next month, what would they have that
    we don't?
+4. **Are uncertainties honest in BOTH directions?** Check for inflation
+   as well as underestimation:
+   - Is any systematic evaluated on MC when a data-based evaluation
+     exists and gives a smaller value? (Inflation.)
+   - Does the total uncertainty make every validation check pass
+     trivially? If all pulls are < 0.5σ, is this because the
+     measurement is genuinely compatible, or because the uncertainties
+     are large enough to accommodate anything?
+   - Could the quoted precision be improved by re-evaluating a dominant
+     systematic more carefully (e.g., on the actual data rather than
+     borrowing from MC)?
+   - Does the measurement have resolving power — can it distinguish
+     the SM from a ±20% deviation at 2σ? If not, is this stated?
 
 "No" or "non-empty" without justification → Category A.
 
