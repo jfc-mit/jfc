@@ -55,6 +55,8 @@ Before writing any text, produce a plan:
 - Which figures go in which sections
 - Which results tables are needed
 - Which systematic sources get their own subsections
+- Change Log entries for this phase/version
+- Sample inventory tables (data summary + MC sample tables)
 
 Then write the phase-stamped AN (e.g., outputs/ANALYSIS_NOTE_4a_v1.md,
 outputs/ANALYSIS_NOTE_5_v1.md) in pandoc-compatible markdown.
@@ -75,6 +77,41 @@ QUALITY STANDARDS:
 - Every cut needs a distribution plot. Every systematic needs an impact
   figure. Every cross-check needs a comparison plot.
 
+DATA STAGING:
+The AN is a living document that grows across phases. At each stage,
+the same sections exist — only the data content changes:
+- 4a: Results show expected (Asimov/MC) only. Comparisons use MC
+  predictions. State "Observed results will be added after data
+  validation" in the Results section.
+- 4b: Add 10% validation comparison. Results section shows expected
+  vs 10% observed side-by-side. Rest of AN stable unless review
+  triggered changes.
+- 4c: Full observed results replace 10% as primary. 10% becomes a
+  validation cross-check. Update all results tables and comparison
+  figures.
+- 5: Polish all prose, add flagship figures, final typesetting. No
+  new physics content unless regression changed the analysis.
+
+Sections that are STABLE across stages (update only if regression
+changes the analysis): Introduction, Data samples, Event selection,
+Corrections/unfolding, Systematic uncertainties methodology,
+Statistical method description.
+
+Sections that EVOLVE with data stage: Results, Comparison to
+prior/theory, Cross-checks (data-level), Conclusions (once observed
+results are available), Change Log.
+
+POST-REGRESSION COHESION:
+If earlier phases were revised after a regression, the AN must tell a
+cohesive physics story reflecting the CURRENT analysis state. Do not
+narrate the regression history in the body text — that belongs in the
+Change Log only. The Introduction should motivate the current strategy.
+The Methods should describe the current approach. The Results should
+present current numbers. A reader encountering the AN for the first
+time should experience a coherent physics argument, not a chronology
+of revisions. The Change Log (reverse chronological, grouped by
+phase/version) provides the full audit trail.
+
 PANDOC SYNTAX:
 - LaTeX math: $...$ inline, $$...$$ display
 - Figures: ![Caption](figures/name.pdf){#fig:name}
@@ -84,6 +121,21 @@ PANDOC SYNTAX:
 - Tables: pipe tables (| col1 | col2 |)
 - No raw HTML
 - Never use $\pm$, $<$, $>$, $\sim$ as standalone math — use Unicode instead
+
+CHANGE LOG:
+The AN must include a Change Log as the first content after the TOC,
+before the Introduction. Use `# Change Log {-}` (unnumbered). Maintain
+it incrementally: each phase/version adds entries at the top in reverse
+chronological order. Group by phase/version, use bulleted summaries.
+The first version initializes with "Initial AN version (Phase 4a)."
+Do not retroactively rewrite earlier entries — only append new groups.
+
+SAMPLE DOCUMENTATION:
+Section 2 (Data samples) must include structured tables: a data summary
+table (one row per era/period with events and luminosity) and an MC
+sample table (one row per physics process with generator, cross-section,
+N_events). These are summary-level — not per-file inventories. For
+open/archived data, document what is known and mark unknowns explicitly.
 
 COMPLETENESS TEST:
 Before finishing, verify: could a physicist unfamiliar with this analysis

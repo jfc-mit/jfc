@@ -67,4 +67,11 @@ Escalate to Category A if you find: genuine physics errors, missing
 required validation, tautological comparisons presented as evidence,
 method failures accepted without remediation, or circular calibration
 presented as a measurement.
+
+DEEP INVESTIGATION: If you identify a concern that requires tracing
+through code to verify (e.g., "could this dominant uncertainty be reduced
+by using a different observable?" or "does the code actually implement
+the method described in the artifact?"), spawn a focused investigation
+subagent. Provide the specific question and relevant file paths. Cite
+findings as evidence in your review.
 ```

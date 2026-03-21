@@ -105,8 +105,8 @@ to challenge every rationalization. Specific patterns to catch:
   A known limitation does not make a wrong answer right. If the
   method gives a result far from the known value, that needs
   investigation, not rationalization.
-- "Within Nσ" — check the denominator. If the uncertainty is so large
-  that anything is "within 2σ," the measurement has no resolving power.
+- "Within N-sigma" — check the denominator. If the uncertainty is so large
+  that anything is "within 2-sigma," the measurement has no resolving power.
   A result consistent with wildly different physics scenarios is not
   a measurement.
 - "Methods validation, not a competitive measurement" — this framing
@@ -127,6 +127,16 @@ to challenge every rationalization. Specific patterns to catch:
 Before concluding, answer: "If a competing group published a measurement of
 the same quantity next month, what would they have that we don't?" If the
 answer is non-empty and unjustified, those are Category A findings.
+
+DEEP INVESTIGATION: If you identify a concern that requires tracing
+through code (e.g., "is this systematic correctly propagated?" or "does
+this efficiency match across scripts?"), spawn a focused investigation
+subagent. Provide the specific question and relevant file paths. The
+subagent reads and reports — it does not fix anything. Cite the
+subagent's findings as evidence in your review (e.g., "Investigation
+confirmed systematic X uses wrong sign at src/apply_systematics.py:47").
+Reserve this for substantive concerns requiring >3 files, not routine
+checks.
 
 Classify every issue as (A) must resolve, (B) should address, (C) suggestion.
 Err on the side of strictness.

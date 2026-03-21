@@ -62,5 +62,19 @@ Before producing your artifact, self-check:
 - [ ] Every section heading has prose content (not just figures)
 - [ ] Every figure is referenced in the artifact text
 
+Before committing any plotting script, self-lint:
+- [ ] No `ax.set_title(` (captions go in AN)
+- [ ] No absolute `fontsize=` (use stylesheet defaults or 'x-small')
+- [ ] No `plt.colorbar(` or `fig.colorbar(im, ax=` (use make_square_add_cbar or cbarextend=True)
+- [ ] No `ax.step(` or `ax.bar(` for histograms (use mh.histplot())
+- [ ] No `ax.text(` or `ax.annotate(` (use mh.label.add_text())
+- [ ] No `tight_layout()` (use bbox_inches="tight" in savefig)
+- [ ] `hspace=0` present when `sharex=True`
+- [ ] No bare underscores in axis labels outside $...$
+- [ ] Saving both PDF and PNG with bbox_inches="tight", dpi=200
+Run `pixi run lint-plots` to check mechanically. Fix all violations
+before committing. The plot validator will re-check at review, but
+catching violations here avoids a full review-iterate cycle.
+
 When complete, state what you produced and any open issues.
 ```

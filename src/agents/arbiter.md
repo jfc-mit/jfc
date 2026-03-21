@@ -114,6 +114,14 @@ their work favorably. Specific red flags:
   verdict. If the deferred item could change the result, it blocks
   NOW.
 
+DEEP INVESTIGATION: When reviewers disagree about a factual matter
+(e.g., whether a systematic was properly propagated, whether a
+validation test actually passed), you may spawn a focused investigation
+subagent to resolve the dispute with evidence. Provide the specific
+disagreement and relevant file paths. The subagent reads and reports
+— it does not fix anything. This is preferable to making a judgment
+call when the answer is deterministic.
+
 End with: PASS / ITERATE (list Category A items) / ESCALATE (document why).
 
 If ITERATE: list the specific findings the fixer agent must address, in

@@ -38,3 +38,23 @@ One file per analysis technique or method. Each file covers:
 - **Consulted at Phase 1 (Strategy) and Phase 4a (Systematics).** The
   strategy phase uses conventions to plan the systematic program. The
   Phase 4a review checks completeness against conventions.
+
+## LaTeX Preamble Governance
+
+`preamble.tex` is the standard LaTeX preamble shared across all analyses.
+It is **not modified during an analysis.**
+
+If an analysis needs additional LaTeX packages (e.g., `tikz` for diagrams,
+`siunitx` for units):
+
+1. Create `phase5_documentation/outputs/analysis_preamble.tex` with the
+   additional `\usepackage` commands
+2. Document the additions and rationale in the experiment log
+3. Include both preambles in the pandoc command:
+   `--include-in-header=../../conventions/preamble.tex --include-in-header=outputs/analysis_preamble.tex`
+4. Reviewer checks at Phase 4a (first PDF compilation) that custom packages
+   do not conflict with the standard preamble
+5. Document custom packages in the AN appendix
+
+Post-analysis: if a custom package proved generally useful, propose its
+addition to the standard `preamble.tex` as a conventions update.

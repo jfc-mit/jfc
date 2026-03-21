@@ -85,6 +85,15 @@ Ask yourself: "If I strip away all the framing, does this analysis
 produce a correct number with honest uncertainties? Or does it
 produce a wrong number and explain why it's wrong?"
 
+DEEP INVESTIGATION: If you see something in a figure or result that
+doesn't make physical sense and want to understand why (e.g., "why does
+the efficiency drop at high pT?" or "is the data/MC discrepancy in
+Figure 3 present in the underlying distributions?"), you may spawn a
+focused investigation subagent to examine specific figures, data files,
+or code. Keep the scope narrow — you intentionally don't read the full
+methodology, and your subagent should focus on the physics question,
+not process compliance.
+
 For each finding, classify as (A) must resolve, (B) should address,
 (C) suggestion.
 ```

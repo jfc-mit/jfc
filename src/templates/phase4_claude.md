@@ -23,11 +23,36 @@ the artifact structure will be. Execute after the plan is set.
 - **4c:** Full data. Compare to 10% and expected. Executor (stats) →
   note writer (update AN with full results).
 
+**Typesetting at 4a/4b/4c.** Spawn the typesetter agent (read
+`agents/typesetter.md` for the full prompt). The typesetter handles the
+entire pipeline: pandoc → postprocess_tex.py → figure combining → compile
+→ verify. Provide the phase-stamped filename (e.g.,
+`ANALYSIS_NOTE_4a_v1.md`). The 4a/4b/4c PDFs are review inputs — they
+must meet the same formatting standard as the final Phase 5 PDF.
+
 | Sub-phase | Artifact | Review |
 |-----------|----------|--------|
 | 4a | `outputs/INFERENCE_EXPECTED.md` + `outputs/ANALYSIS_NOTE_4a_v1.{md,tex,pdf}` | 4-bot+bib |
 | 4b | `outputs/INFERENCE_PARTIAL.md` + `outputs/ANALYSIS_NOTE_4b_v1.{md,tex,pdf}` | 4-bot+bib → human gate |
 | 4c | `outputs/INFERENCE_OBSERVED.md` + `outputs/ANALYSIS_NOTE_4c_v1.{md,tex,pdf}` | 1-bot |
+
+## Human gate (after 4b review)
+
+After the 4b review panel returns PASS, present the **compiled PDF** and
+the unblinding checklist to the human. Do NOT proceed to 4c without
+explicit human approval.
+
+The human may:
+- **APPROVE** — proceed to 4c (full data)
+- **ITERATE** — fix issues within 4b scope, re-review, re-present
+- **REGRESS(N)** — fundamental issue traced to Phase N; follow the
+  non-destructive regression protocol in `methodology/06-review.md` §6.6
+- **PAUSE** — wait for external input
+
+On regression: the Investigator assesses cascade scope, the executor
+creates new artifact versions (not overwrites), downstream phases
+re-evaluate, and the note writer produces a new AN version with a
+cohesive narrative. Re-present the updated PDF to the human.
 
 ## Methodology references
 
@@ -88,6 +113,13 @@ These are the critical items for Phase 4. See
   restrict the measurement to that period or justify (with evidence) that
   the MC is applicable to other periods. Silently extrapolating MC-derived
   corrections to uncovered periods underestimates uncertainties.
+
+  **General principle:** when any MC-derived quantity is applied beyond
+  the conditions it was derived from (different periods, different
+  detector configurations, different kinematic regions), the
+  uncertainties on the result must reflect the extrapolation. A
+  per-subset consistency plot where all points carry identical
+  uncertainties despite unequal MC coverage is a red flag.
 - **Covariance matrix (measurements).** Full bin-to-bin covariance
   (statistical + each systematic + total) in the artifact and as
   machine-readable files.
@@ -100,6 +132,38 @@ additional required checks (independent closure test, parameter sensitivity
 table, operating point stability, per-subperiod consistency, 10% diagnostic
 sensitivity). These are technique-specific requirements defined in the
 conventions file — do not skip them.
+
+## Pre-review self-check
+
+Before submitting for review, verify:
+
+- [ ] Systematic completeness table: every conventions source + every
+      reference analysis source, row-by-row
+- [ ] Every systematic has measured/cited variation size (not arbitrary
+      round numbers — ±50% requires measured justification)
+- [ ] No flat borrowed systematics (unless all 3 conditions documented:
+      confirmed subdominant + propagation infeasible + cited measurement)
+- [ ] Signal injection or closure test passes
+- [ ] GoF: chi2/ndf AND toy-based p-value both reported
+- [ ] Covariance matrix validated (PSD, reasonable condition number)
+- [ ] Per-systematic documentation: running prose with physical origin,
+      evaluation method, numerical impact, interpretation
+- [ ] AN draft complete with PDF compiled (4a, 4b)
+- [ ] For extraction: all `conventions/extraction.md` checks completed
+- [ ] All figures pass plotting rules (see Phase 2 quick reference)
+- [ ] Validation target check: results compared to PDG/references,
+      any pull > 3-sigma or deviation > 30% triggers investigation (§6.8)
+- [ ] Phase 1 traceability: re-read STRATEGY.md, verify every committed
+      systematic/variation was implemented or formally downscoped ([D] label)
+- [ ] Zero-systematic sanity: no source has impact exactly 0 without
+      verified non-trivial variation input (0 = likely broken, not negligible)
+
+Also check `methodology/appendix-checklist.md` for the full artifact and
+AN completeness checklists.
+
+**Your reviewer will check** (§6.4): Systematics complete vs conventions +
+references? Variation sizes justified? Signal injection/closure passes?
+MC coverage matches data? Validation targets (§6.8)?
 
 ## Review
 

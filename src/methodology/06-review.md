@@ -55,16 +55,45 @@ Before concluding, the reviewer must answer:
 
 "No" or "non-empty" without justification → Category A.
 
+### 6.3.1 Reviewer Investigation Subagents
+
+Reviewers may spawn focused investigation subagents when a concern
+requires deeper analysis than reading the artifact allows. Use cases:
+
+- Tracing a computed value through multiple scripts to verify correctness
+- Checking whether a systematic variation is correctly propagated through
+  the analysis chain (reading code, not just the artifact's claim)
+- Verifying that intermediate outputs are consistent (e.g., same efficiency
+  used across scripts)
+- Cross-referencing a published paper's methodology against the
+  implementation
+
+**When to spawn:** The concern requires reading >3 files, tracing a
+computation through code, or cross-referencing intermediate outputs. Most
+review work should NOT need subagents — this is for substantive
+investigations where the artifact alone is insufficient.
+
+**Contract:**
+- Provide the subagent with: specific question, relevant file paths, what
+  evidence to look for
+- The subagent reads and reports — it does NOT fix or modify anything
+- Integrate the subagent's findings as evidence in the review (cite file
+  paths and line numbers)
+
+**Scope control:** Subagent spawning is for substantive concerns, not
+routine checks. The reviewer should document in their review why the
+investigation was needed and what it found.
+
 ### 6.4 Review Focus by Phase
 
 | Phase | Focus |
 |-------|-------|
-| Strategy | Backgrounds complete? Systematic plan covers conventions? 2-3 reference analyses tabulated? Selection exploration plan identifies ≥2 approaches to try in Phase 3 (or documents why alternatives are infeasible)? |
+| Strategy | Backgrounds complete? Systematic plan covers conventions? 2-3 reference analyses tabulated? Selection exploration plan identifies >=2 approaches to try in Phase 3 (or documents why alternatives are infeasible)? |
 | Exploration | Samples complete? Data quality OK? Distributions physical? |
-| Processing | Background model closes? Every cut motivated by plot? Cutflow monotonic? **Approach comparison:** Did the executor try ≥2 selection approaches and report a quantitative comparison? If not, is the Phase 1 infeasibility exemption satisfied? Implementing a single approach without comparison is Category A unless the exemption applies. **MVA:** data/MC on classifier OK? Alternative architecture tried? **MVA input modelling check:** Did the executor check data/MC agreement on all classifier inputs before training? Any input with data/MC χ²/ndf > 5 that enters the classifier without documented justification or calibration is Category A. A classifier that passes MC closure but fails on data due to a mismodelled input is a preventable error, not a discovery. |
-| 4a: Expected | Systematics complete vs. conventions + references? Signal injection/closure passes? Operating point stable (Category A if not)? MC coverage matches data periods? Validation target check (§6.8). |
+| Processing | Background model closes? Every cut motivated by plot? Cutflow monotonic? **Approach comparison:** Did the executor try >=2 selection approaches and report a quantitative comparison? If not, is the Phase 1 infeasibility exemption satisfied? Implementing a single approach without comparison is Category A unless the exemption applies. **MVA:** data/MC on classifier OK? Alternative architecture tried? **MVA input modelling check:** Did the executor check data/MC agreement on all classifier inputs before training? Any input with data/MC chi^2/ndf > 5 that enters the classifier without documented justification or calibration is Category A. A classifier that passes MC closure but fails on data due to a mismodelled input is a preventable error, not a discovery. |
+| 4a: Expected | Systematics complete vs. conventions + references? Signal injection/closure passes? Operating point stable (Category A if not)? MC coverage matches data periods — if MC covers fewer periods than data, is the extrapolation uncertainty reflected in per-period results? Validation target check (§6.8). **Phase 1 traceability:** every Phase 1 systematic commitment implemented or formally downscoped? |
 | 4b: 10% | Draft AN publication-quality? Results consistent with expected? Diagnostics clean? Validation target check (§6.8). |
-| 4c: Full data | Post-fit diagnostics healthy? Anomalies characterized? **Validation target check:** every result compared to PDG/reference values — any pull > 3σ is Category A unless quantitatively explained (see §6.8). |
+| 4c: Full data | Post-fit diagnostics healthy? Anomalies characterized? **Validation target check:** every result compared to PDG/reference values — any pull > 3-sigma is Category A unless quantitatively explained (see §6.8). |
 | 5: Documentation | See §6.4.3. |
 
 #### 6.4.1 Completeness Review (Phases 1 and 4a)
@@ -119,8 +148,8 @@ looks at the picture. The visual checklist:
   formatting is correct. Concrete red flags:
   - Data/MC normalization mismatch: MC visibly above or below data
     by more than ~20% across the bulk of the distribution. This
-    indicates a normalization bug, wrong cross-section, or missing
-    background — not a systematic uncertainty.
+    likely indicates a normalization bug, wrong cross-section, or
+    missing background — investigate before attributing to systematics.
   - Postfit data/MC worse than prefit: if the fit is supposed to
     improve agreement but the postfit plot shows larger residuals,
     the fit is broken.
@@ -188,8 +217,70 @@ exists precisely for findings that require upstream work.
 ### 6.6 Human Gate
 
 Between Phase 4b and 4c for both measurements and searches. The human
-receives a publication-quality draft AN with 10% results. Approves,
-requests changes, or halts.
+receives a publication-quality compiled PDF (not markdown) with 10%
+validation results and the unblinding checklist.
+
+**Response options:**
+
+| Response | Meaning | Orchestrator action |
+|----------|---------|---------------------|
+| **APPROVE** | Analysis is sound; proceed to full data | Continue to Phase 4c |
+| **ITERATE** | Issues within 4b scope | Fix, re-review 4b, re-present to human |
+| **REGRESS(N)** | Fundamental issue traced to Phase N | Non-destructive regression (see below) |
+| **PAUSE** | External input needed (data, MC, theory) | Wait for human to provide input |
+
+**APPROVE** means the human is satisfied that the methodology is correct
+and the 10% validation is clean. It does NOT mean the final result is
+approved — that comes after Phase 5 review.
+
+**ITERATE** is for issues the executor can fix without changing the
+analysis approach: missing systematics, inadequate validation, prose
+quality, figure problems. The fix-review-present cycle repeats until
+the human approves.
+
+**REGRESS(N)** is for fundamental issues that trace to an earlier phase.
+The human specifies: which phase, what the issue is, and what needs to
+change. Examples:
+- REGRESS(1): Strategy missed a dominant background → Phase 1 must
+  revise the background model → cascade forward
+- REGRESS(3): Selection is suboptimal, published analyses use a better
+  discriminant → Phase 3 must implement and compare → cascade forward
+- REGRESS(4a): Systematic treatment is incomplete or wrong → Phase 4a
+  must revise → re-run 4b
+
+**Regression at the human gate follows the non-destructive protocol:**
+
+1. Orchestrator spawns Investigator to assess cascade scope
+2. Investigator produces `REGRESSION_TICKET.md` identifying:
+   - What must change in Phase N
+   - Which downstream artifacts are invalidated vs reusable
+   - Estimated rework scope
+3. Executor creates new artifact versions (e.g., `STRATEGY_v2.md`),
+   does NOT overwrite originals
+4. Each downstream phase re-evaluates:
+   - If Phase N change doesn't affect Phase M → Phase M artifacts
+     reused as-is
+   - If Phase N change invalidates Phase M → Phase M re-executes,
+     reusing code and infrastructure where still valid
+5. Note writer produces new AN version with updated narrative (see
+   post-regression cohesion below)
+6. Affected phases re-reviewed with same panel
+7. Re-present to human
+
+**Post-regression AN cohesion.** After any regression, the AN must tell
+a cohesive physics story reflecting the CURRENT analysis. The body text
+should read as if the current approach was the plan from the start — the
+reader should not need to know the analysis was restructured. The Change
+Log provides the full audit trail (what changed, when, and why). This
+means: if Phase 1 strategy changed, the Introduction motivates the
+current strategy; if Phase 3 selection changed, the Event Selection
+describes the current approach. The AN is a physics argument, not a
+process diary.
+
+**PAUSE** is for situations where the analysis needs something the
+system cannot provide: additional MC samples, a theoretical calculation,
+expert consultation, or access to data not yet available. The human
+specifies what is needed and provides it when ready.
 
 ### 6.7 Phase Regression
 
@@ -203,7 +294,7 @@ problems. Concrete triggers (must not be rationalized away):
 - Unexplained dominant systematic (a single source exceeding 80% of
   total uncertainty warrants investigation, not acceptance)
 - MC used for periods without corresponding simulation
-- Result > 3σ from a well-measured reference value (see §6.8)
+- Result > 3-sigma from a well-measured reference value (see §6.8)
 - Result with relative deviation > 30% from a well-measured reference
   value, regardless of pull (see §6.8 — triggers calibration-first
   investigation)
@@ -214,6 +305,14 @@ problems. Concrete triggers (must not be rationalized away):
   problem, not a systematic effect — see §3 Phase 3)
 - Two distributions that should be independent appear visually
   identical (indicates a bug or tautological comparison)
+- Systematic double-counting: two or more systematic sources produce
+  numerically identical per-bin shifts (indicates they are the same
+  underlying effect with different names — merge and document)
+- Correlated combination error: when combining results from multiple
+  observables or methods, shared systematic sources (e.g., scale
+  variation, generator choice) must be treated as correlated. Treating
+  correlated uncertainties as uncorrelated artificially reduces the
+  combined uncertainty.
 
 **Procedure:**
 1. Document issue, identify origin phase
@@ -223,8 +322,11 @@ problems. Concrete triggers (must not be rationalized away):
    produces `REGRESSION_TICKET.md`
 4. Fix origin phase → re-review → re-run affected downstream phases
 
-**Timing:** Regression only before the human gate. After human approval,
-issues become Phase 5 iteration items.
+**Timing:** Regression may be triggered at any phase gate or by the
+human gate. After human approval and entry into Phase 4c, new issues
+discovered during 4c or Phase 5 review are addressed as Phase 5
+iteration unless the arbiter classifies them as regression triggers
+(§6.7 list), in which case they still trigger regression.
 
 **Not regression:** Presentation issues (labels, captions, formatting) →
 Phase 5 iteration, not regression.
@@ -244,7 +346,7 @@ reference measurements), these create binding review obligations:
 parameter that meets **either** of the following triggers a mandatory
 investigation that blocks advancement until resolved:
 
-- **Pull threshold:** pull > 3σ from a well-measured reference value, OR
+- **Pull threshold:** pull > 3-sigma from a well-measured reference value, OR
 - **Gross deviation threshold:** relative deviation > 30% from a
   well-measured reference value (i.e., |result − reference| / reference
   > 0.3), regardless of the pull.
@@ -258,7 +360,7 @@ deep investigation. Reviewers should use physics judgment, with 30% as
 the default trigger for mandatory formal investigation.
 
 **Tier 1b — Method-improvement investigation (Category B, upgradable to A).**
-When the result deviates from a well-measured reference by 1–3σ (or 10–30%
+When the result deviates from a well-measured reference by 1–3-sigma (or 10–30%
 relative) and the deviation has a **known directional bias from the choice
 of method** (e.g., NLO vs NNLO, mean value vs differential fit, leading-order
 vs resummed), the reviewer must check:
@@ -278,7 +380,7 @@ vs resummed), the reviewer must check:
 
 3. **Would the better method plausibly resolve the deviation?** Estimate
    the expected shift from published comparisons (e.g., "NLO→NNLO shifts
-   α_s by −0.007 in published analyses").
+   alpha_s by -0.007 in published analyses").
 
 If all three answers are yes, the reviewer must require the executor to
 implement the better method as the primary result (or at minimum as a
@@ -287,8 +389,8 @@ limitation of our method" is not sufficient when the better method is
 feasible — the analysis should use the best feasible method, not explain
 why the suboptimal method gives a biased answer.
 
-This tier exists because a 1.7σ deviation with a known directional
-cause is qualitatively different from a 1.7σ statistical fluctuation.
+This tier exists because a 1.7-sigma deviation with a known directional
+cause is qualitatively different from a 1.7-sigma statistical fluctuation.
 The former can be reduced by improving the method; the latter cannot.
 Accepting a known-biased result without attempting the unbiased method
 wastes the data.
@@ -352,16 +454,16 @@ the data. The investigation protocol is:
    difference quantifies the calibration systematic.
 
 4. **Handle parameters that cannot be independently calibrated.** When
-   no independent observable constrains a parameter (e.g., a
-   hemisphere correlation that cannot be measured in a control sample):
+   no independent observable constrains a parameter (e.g., a correction
+   factor that cannot be measured in a control sample):
 
    - Use the MC value as the central value (not the back-substituted
      value)
    - Inflate the systematic uncertainty to cover the range between the
      MC value and the back-substituted (data-implied) value
-   - Document explicitly: "C_nonb cannot be independently calibrated;
-     the MC value is used with a systematic covering the data-implied
-     range"
+   - Document explicitly: "parameter X cannot be independently
+     calibrated; the MC value is used with a systematic covering the
+     data-implied range"
    - The back-substitution informs the systematic range — this is its
      legitimate role
 
@@ -372,11 +474,11 @@ the data. The investigation protocol is:
 
 5. **Verify magnitude closure.** The combination of independent
    calibrations (step 3) and inflated systematics (step 4) must
-   account for the full observed deviation. "Correcting eps_nonb
+   account for the full observed deviation. "Correcting the efficiency
    explains 40% of the bias" is acceptable IF the remaining 60% is
    covered by the inflated systematic on the uncalibrated parameters.
    The total uncertainty on the calibrated result must be large enough
-   that the uncalibrated result falls within ~2σ — otherwise some
+   that the uncalibrated result falls within ~2-sigma — otherwise some
    bias source is missing.
 
 6. **Document the calibration chain.** The analysis note must contain:
@@ -396,10 +498,10 @@ calibrated result still deviates significantly), then:
 - Do not claim new physics without exhausting mundane explanations
 
 **Rationale:** Accepting large discrepancies with well-known physics values
-erodes the credibility of the entire analysis. A 3σ pull may be a
+erodes the credibility of the entire analysis. A 3-sigma pull may be a
 statistical fluctuation, but the burden of proof is on the analysis to
 demonstrate this — not on the reviewer to accept it. An analysis that
-reports N_ν = 2.88 ± 0.03 without rigorous investigation of the 3.9σ
+reports N_nu = 2.88 ± 0.03 without rigorous investigation of the 3.9-sigma
 tension has a gap that a referee would immediately flag. Conversely,
 a measurement where MC closure works perfectly but data deviates is
 almost always a calibration issue — the standard HEP response is to

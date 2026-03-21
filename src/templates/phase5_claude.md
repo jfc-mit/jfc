@@ -20,7 +20,9 @@ Read data/MC files, write plotting scripts, save to
 ```bash
 ln -sf ../../../phase2_exploration/outputs/figures/*.pdf phase5_documentation/outputs/figures/
 ln -sf ../../../phase3_selection/outputs/figures/*.pdf phase5_documentation/outputs/figures/
-ln -sf ../../../phase4_inference/outputs/figures/*.pdf phase5_documentation/outputs/figures/
+ln -sf ../../../phase4_inference/4a_expected/outputs/figures/*.pdf phase5_documentation/outputs/figures/
+ln -sf ../../../phase4_inference/4b_partial/outputs/figures/*.pdf phase5_documentation/outputs/figures/
+ln -sf ../../../phase4_inference/4c_observed/outputs/figures/*.pdf phase5_documentation/outputs/figures/
 ```
 
 The AN typically needs ~30+ figures. Phases 2-4 produce some, but the AN
@@ -65,6 +67,20 @@ And produces `outputs/ANALYSIS_NOTE_5_v1.md` by polishing the existing AN.
 be able to reproduce every number from the AN alone. Under 30 rendered
 pages is Category A.
 
+**No local filesystem paths.** The AN must not contain cluster paths,
+absolute filesystem paths, or machine-specific locations (e.g.,
+`/n/holystore01/LABS/.../ALEPH/`). These are meaningless to a reader and
+expose infrastructure details. Replace with a generic description ("the
+ALEPH open data archive") or omit entirely. The data path belongs in the
+experiment log and `.analysis_config`, not the AN.
+
+**Appendix numbering.** Supplementary material (per-period stability
+details, efficiency ratio estimates, limitation indices, design decision
+tables) should use appendix-style headings, not continuation of the main
+section numbering. In the markdown, place these after a comment
+`<!-- Appendices -->` and the typesetting agent will convert them to
+`\appendix` sections (Appendix A, B, C, ...).
+
 **No empty sections rule.** Every section heading (`##`, `###`) must be
 followed by at least one paragraph (2-3 sentences minimum) of prose
 before any figure or table. A bare heading followed immediately by a
@@ -77,93 +93,34 @@ which sections need prose improvement. Execute after the plan is set.
 
 ### Sub-task 3: Typesetting (LaTeX expert subagent)
 
-**This subagent runs AFTER the AN writing subagent.** It is a LaTeX
-typesetting expert that transforms the pandoc output into a
-publication-quality PDF. It does NOT modify physics content — only layout
-and formatting.
+**This subagent runs AFTER the AN writing subagent.** Spawn the typesetter
+agent (read `agents/typesetter.md` for the full prompt). Provide the
+phase-stamped filename (e.g., `ANALYSIS_NOTE_5_v1.md`).
 
-**Workflow:**
+**Phase 5-specific context to pass to the typesetter:**
+- Figure path: `phase5_documentation/outputs/` (Sub-task 1 symlinked
+  all phase figures here)
+- Target: 30-50% reduction in figure count through combination. A
+  65-page AN with 35 standalone figures should become ~45-50 pages
+  with ~15-20 composites plus a handful of standalone flagships.
+- Flagship figures (from Phase 1 strategy) get full-page treatment.
+- If typeset PDF has more standalone figures than composites, the
+  combination was not aggressive enough.
 
-1. **Convert markdown to LaTeX** (not directly to PDF):
-   ```bash
-   cd phase5_documentation/outputs
-   pandoc ANALYSIS_NOTE_5_v1.md -o ANALYSIS_NOTE_5_v1.tex --standalone \
-     --include-in-header=../../conventions/preamble.tex \
-     --number-sections --toc --filter pandoc-crossref --citeproc
-   ```
-
-2. **Read and improve the `.tex` file.** Specific tasks:
-
-   - **Fix margins.** Pandoc's default margin (`margin=1in` or
-     `margin=0.75in`) may be too wide for a figure-heavy technical
-     note. Replace the geometry line in the preamble with
-     `\usepackage[margin=0.75in]{geometry}` for letter paper or
-     `\usepackage[a4paper,margin=2cm]{geometry}` for A4. The goal is
-     to maximize the usable text width for figures and tables.
-
-   - **Combine related figures.** Pandoc produces one `\begin{figure}`
-     per markdown image. Group related figures into composite floats
-     using `\subfloat` or side-by-side `\includegraphics`. Candidates:
-     data/MC comparisons for related variables (p, pT, theta, phi →
-     2×2 grid), reco vs gen Lund plane (side-by-side), systematic shift
-     maps for related sources, closure check projections (kt + dtheta).
-     Use `\begin{figure*}` for full-width composites. Rewrite captions
-     to describe the composite ("(a) ... (b) ... (c) ...").
-     **Sizing: measure actual PDF dimensions, then compute height.**
-     Before combining, use `pdfinfo` to get each figure's width and
-     height in points, compute aspect ratio (w/h). Then for N figures
-     side-by-side: `h = 0.95 / sum(aspects)` (in units of \linewidth).
-     This fills the page width while equalizing visual size across
-     figures with different aspect ratios (e.g., colorbars make wider).
-     See `appendix-prompts.md` typesetting agent for the full recipe.
-
-   - **Fix float placement.** Add `\FloatBarrier` at section boundaries
-     (`\section`, `\subsection`) to prevent figures from drifting far
-     from their text. Add `\clearpage` before appendices and before
-     dense figure sequences.
-
-   - **Fix table formatting.** Use `booktabs` rules (`\toprule`,
-     `\midrule`, `\bottomrule`). Apply `\small` or `\resizebox` to
-     wide tables. Ensure no column overflows the text width.
-
-   - **Verify section content.** Every `\section` and `\subsection`
-     must have at least one paragraph of text before any `\begin{figure}`
-     or `\begin{table}`. If not, flag for the AN writing agent.
-
-   - **Optimize page breaks.** Prevent orphaned section headings at
-     page bottoms (`\needspace{4\baselineskip}` before headings).
-     Add `\newpage` before major sections (Results, Discussion) for
-     clean chapter starts.
-
-   - **Check cross-references and citations.** Grep for `??` (unresolved
-     refs) and `[?]` (unresolved citations) in the compiled output.
-
-3. **Compile to PDF:**
-   ```bash
-   tectonic ANALYSIS_NOTE_5_v1.tex
-   ```
-   Fix any compilation errors. The final `ANALYSIS_NOTE.pdf` is the
-   deliverable.
-
-4. **Verify the PDF.** Read the compiled PDF and check:
-   - All figures render (no broken placeholders)
-   - No content overflows page boundaries
-   - Cross-references resolve (no "??")
-   - Citations resolve (no "[?]")
-   - Page count in 50-100 range
-   - Figure captions ≥ 2 sentences each
-   - Tables fit within margins
-
-**What the typesetting agent MUST NOT do:**
-- Change numbers, results, or physics conclusions
-- Rewrite captions beyond grammar/clarity fixes
-- Remove or add figures (only group existing ones)
-- Modify section structure or ordering
-- Change the bibliography
-
-If the agent finds a physics issue (missing figure, inconsistent number,
-empty section), it documents the issue and flags it for the orchestrator
-to route back to the AN writing agent. It does not fix physics content.
+**Verification (after typesetter completes):**
+- All figures render (no broken placeholders)
+- No content overflows page boundaries
+- Cross-references resolve (no "??")
+- Citations resolve (no "[?]")
+- Page count in 50-100 range
+- Figure captions >= 2 sentences each
+- Tables fit within margins
+- No duplicate table headers
+- No local filesystem paths in body text
+- Abstract before TOC, unnumbered
+- References section unnumbered
+- Appendix sections use letter numbering (A, B, C)
+- More composite figures than standalone (excluding flagships)
 
 ## Output artifacts
 
@@ -217,7 +174,7 @@ bibliography requirements.
   Anything under two sentences is Category A.
 - **Table formatting.** No monospace overflow. Short labels, consistent
   numeric precision. Test with `build-pdf`.
-- **Derived quantity viability.** Don't quote results with >3σ pulls from
+- **Derived quantity viability.** Don't quote results with >3-sigma pulls from
   well-measured values without quantitative explanation (§6.8). Document
   as "not reliably extractable" when appropriate.
 - **Completeness test.** A physicist unfamiliar with the analysis can

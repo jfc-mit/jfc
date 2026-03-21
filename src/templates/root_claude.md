@@ -6,10 +6,10 @@
 
 Type: {{analysis_type}}
 
-**Sections:** Execution Model · Methodology · Environment · Tool
-Requirements · Phase Gates · Review Protocol · Phase Regression · Coding
-Rules · Scale-Out · Plotting · Conventions · Analysis Note Format ·
-Feasibility · Reference Analyses · Pixi Reference · Git
+**Sections:** Execution Model / Methodology / Environment / Tool
+Requirements / Phase Gates / Review Protocol / Phase Regression / Coding
+Rules / Scale-Out / Plotting / Conventions / Analysis Note Format /
+Feasibility / Reference Analyses / Pixi Reference / Git
 
 ---
 
@@ -248,9 +248,9 @@ phase begins. No exceptions.
 | 1 | `phase1_strategy/outputs/STRATEGY.md` | 4-bot |
 | 2 | `phase2_exploration/outputs/EXPLORATION.md` | Self + plot validator |
 | 3 | `phase3_selection/outputs/SELECTION.md` | 1-bot |
-| 4a | `phase4_inference/outputs/INFERENCE_EXPECTED.md` + `ANALYSIS_NOTE_4a_v1.{md,tex,pdf}` | 4-bot+bib |
-| 4b | `phase4_inference/outputs/INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_4b_v1.{md,tex,pdf}` | 4-bot+bib → human gate |
-| 4c | `phase4_inference/outputs/INFERENCE_OBSERVED.md` + `ANALYSIS_NOTE_4c_v1.{md,tex,pdf}` | 1-bot |
+| 4a | `phase4_inference/4a_expected/outputs/INFERENCE_EXPECTED.md` + `ANALYSIS_NOTE_4a_v1.{md,tex,pdf}` | 4-bot+bib |
+| 4b | `phase4_inference/4b_partial/outputs/INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_4b_v1.{md,tex,pdf}` | 4-bot+bib → human gate |
+| 4c | `phase4_inference/4c_observed/outputs/INFERENCE_OBSERVED.md` + `ANALYSIS_NOTE_4c_v1.{md,tex,pdf}` | 1-bot |
 | 5 | `phase5_documentation/outputs/ANALYSIS_NOTE_5_v{final}.{md,tex,pdf}` | 5-bot (4 + rendering) |
 
 **Review before advancing.** After each artifact, spawn a reviewer subagent.
@@ -286,7 +286,7 @@ The arbiter must not PASS with unresolved A or B items.
 
 **Iteration limits:** 4/5-bot: warn at 3, strong warn at 5, hard cap at 10. 1-bot: warn at 2, escalate after 3. All subagents use `model: "opus"`.
 
-**Validation target rule (§6.8):** Any result with a pull > 3σ from a
+**Validation target rule (§6.8):** Any result with a pull > 3-sigma from a
 well-measured reference value (PDG, published measurement) is **Category A**
 unless the reviewer verifies: (1) a quantitative explanation for the
 deviation, (2) a demonstrated magnitude match (calculation/toy/fit variant),
@@ -310,7 +310,7 @@ resume review.
 - Stress test failure without successful remediation (3+ attempts required)
 - Operating point instability
 - Unexplained dominant systematic (single source > 80% of total)
-- Result > 3σ from a well-measured reference value (§6.8)
+- Result > 3-sigma from a well-measured reference value (§6.8)
 - GoF toy distribution inconsistent with observed chi2 (outside 95% interval)
 - Wholesale bin exclusion (> 50% of bins excluded by flat-prior gate or
   similar criterion)
@@ -324,6 +324,31 @@ as "out of scope" if the fix requires less than ~1 hour of agent time.
 Re-running a Phase 4 script with different parameters is NOT out of scope.
 When multiple findings require upstream reprocessing, batch them into a
 single regression iteration. See `methodology/06-review.md` §6.5.1.
+
+---
+
+## Human Gate Protocol
+
+After Phase 4b review PASS, present the **compiled PDF** (not markdown)
+to the human along with the unblinding checklist. Do NOT proceed to
+Phase 4c without explicit human approval.
+
+The human may respond with:
+- **APPROVE** — proceed to Phase 4c
+- **ITERATE** — fix specific issues within 4b scope, re-review, re-present
+- **REGRESS(N)** — fundamental issue traced to Phase N (see
+  `methodology/06-review.md` §6.6 for the full non-destructive regression
+  protocol)
+- **PAUSE** — wait for external input
+
+**On REGRESS:** Spawn the Investigator to assess cascade scope. Fix the
+origin phase non-destructively (new artifact versions, not overwrites).
+Re-evaluate each downstream phase. After regression, the note writer
+must produce a new AN version that tells a cohesive physics story —
+the body text reflects the current analysis, the Change Log records
+what changed. Re-present the updated PDF to the human.
+
+See `methodology/06-review.md` §6.6 for the full protocol.
 
 ---
 
@@ -388,6 +413,8 @@ See `methodology/appendix-plotting.md` for full plotting standards. Essentials:
 - **No absolute font sizes.** The CMS stylesheet sets sizes. Use `'x-small'` for legends.
 - **Save as PDF + PNG.** `bbox_inches="tight"`, `dpi=200`, `transparent=True`. Close after saving.
 - **Figures in artifacts:** `![Detailed caption](figures/name.pdf)`.
+- **Self-lint before committing.** Run `pixi run lint-plots` to catch
+  Category A violations before review. See executor agent prompt for checklist.
 
 ---
 

@@ -5,14 +5,14 @@
 The typesetter is a LaTeX expert that transforms the pandoc-generated
 `.tex` file into a publication-quality PDF. It does NOT modify physics
 content — only layout and formatting. It runs after the AN writing
-subagent in Phase 5.
+subagent at any phase that produces a PDF (4a, 4b, 4c, 5).
 
 ## Reads
 
 - Compiled `.tex` file from pandoc
 - `conventions/preamble.tex`
 - `outputs/figures/` directory
-- Phase 5 CLAUDE.md typesetting instructions
+- Phase CLAUDE.md (for phase-specific context, e.g., filename)
 
 ## Writes
 
@@ -42,13 +42,27 @@ You do NOT change physics content — only layout and formatting.
 
 Read ANALYSIS_NOTE.tex. Improve it:
 
-0. FIX MARGINS. Find the geometry package line and set margins to
-   0.75in (letter) or 2cm (A4). Pandoc's default 1in margins waste
-   too much page width for a figure-heavy technical note. If no
-   geometry line exists, add \usepackage[margin=0.75in]{geometry}
-   in the preamble.
+0. RUN PANDOC. Convert markdown to .tex (not directly to PDF):
+   ```bash
+   pandoc ANALYSIS_NOTE.md -o ANALYSIS_NOTE.tex --standalone \
+     --include-in-header=../../conventions/preamble.tex \
+     --number-sections --toc --filter pandoc-crossref --citeproc
+   ```
+   If `outputs/analysis_preamble.tex` exists, include it after the standard
+   preamble: add `--include-in-header=outputs/analysis_preamble.tex` to the
+   pandoc command. If custom packages cause rendering problems, document them
+   in TYPESETTING_ISSUES.md.
 
-1. COMBINE RELATED FIGURES — with guardrails. The default is
+1. RUN POSTPROCESS. Apply all deterministic structural fixes:
+   ```bash
+   python ../../conventions/postprocess_tex.py ANALYSIS_NOTE.tex
+   ```
+   This handles: margins, abstract→environment, references unnumbering,
+   table spacing, FloatBarrier insertion, needspace, duplicate header
+   removal, duplicate label removal, appendix insertion, and clearpage
+   placement. Verify the summary output reports fixes applied.
+
+2. COMBINE RELATED FIGURES — with guardrails. The default is
    individual full-width figures. Combination is an optimization that
    MUST NOT sacrifice readability. Before combining any pair, apply
    the decision tree:
@@ -109,10 +123,6 @@ Read ANALYSIS_NOTE.tex. Improve it:
    Readability at rendered size is non-negotiable — a compact layout
    that cannot be read is worse than a longer document.
 
-2. FIX FLOAT PLACEMENT. Add \FloatBarrier at \section boundaries.
-   Add \clearpage before appendices and before figure-dense sections.
-   No figure should appear more than 1 page from its first text reference.
-
 3. FIX TABLES. Tables should NOT split across pages. Pandoc generates
    \begin{longtable} which splits by default. Convert each longtable to
    a regular \begin{table}[htbp]\begin{tabular} float unless the table
@@ -120,21 +130,35 @@ Read ANALYSIS_NOTE.tex. Improve it:
    Use booktabs (\toprule, \midrule, \bottomrule). Apply \small or
    \resizebox to wide tables. No column overflow.
 
-4. VERIFY SECTIONS. Every \section and \subsection must have text before
-   any \begin{figure}. Flag empty sections.
-
-5. OPTIMIZE PAGE BREAKS. No orphaned headings at page bottom.
-   Use \clearpage ONLY before Appendices and References — not before
-   every major section. Excessive \clearpage creates blank half-pages
-   when a section ends mid-page. Use \needspace{4\baselineskip} before
-   section headings to prevent orphaned headings without forcing page
-   breaks. After compilation, scan for pages that are >50% blank
-   (excluding intentional section starts) and remove unnecessary breaks.
-
-6. COMPILE. Run tectonic (or pdflatex) and fix errors. Check for
+4. COMPILE. Run tectonic (or pdflatex) and fix errors. Check for
    unresolved references (??) and citations ([?]).
 
-7. VERIFY PDF. Read the output and confirm: all figures render, no
+5. AUTOMATED FORMATTING CHECK (mandatory before verification).
+   Run these checks on the .tex file after compilation. All must
+   pass before the PDF is submitted for review:
+   ```bash
+   TEX=ANALYSIS_NOTE.tex
+   # 1. Abstract must not be a numbered section
+   grep -q '\\section{Abstract}' "$TEX" && echo "FAIL: Abstract is a numbered section"
+   # 2. References must not be a numbered section
+   grep -q '\\section{References}' "$TEX" && echo "FAIL: References is a numbered section"
+   # 3. Figure combining ratio
+   STANDALONE=$(grep -c '\\begin{figure}' "$TEX")
+   SUBFLOAT=$(grep -c '\\subfloat\|\\subcaptionbox\|\\begin{subfigure}' "$TEX" || true)
+   echo "Standalone figure environments: $STANDALONE, Sub-figures: $SUBFLOAT"
+   [ "$SUBFLOAT" -lt "$STANDALONE" ] && echo "FAIL: More standalone figures than composites"
+   # 4. FloatBarrier coverage
+   SECTIONS=$(grep -c '\\section{' "$TEX")
+   BARRIERS=$(grep -c '\\FloatBarrier' "$TEX" || true)
+   echo "Sections: $SECTIONS, FloatBarriers: $BARRIERS"
+   [ "$BARRIERS" -lt "$((SECTIONS / 2))" ] && echo "FAIL: Fewer FloatBarriers than half the sections"
+   # 5. Unresolved references
+   grep -c '\?\?' ANALYSIS_NOTE.log 2>/dev/null | head -1
+   ```
+   Any FAIL line means the corresponding fixup step was skipped.
+   Fix and recompile before proceeding.
+
+6. VERIFY PDF. Read the output and confirm: all figures render, no
    overflow, no cut-off content, cross-refs resolve, 50-100 pages.
 
 You MUST NOT change: numbers, physics conclusions, section ordering,
