@@ -229,11 +229,19 @@ documented reason. Do not use an LLM for LaTeX conversion.
 
 These patterns cause mangled output and must be avoided:
 
-- **Never use `$\pm$`, `$<$`, `$>$`, `$-$` as standalone math.**
-  Use Unicode instead: `±`, `<`, `>`, `−`. Bare single-symbol math
-  delimiters confuse pandoc-crossref and produce garbled italic text.
+- **Never use `$\pm$`, `$<$`, `$>$`, `$-$`, `$\sim$` as standalone math.**
+  Use Unicode instead: `±`, `<`, `>`, `−`, `~`. Bare single-symbol math
+  delimiters confuse pandoc-crossref and produce garbled output. In
+  particular, `$-$0.0939` in a table cell renders as literal `$-$0.0939`
+  with visible dollar signs in the PDF. Use the Unicode minus sign `−`
+  (U+2212) for negative numbers outside math mode: `−0.0939`.
   Only use `$...$` for actual mathematical expressions (`$M_Z$`,
   `$\chi^2/ndf = 1.5$`).
+- **YAML title field does not render LaTeX math.** Pandoc's `title:`
+  field in the YAML frontmatter is treated as plain text — `$\sqrt{s}$`
+  renders literally as `$\sqrt{s}$`. For mathematical symbols in titles,
+  use Unicode: `√s = 91.2 GeV` or handle in `postprocess_tex.py` by
+  replacing the literal string in the `.tex` output.
 - **Never use `\mathrm{}` in figure captions or section headers.**
   Pandoc converts captions to both LaTeX and alt-text; `\mathrm` in
   alt-text produces `\mathrm allowed only in math mode` errors. Use

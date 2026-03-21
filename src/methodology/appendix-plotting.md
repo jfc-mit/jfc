@@ -232,6 +232,21 @@ plt.close(fig)
   a redundant x-axis label (e.g., "Axis 0") — this is a Category A
   review finding. Without `hspace=0`, a visible gap appears between the
   main and ratio panels — also Category A.
+- **Known issue: "Axis 0" text on ratio panels with `exp_label(loc=0)`.**
+  Some mplhep versions render spurious "Axis 0" text in the lower-right
+  corner of ratio panels when `exp_label(loc=0)` is called on the main
+  panel of a `sharex=True` figure. **Workaround:** After calling
+  `exp_label(ax=ax_main, loc=0)`, suppress the artifact on the ratio
+  panel:
+  ```python
+  # Remove spurious "Axis 0" text from ratio panel
+  for txt in rax.texts:
+      if "Axis" in txt.get_text():
+          txt.remove()
+  ```
+  Alternatively, use `loc=2` (upper left) instead of `loc=0` (best) to
+  avoid triggering the bug. Any figure with visible "Axis 0" text is
+  Category B.
 - **Ratio panel tick collision.** When using `sharex=True` with
   `hspace=0`, the main panel's bottom y-tick label (e.g., "10^0") and
   the ratio panel's top y-tick label (e.g., "1.2") collide at the
@@ -260,24 +275,58 @@ plt.close(fig)
   A raw matplotlib offset string in a rendered figure is Category B.
 - **Log scale.** Use `ax.set_yscale("log")` when the y-axis range spans
   more than 2 orders of magnitude. Linear scale is appropriate otherwise.
-- **Mandatory `mh.histplot()` for all binned data (Category A if violated).**
-  When plotting histogram-like data (binned distributions, spectra, event
-  counts, correction factors per bin, systematic shifts per bin), ALWAYS use
-  `mh.histplot()`. Never use `ax.step()`, `ax.bar()`, `ax.plot()` with bin
-  centers, or `ax.fill_between()` for binned data. These produce incorrect
-  bin edge handling and inconsistent styling.
+- **Mandatory `mh.histplot()` for raw-count histograms (Category A if violated).**
+  When plotting histograms filled from raw event data (event counts, track
+  counts, unweighted distributions), use `mh.histplot()`. Never use
+  `ax.step()`, `ax.bar()`, or `ax.fill_between()` for these. `mh.histplot`
+  computes sqrt(N) Poisson error bars automatically, which is correct for
+  raw counts.
 
   | Data type | Correct | Wrong |
   |-----------|---------|-------|
-  | Data (error bars) | `mh.histplot(h, bins=edges, histtype="errorbar")` | `ax.errorbar(centers, h)` |
-  | MC prediction | `mh.histplot(h, bins=edges, histtype="fill")` | `ax.fill_between()`, `ax.bar()` |
-  | Stacked MC | `mh.histplot([h1,h2], bins=edges, stack=True)` | `ax.bar(..., bottom=...)` |
-  | Ratio panel | `mh.histplot(ratio, bins=edges, histtype="errorbar")` | `ax.plot(centers, ratio, 'o')` |
-  | Correction factors | `mh.histplot(C, bins=edges, histtype="errorbar")` | `ax.plot(centers, C, 'o-')` |
+  | Raw counts (error bars) | `mh.histplot(h, histtype="errorbar")` | `ax.errorbar(centers, h)` without yerr |
+  | MC prediction (filled) | `mh.histplot(h, histtype="fill")` | `ax.fill_between()`, `ax.bar()` |
+  | Stacked MC | `mh.histplot([h1,h2], stack=True)` | `ax.bar(..., bottom=...)` |
   | Theory curve (continuous) | `ax.plot(x, y)` | (correct — not binned) |
 
-  The only exception is continuous functions (fit curves, theory predictions)
-  which are not binned and correctly use `ax.plot()`.
+- **Derived quantities MUST pass explicit `yerr` (Category A if violated).**
+  When plotting any quantity that is NOT a raw event count — normalized
+  distributions, correction factors, EEC values, ratios, efficiencies,
+  systematic shifts, or any value computed from raw counts — you MUST pass
+  explicit uncertainties via `yerr=`. Without explicit `yerr`, mplhep
+  computes error bars as sqrt(bin content), which is meaningless for
+  non-count values. For example, an EEC value of 0.03 per radian gets an
+  error bar of sqrt(0.03) = 0.17 — a 570% error on a quantity known to
+  4%. This is silently wrong and produces figures with nonsensical error
+  bars that undermine the measurement.
+
+  You can use either `ax.errorbar()` or `mh.histplot()` — both accept
+  `yerr=`. The critical requirement is that `yerr` is always provided
+  for derived quantities:
+
+  | Derived quantity | Correct (either works) | **WRONG** (no yerr — garbage errors) |
+  |-----------|---------|-------|
+  | Correction factors | `ax.errorbar(x, C, yerr=sigma_C)` | `mh.histplot(h_C, histtype="errorbar")` |
+  |  | `mh.histplot(h_C, yerr=sigma_C, histtype="errorbar")` | |
+  | Normalized dists | `ax.errorbar(x, dNdx, yerr=sigma)` | `mh.histplot(h_norm, histtype="errorbar")` |
+  | EEC / event shapes | `ax.errorbar(x, eec, yerr=sigma)` | `mh.histplot(h_eec, histtype="errorbar")` |
+  | Ratios | `ax.errorbar(x, ratio, yerr=sigma_r)` | `mh.histplot(h_ratio, histtype="errorbar")` |
+
+  **The test:** Did you fill the histogram with `h.fill(raw_values)`? Then
+  `mh.histplot` without explicit `yerr` is correct (auto sqrt(N) is right).
+  Did you assign values with `h.view()[:] = ...` or compute the values
+  from a formula? Then you MUST pass `yerr=` — either to `mh.histplot()`
+  or `ax.errorbar()`. Without `yerr`, the auto-computed errors are wrong.
+
+  **For step-style display of derived quantities** (when you want the
+  histogram step aesthetic without error bars), use
+  `mh.histplot(h, histtype="step")` — the step style does not draw error
+  bars, so the sqrt(N) issue does not apply.
+
+  The only exception where `mh.histplot` auto-errors ARE correct for
+  non-raw-count data is weighted histograms filled with
+  `h.fill(values, weight=weights)` using `Weight()` storage — mplhep
+  correctly computes sqrt(sum of weights squared) in this case.
 - **Deterministic.** `np.random.seed(42)` if any randomness is involved.
 - **Ratio panel uncertainty bands.** When a ratio plot shows an
   uncertainty band (e.g., MC statistical uncertainty), the band must be
@@ -329,6 +378,15 @@ if re.search(r'fig\.colorbar\(.*, ax=', code):
     print("VIOLATION: fig.colorbar(ax=) -> use cax=")
 if re.search(r'fontsize=\d', code):
     print("VIOLATION: absolute fontsize forbidden — use 'x-small' etc.")
+# CRITICAL: detect the derived-quantity error bar trap
+# Pattern: manually assigned histogram bins + histtype="errorbar" WITHOUT yerr=
+if '.view()[' in code and 'histtype="errorbar"' in code:
+    # Check if yerr= is passed alongside histtype="errorbar"
+    if not re.search(r'histplot\([^)]*yerr\s*=', code):
+        print("VIOLATION: .view()[:] = ... with histtype='errorbar' but no yerr= — "
+              "mplhep will apply sqrt(N) to non-count values, producing "
+              "nonsensical error bars. Pass yerr=sigma explicitly, or use "
+              "ax.errorbar(x, y, yerr=sigma) for derived quantities.")
 # Positive checks — required patterns
 if 'pcolormesh' in code or 'imshow' in code or 'hist2dplot' in code:
     if 'make_square_add_cbar' not in code and 'cbarextend' not in code:
@@ -385,11 +443,11 @@ not do this automatically.
 - **Efficiency** `epsilon = k/n`: use Clopper-Pearson (binomial) intervals, not Gaussian propagation. `scipy.stats.binom` provides these.
 - **Bin-width-normalized** `dN/dx`: `yerr[i] = sqrt(n[i]) / dx[i]`
 
-Always pass `yerr=` explicitly to `mh.histplot()` or `ax.errorbar()` for
-derived quantities. `mh.histplot` auto-errors are only correct for raw event
-counts or weighted histograms — NOT for `(1/N) dN/dx`, ratios, efficiencies,
-or other post-processed quantities. Relying on auto-errors for derived
-quantities is a Category A review finding.
+Always pass `yerr=` explicitly — either to `mh.histplot()` or
+`ax.errorbar()` — for derived quantities. See the derived-quantities rule
+above. **Never rely on mplhep auto-errors for anything other than raw
+counts or properly weighted histograms.** Omitting `yerr=` on derived
+quantities is Category A.
 
 ### Captions
 

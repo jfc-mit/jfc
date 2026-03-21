@@ -72,6 +72,18 @@ Before committing any plotting script, self-lint:
 - [ ] `hspace=0` present when `sharex=True`
 - [ ] No bare underscores in axis labels outside $...$
 - [ ] Saving both PDF and PNG with bbox_inches="tight", dpi=200
+- [ ] **No `histtype="errorbar"` on derived quantities without `yerr=`** —
+      if the histogram was filled via `.view()[:] = values` (not
+      `.fill(raw_data)`), you MUST pass `yerr=sigma` — either to
+      `mh.histplot(h, yerr=sigma, histtype="errorbar")` or to
+      `ax.errorbar(x, y, yerr=sigma)`. Without explicit `yerr`, mplhep
+      applies sqrt(bin_content) as error bars, which is nonsensical for
+      non-count values like correction factors, normalized distributions,
+      or EEC values. This produces silently wrong figures with 100-500%
+      error bars on quantities known to a few percent.
+- [ ] No "Axis 0" text in ratio panels — if using `exp_label(loc=0)` on
+      a `sharex=True` figure, suppress the artifact on the ratio panel
+      (see appendix-plotting.md)
 Run `pixi run lint-plots` to check mechanically. Fix all violations
 before committing. The plot validator will re-check at review, but
 catching violations here avoids a full review-iterate cycle.
