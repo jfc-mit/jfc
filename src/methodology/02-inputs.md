@@ -77,7 +77,7 @@ as a cross-check — even a rough one.
    compare to a simple counting estimate; if using MC-derived
    efficiencies, cross-check with data-driven tag-and-probe.
 3. **Compare.** If the data-driven estimate is broadly consistent with
-   the external input (within ~2σ of its own uncertainty), use the
+   the external input (within ~2-sigma of its own uncertainty), use the
    external input as the primary value and document the cross-check.
    If the estimates are inconsistent, investigate before proceeding —
    the disagreement may indicate a calibration issue or a problem with

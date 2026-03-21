@@ -124,6 +124,18 @@ plt.close(fig)
   2D systematic shift maps, and efficiency maps — not just the primary
   result figure. Reviewers must grep for these patterns and flag every
   occurrence.
+- **2D equal-aspect ratio.** For 2D histograms where both axes use the
+  same type of coordinate (e.g., two log-transformed momenta on a Lund
+  plane, two spatial coordinates, two bin indices in a response matrix),
+  set `ax.set_aspect('equal')` so that bins render as squares. This
+  preserves the geometric interpretation of the density — non-square
+  bins visually distort gradients and kinematic boundaries. This is
+  separate from `figsize=(10, 10)` (which controls the figure canvas);
+  `set_aspect('equal')` controls the data-coordinate scaling within the
+  axes. When the axis ranges differ (e.g., x spans 7 units, y spans 6),
+  the axes will be non-square within the figure — that is correct; the
+  bins are square. Axes where the two coordinates have genuinely
+  different units (e.g., mass vs. angle) should NOT use equal aspect.
 - **No titles.** Never `ax.set_title()`. Captions go in the analysis note.
   Instead additional info can go into `ax.legend(title="...")`. And when
   truly necessary it can go into `mh.label.add_text(text, ax=ax)`.
@@ -135,7 +147,7 @@ plt.close(fig)
   Do not increase axis label font size beyond the stylesheet default — no
   `fontsize=` argument on `set_xlabel`/`set_ylabel`.
 - **Labels on every independent axes.** In multi-panel figures where each
-  panel is an independent plot (2×2 grids, side-by-side comparisons), call
+  panel is an independent plot (2x2 grids, side-by-side comparisons), call
   `mh.label.exp_label(...)` on EACH axes.
   **Exception: ratio plots.** For ratio plots (main panel + ratio panel
   with `sharex=True`), call `exp_label` on the MAIN panel ONLY — never
@@ -174,7 +186,7 @@ plt.close(fig)
   are calibrated for this size. Using `figsize=(8, 6)` or `figsize=(12, 8)`
   produces figures where text is too large or too small relative to the plot
   elements. For ratio plots, use `figsize=(10, 10)` with
-  `height_ratios=[3, 1]`. For 2×2 subplots, use `figsize=(20, 20)`. The
+  `height_ratios=[3, 1]`. For 2x2 subplots, use `figsize=(20, 20)`. The
   rule is: 10 inches per subplot column, 10 inches per subplot row.
   **Any script that uses a custom figsize is a Category A review finding.**
 - **PDF rendering size (height-based).** The pandoc preamble sets the
@@ -192,17 +204,24 @@ plt.close(fig)
   | Ratio plot | `(10, 10)` | `0.45\linewidth` (default) | Data/MC with ratio |
   | 2D with colorbar | `(10, 10)` | `0.45\linewidth` (default) | Lund plane, matrix |
   | Side-by-side | Compose in LaTeX | `height=0.45\linewidth` each | See below |
-  | 2×2, 3×2 grid | Compose in LaTeX | `height=0.3\linewidth` each | See below |
+  | 2x2, 3x2 grid | Compose in LaTeX | `height=0.3\linewidth` each | See below |
 
   **Prefer LaTeX subfigures over matplotlib grids.** Instead of producing
-  a 2×3 matplotlib figure, produce 6 individual `(10, 10)` figures and
+  a 2x3 matplotlib figure, produce 6 individual `(10, 10)` figures and
   compose them in the AN using pandoc-crossref subfigure syntax or
   side-by-side image includes. This gives better control over layout,
   captions, and cross-referencing, and avoids font-size scaling issues.
 
-  The one exception: **tightly-coupled panels that share axes** (ratio
-  plots, pull distributions below a fit) should be produced as a single
-  matplotlib figure because they require `sharex=True` and `hspace=0`.
+  The one exception: **tightly-coupled panels that share a physical
+  x-axis** (ratio plots, pull distributions below a fit) should be
+  produced as a single matplotlib figure because they require
+  `sharex=True` and `hspace=0`. Panels with different x-axis
+  variables (e.g., ln(k_t) and ln(1/Delta_theta) projections of the same 2D
+  observable) should be produced as separate `(10, 10)` matplotlib
+  figures and composed into a single AN figure via `\subfloat` in
+  LaTeX — they are semantically related (one caption) but not
+  axis-coupled. The test: if you cannot use `sharex=True`, produce
+  separate matplotlib outputs.
 
   To override the default width for a figure that genuinely needs full
   width, use pandoc-crossref attributes in the markdown:
@@ -213,6 +232,32 @@ plt.close(fig)
   a redundant x-axis label (e.g., "Axis 0") — this is a Category A
   review finding. Without `hspace=0`, a visible gap appears between the
   main and ratio panels — also Category A.
+- **Ratio panel tick collision.** When using `sharex=True` with
+  `hspace=0`, the main panel's bottom y-tick label (e.g., "10^0") and
+  the ratio panel's top y-tick label (e.g., "1.2") collide at the
+  boundary. To prevent this:
+  (a) Hide the main panel's x-axis tick labels:
+      `ax.tick_params(labelbottom=False)`.
+  (b) Set ratio panel y-limits and ticks so the top tick doesn't crowd
+      the boundary — e.g., `rax.set_ylim(0.85, 1.15)` with ticks at
+      `[0.9, 1.0, 1.1]`, leaving a small margin at the top. The exact
+      values depend on the ratio range; the principle is to avoid a
+      y-tick label sitting at the exact panel boundary.
+  Overlapping tick labels at the main/ratio boundary are Category B.
+- **Y-axis bin width labels.** When labeling with "Events / [bin width]",
+  round the bin width to a clean value (0.01, 0.05, 0.1, 0.5, 1, 2, 5,
+  10, ...). If the natural bin width is ugly (e.g., "Tracks / 0.04583"),
+  either adjust the binning to produce a round width or omit the bin
+  width from the label entirely (just "Events" or "Tracks"). A non-round
+  bin width in a y-axis label is Category B.
+- **Suppress matplotlib offset notation.** Never allow matplotlib's
+  automatic "1e6" or "1e7" offset text on axes. Either:
+  (a) `ax.ticklabel_format(axis='y', style='plain')` and let tick
+      labels show full numbers, or
+  (b) absorb the multiplier into the axis label —
+      `r"Tracks [$\times 10^6$]"` — and divide the data accordingly, or
+  (c) use `ax.yaxis.set_major_formatter(...)` for custom formatting.
+  A raw matplotlib offset string in a rendered figure is Category B.
 - **Log scale.** Use `ax.set_yscale("log")` when the y-axis range spans
   more than 2 orders of magnitude. Linear scale is appropriate otherwise.
 - **Mandatory `mh.histplot()` for all binned data (Category A if violated).**
@@ -243,7 +288,7 @@ plt.close(fig)
 - **Axis limits.** Set axis limits tight to the data range. Do not leave
   large empty regions on either axis. Use `ax.set_xlim()` and
   `ax.set_ylim()` explicitly when the auto-range includes too much
-  whitespace. Log-scale y-axes should start at ~0.5× the minimum
+  whitespace. Log-scale y-axes should start at ~0.5x the minimum
   non-zero value, not at an arbitrary small number.
 - **Sanity check: visually identical distributions.** If two
   distributions that should represent independent quantities (e.g.,
@@ -284,6 +329,12 @@ if re.search(r'fig\.colorbar\(.*, ax=', code):
     print("VIOLATION: fig.colorbar(ax=) -> use cax=")
 if re.search(r'fontsize=\d', code):
     print("VIOLATION: absolute fontsize forbidden — use 'x-small' etc.")
+# Positive checks — required patterns
+if 'pcolormesh' in code or 'imshow' in code or 'hist2dplot' in code:
+    if 'make_square_add_cbar' not in code and 'cbarextend' not in code:
+        print("VIOLATION: 2D plot without make_square_add_cbar or cbarextend=True")
+if 'ax.legend(' in code and 'mpl_magic' not in code:
+    print("VIOLATION: legend without mpl_magic(ax) — legend-data overlap risk")
 ```
 
 **Step 2: Visual inspection of every rendered PNG.** Read the PNG at actual
@@ -295,6 +346,11 @@ rendered size and check:
 - [ ] Variable names are publication-quality (no `_` outside LaTeX math)
 - [ ] Histogram data uses `histplot` step/errorbar style (not smooth lines)
 - [ ] Axis ranges are tight to the data (no excessive whitespace)
+- [ ] 2D colorbars are same height as main axes (not shorter, not taller)
+- [ ] 2D bins appear square when both axes have same coordinate type
+- [ ] Figure contains actual data (not empty axes with only labels/ticks,
+  not a placeholder, not a white canvas — if no data was plotted, the
+  figure should not exist)
 
 **Step 3: Label quality grep.** Check that no code variable names leaked
 into labels:
@@ -326,7 +382,7 @@ not do this automatically.
 **Common formulas:**
 - **Normalized distribution** `(1/N) dN/dx`: `yerr[i] = sqrt(n[i]) / (N * dx[i])` where `N = sum(n)` and `dx[i]` is the bin width. For Poisson counts, `sqrt(n[i])` is the per-bin uncertainty.
 - **Ratio** `R = A/B`: `sigma_R = R * sqrt((sigma_A/A)^2 + (sigma_B/B)^2)` (uncorrelated errors)
-- **Efficiency** `ε = k/n`: use Clopper-Pearson (binomial) intervals, not Gaussian propagation. `scipy.stats.binom` provides these.
+- **Efficiency** `epsilon = k/n`: use Clopper-Pearson (binomial) intervals, not Gaussian propagation. `scipy.stats.binom` provides these.
 - **Bin-width-normalized** `dN/dx`: `yerr[i] = sqrt(n[i]) / dx[i]`
 
 Always pass `yerr=` explicitly to `mh.histplot()` or `ax.errorbar()` for
@@ -371,8 +427,8 @@ Good:
 > "Measured hadronic cross-section as a function of centre-of-mass energy
 > with the best-fit BW+ISR curve. The fit uses statistical errors only
 > (inner bars); outer bars show total uncertainties including systematics.
-> The fit yields χ²/ndf = 3.07/2 (p = 0.22). The off-peak points at
-> 89.4 and 93.0 GeV provide the primary constraint on Γ_Z."
+> The fit yields chi^2/ndf = 3.07/2 (p = 0.22). The off-peak points at
+> 89.4 and 93.0 GeV provide the primary constraint on Gamma_Z."
 
 Sparse captions — anything under two full sentences — are Category A.
 
@@ -384,10 +440,10 @@ figures. Use letter labels (`(a)`, `(b)`, etc.) with
 Write a single caption describing all sub-panels. This keeps the note
 compact and makes comparisons easier for the reader.
 
-**Grid sizing:** Selection cut distributions can be grouped into a 3×3 grid
+**Grid sizing:** Selection cut distributions can be grouped into a 3x3 grid
 with a single caption. Related comparisons (e.g., data/MC for multiple
-variables) should be side-by-side. A 2×2 grid uses `figsize=(20, 20)`, a
-3×3 uses `figsize=(30, 30)` — following the 10-inches-per-subplot rule.
+variables) should be side-by-side. A 2x2 grid uses `figsize=(20, 20)`, a
+3x3 uses `figsize=(30, 30)` — following the 10-inches-per-subplot rule.
 
 **Variable survey and per-cut compositions.** When presenting N
 related distributions (input variable data/MC comparisons, per-cut
@@ -399,9 +455,9 @@ Sizing for composed grids in the AN:
 
 | Grid | Per-panel height | Example |
 |------|-----------------|---------|
-| 2×2 | `0.35\linewidth` | Data/MC for 4 key variables |
-| 3×3 | `0.28\linewidth` | Full input variable survey |
-| 2×3 | `0.30\linewidth` | Per-subperiod comparisons |
+| 2x2 | `0.35\linewidth` | Data/MC for 4 key variables |
+| 3x3 | `0.28\linewidth` | Full input variable survey |
+| 2x3 | `0.30\linewidth` | Per-subperiod comparisons |
 
 Use `(a)`–`(i)` panel labels in each individual figure via
 `mh.label.add_text("(a)", ax=ax)`. Write one shared caption for the
@@ -428,7 +484,7 @@ show correlations as overlaid 1D distributions or scatter-plot grids —
 these are unreadable for more than ~3 variables. For the correlation
 matrix specifically:
 - Use `vmin=-1, vmax=1` with a diverging colormap
-- Annotate cells with values if the matrix is small enough (< 10×10)
+- Annotate cells with values if the matrix is small enough (< 10x10)
 - For large matrices, show the heatmap without annotations but with a
   clear colorbar
 
@@ -455,3 +511,45 @@ spawning a plotting subagent, the parent agent must include in the prompt:
 
 The plotting agent applies this template and produces the figure. It does not
 make physics decisions about what to plot or how to interpret the result.
+
+### Conceptual and schematic diagrams
+
+Not all AN figures are data plots. Conceptual diagrams — analysis flow
+charts, correction chains, sample composition schematics, region
+definitions — fill gaps where data plots alone don't convey the
+methodology. These are embedded in the relevant AN sections (not a
+standalone chapter): a correction-chain diagram goes in the Corrections
+section, a region-definition diagram goes in Event Selection.
+
+**The figure-scrolling test.** The whole physics story should be
+understandable by scrolling through the figures alone. If a reader
+encounters a non-trivial method (sample merging, correction chain,
+tagging strategy) with no visual explanation, a diagram is missing.
+This gives reviewers a concrete criterion: can you understand the
+analysis flow from figures alone?
+
+**Production rules:**
+- Use `mh.style.use("CMS")` for consistent styling with data plots.
+- Experiment labels (`exp_label`) are NOT required — these are not data plots.
+- The `figsize=(10, 10)` constraint does NOT apply. Use whatever size
+  fits the content naturally (e.g., wide flow charts, tall chains).
+- Build diagrams with matplotlib patches, arrows, `FancyBboxPatch`,
+  `FancyArrowPatch`, and `ax.text()` (exception to the `ax.text` rule —
+  conceptual diagrams are not data plots and `mh.label.add_text` is not
+  appropriate for schematic elements).
+- Save as both PDF and PNG: `bbox_inches="tight", dpi=200, transparent=True`.
+- Captions must be 2+ sentences following the standard format.
+
+**Common diagram types:**
+- **Analysis flow:** boxes for each processing stage, arrows for data
+  flow, branching for signal/control regions
+- **Sample composition:** stacked or grouped boxes showing which physics
+  processes contribute at each selection stage
+- **Correction chain:** sequence of corrections with inputs/outputs at
+  each step (e.g., detector→particle level, unfolding, efficiency)
+- **Region definitions:** schematic of signal, control, and validation
+  regions in discriminant space
+
+Conceptual diagrams are encouraged, not mandatory. They are identified
+during Phase 1 (strategy) and produced during Phase 5 (documentation).
+The figure-scrolling test is the quality criterion.

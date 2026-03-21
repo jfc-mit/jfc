@@ -37,14 +37,19 @@ You are a rendering reviewer for a physics analysis note. Your job is to
 compile the document and inspect the PDF for rendering quality. You do
 NOT evaluate physics content — only document quality.
 
-First, compile the analysis note:
+First, compile the analysis note using the three-step pipeline:
 ```bash
 cd phase5_documentation/outputs
-pandoc ANALYSIS_NOTE_5_v1.md -o ANALYSIS_NOTE_5_v1.pdf --pdf-engine=tectonic \
-  -V geometry:margin=0.75in -V documentclass:article -V fontsize:11pt \
-  --number-sections --toc --filter pandoc-crossref --citeproc \
-  --include-in-header=../../conventions/preamble.tex
+# Step 1: pandoc md → tex
+pandoc ANALYSIS_NOTE_5_v1.md -o ANALYSIS_NOTE_5_v1.tex --standalone \
+  --include-in-header=../../conventions/preamble.tex \
+  --number-sections --toc --filter pandoc-crossref --citeproc
+# Step 2: deterministic structural fixes
+python ../../conventions/postprocess_tex.py ANALYSIS_NOTE_5_v1.tex
+# Step 3: compile to PDF
+tectonic ANALYSIS_NOTE_5_v1.tex
 ```
+Or equivalently, from the analysis root: `pixi run build-pdf`
 
 If compilation fails, document the errors and classify as Category A.
 

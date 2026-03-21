@@ -1,8 +1,8 @@
 ## 9. Multi-Channel Analyses
 
 Many HEP analyses involve multiple channels with different final states (e.g.,
-ttH with 0-lepton, 1-lepton, 2-lepton channels, or Zh with νν̄bb̄, ℓ⁺ℓ⁻bb̄,
-qq̄bb̄ channels). The methodology handles this as follows:
+ttH with 0-lepton, 1-lepton, 2-lepton channels, or Zh with vv+bb, ll+bb,
+qq+bb channels). The methodology handles this as follows:
 
 **Phase 1 (Strategy)** defines the channel decomposition:
 - Which channels are included, with physics motivation

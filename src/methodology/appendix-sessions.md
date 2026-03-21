@@ -127,7 +127,7 @@ Plan: (1) preselection cuts, (2) BDT training with XGBoost, (3) alternative
 NN architecture, (4) optimize working point, (5) closure tests. See plan.md.
 
 ### 14:48 — Preselection implemented
-Wrote preselection.py: 4 cuts (ncharged≥5, thrust<0.9, Evis>0.5√s, |cosθ|<0.9).
+Wrote preselection.py: 4 cuts (ncharged>=5, thrust<0.9, Evis>0.5*sqrt(s), |cos(theta)|<0.9).
 Cutflow: 847k→612k→589k→571k→498k. All cuts motivated by EXPLORATION.md distributions.
 
 ### 15:12 — BDT training complete

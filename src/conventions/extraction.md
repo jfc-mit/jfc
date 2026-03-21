@@ -1,20 +1,21 @@
-# Extraction Measurements
+# Extraction Measurements (Double-Tag / Hemisphere Counting)
 
-Conventions for analyses that extract a physical parameter from event counts
-or rates — double-tag counting, efficiency ratios, branching fractions, or
-similar methods where the result comes from a formula applied to observed
-yields rather than from a fit to a discriminant distribution.
+Conventions for analyses that extract a physical parameter using double-tag
+or hemisphere-counting methods — where the result comes from a closed-form
+formula applied to observed yields and MC-derived efficiencies, exploiting
+the self-calibrating properties of multi-tag counting.
 
 ## When this applies
 
 Any analysis where the primary result is computed from a closed-form
-expression of measured yields, efficiencies, or ratios — not from a
-template fit or unfolding procedure. Common examples:
+expression of tagged and untagged yields in hemisphere pairs — not from a
+template fit or unfolding procedure. The canonical example is R_b extraction
+from N_tt / N_had using hemisphere tagging efficiencies.
 
-- Double-tag counting (e.g., R_b from N_tt / N_had)
-- Efficiency extraction from tag-and-probe
-- Branching fraction ratios
-- Cross-section ratios where backgrounds are negligible or subtracted
+Other extraction techniques (tag-and-probe efficiency measurements,
+branching fraction ratios, cross-section ratios) share some conventions
+with this file but have distinct requirements. They should use dedicated
+conventions files when available.
 
 If the analysis uses a binned likelihood fit to a discriminant shape, the
 `unfolding.md` or search conventions apply instead.
@@ -181,18 +182,18 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
   the QCD effects. Identify which inputs cause the correlation and
   consider removing them — the loss in AUC may be small while the
   gain in C_b stability is large. The self-calibrating advantage of
-  the double-tag method relies on C_b ≈ 1; large corrections amplify
+  the double-tag method relies on C_b ~ 1; large corrections amplify
   the systematic uncertainty on C_b.
 
 - **MVA inputs correlated with the discriminant.** Every MVA input is
   correlated with the classifier output (the discriminant) — that is
   why it is an input. If the input is poorly modelled in MC (data/MC
-  χ²/ndf > 5), the discriminant distribution will differ between data
+  chi^2/ndf > 5), the discriminant distribution will differ between data
   and MC, and the efficiency at a given cut will not transfer. This
   failure mode is invisible to MC closure tests (which use only MC).
   The input variable quality gate (§3, Phase 3) exists to catch this
   before training. Inputs that are strong discriminators but poorly
-  modelled should be calibrated (reweighted) or discarded — see §7.6
+  modelled should be calibrated (reweighted) or discarded — see §7.5
   for the required before/after verification.
 
 - **Neglecting non-primary flavours.** Extraction formulas typically include
@@ -203,15 +204,25 @@ If the analysis uses a binned likelihood fit to a discriminant shape, the
 - **Circular luminosity derivation.** When the analysis derives
   luminosities from the data using theoretical cross-sections (because
   no independent luminosity measurement is available), the lineshape or
-  rate fit becomes tautological — χ² = 0 by construction, because the
+  rate fit becomes tautological — chi^2 = 0 by construction, because the
   data exactly satisfies the model that generated the luminosities. The
   artifact must: (a) state the circularity explicitly with the derivation
   formula, (b) identify which diagnostics remain informative (per-subperiod
   consistency, comparison to published cross-sections, alternative
   luminosity sources), (c) frame observed-vs-expected comparisons as
   self-consistency checks, not independent validations. Presenting
-  χ² = 0 as "excellent goodness-of-fit" without noting the circularity
+  chi^2 = 0 as "excellent goodness-of-fit" without noting the circularity
   is Category A.
+- **Correlated uncertainties in combinations.** When combining results
+  from multiple observables, methods, or subsamples, identify which
+  systematic sources are shared (e.g., renormalization scale variation
+  affects all observables identically; generator choice affects all
+  channels). Shared sources must enter the combination as 100%
+  correlated — not added in quadrature as if independent. Treating
+  a dominant correlated systematic as uncorrelated can reduce the
+  combined uncertainty by a factor of sqrt(N_observables), which is
+  fictitious. Document the correlation assumption for each source
+  in the combination formula.
 
 ---
 

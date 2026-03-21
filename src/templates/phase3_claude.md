@@ -75,7 +75,7 @@ If selected approach is MVA:
 
 - [ ] Sub-delegate MVA training to a sub-agent (see §3a.5)
 - [ ] Train primary classifier (BDT or NN)
-- [ ] Train ≥1 alternative architecture (NN if BDT, vice versa)
+- [ ] Train >=1 alternative architecture (NN if BDT, vice versa)
 - [ ] Try multiclass if >2 physics classes (e.g., b/c/light)
 - [ ] Produce validation plots: ROC, score distributions (train/test overlaid), feature importance
 - [ ] Check data/MC agreement on classifier output — investigate before accepting systematic
@@ -92,19 +92,41 @@ If the initial selection does not meet the physics goal, systematically
 explore alternatives. Maintain a **sensitivity log** (`sensitivity_log.md`)
 tracking each approach, figure of merit, and limiting factor.
 
-Progress through qualitatively different strategies (not just parameter
-tuning). Not all apply to every analysis type — select those relevant:
-1. Optimize the current approach (tune cuts for S/sqrt(B) or equivalent)
-2. Try a more powerful discriminant (cut-based → BDT → GNN)
-3. Try different inference strategies (shape fit vs. counting, different
-   discriminant variables) — primarily for searches and template fits
-4. Revisit region design (tighter SR, different background decomposition,
-   alternative efficiency binning)
+Systematically explore qualitatively different strategies (not just
+parameter tuning). Not all apply to every analysis type — select those
+relevant:
+- Optimize the current approach (tune cuts for S/sqrt(B) or equivalent)
+- Try a more powerful discriminant (cut-based → BDT → GNN)
+- Try different inference strategies (shape fit vs. counting, different
+  discriminant variables) — primarily for searches and template fits
+- Revisit region design (tighter SR, different background decomposition,
+  alternative efficiency binning)
 
 **Stop when:** sensitivity meets the goal, OR 3+ materially different
-approaches tried AND marginal improvement (<10% relative). Document all
-attempts — "we tried X, Y, Z; Y performed best because [reason]" is a
-valid conclusion. See `methodology/03-phases.md` → Phase 3 for full details.
+approaches tried with diminishing returns (<10% relative improvement).
+Document each approach and its limiting factor.
+See `methodology/03-phases.md` → Phase 3 for full details.
+
+## Pre-review self-check
+
+Before submitting for review, verify:
+
+- [ ] >=2 selection approaches tried with quantitative comparison (or
+      Phase 1 infeasibility exemption validated)
+- [ ] Every cut motivated by a plot (N-1 distributions preferred)
+- [ ] Cutflow monotonically non-increasing (investigate if not)
+- [ ] For MVA: input variable quality gate table, >=1 alternative
+      architecture, data/MC on classifier output
+- [ ] For measurements: data/MC on all observable variables, response
+      matrix diagonal fraction checked, closure test passes (or >=3
+      documented remediation attempts with literature check)
+- [ ] All convention requirements implemented or justified
+- [ ] Analysis and plotting code separated (§11.4)
+- [ ] All figures pass plotting rules (see Phase 2 quick reference)
+
+**Your reviewer will check** (§6.4): Background model closes? Every cut
+motivated by plot? Approach comparison done? MVA inputs modelled? For
+measurements: correction validated?
 
 ## Review
 

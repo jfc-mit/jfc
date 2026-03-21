@@ -29,7 +29,9 @@ parameter, use `unfolding.md` or `extraction.md` instead.
   use toys directly).
 - **Test statistic.** Use the profile likelihood ratio with the constraint
   mu >= 0 (one-sided) for upper limits. For discovery significance, use
-  the unconstrained (two-sided) profile likelihood ratio.
+  the test statistic q_0 with q_0 = 0 when the best-fit signal strength
+  mu-hat < 0 (one-sided). Only upward fluctuations of the data count as
+  evidence for discovery. See Cowan et al. (2010) §3.
 - **Signal injection.** Inject signal at 0x, 1x, 2x, and 5x the expected
   cross-section. See Required validation check #2 for pass/fail criteria.
 - **Blinding.** The signal region discriminant distribution in data is not
@@ -45,23 +47,33 @@ searches, replace beam-related sources (ISR, beam energy) with the
 pp-specific equivalents (PDF, pileup) and add luminosity as a normalization
 source.
 
+**LEP1 vs LEP2 context.** The tables below are most directly applicable to
+LEP2 searches (above the WW threshold, sqrt(s) > 161 GeV). At LEP2,
+4-fermion processes (WW, ZZ, Weν) are the dominant irreducible backgrounds
+and ISR is the dominant beam-related systematic. At LEP1 (Z-pole,
+sqrt(s) ~ 91 GeV), the background landscape is different: hadronic Z
+decays and two-photon processes dominate, and 4-fermion backgrounds are
+negligible. The 4-fermion row and the ISR "dominant" designation are
+LEP2-specific. For Z-pole searches, consult the RAG corpus for
+energy-appropriate background sources and systematics.
+
 ### Signal modeling
 
 | Source | What to vary | Rationale |
 |--------|-------------|-----------|
 | Signal cross-section theory uncertainty | Scale variations (muR, muF), higher-order corrections | Affects the interpretation of the limit in terms of a physical parameter |
-| Signal acceptance | Generator comparison, ISR variations | Different generators predict different acceptance at the same √s |
+| Signal acceptance | Generator comparison, ISR variations | Different generators predict different acceptance at the same sqrt(s) |
 | Signal shape | Alternative signal MC or parameter variations (mass, width, coupling) | The discriminant shape determines how the signal distributes across bins |
-| ISR modeling | Vary ISR treatment or compare generators with different ISR implementations | ISR shifts effective √s, affecting signal kinematics and acceptance — dominant beam-related systematic at LEP2 |
+| ISR modeling | Vary ISR treatment or compare generators with different ISR implementations | ISR shifts effective sqrt(s), affecting signal kinematics and acceptance — dominant beam-related systematic at LEP2 |
 
 ### Background estimation
 
 | Source | What to vary | Rationale |
 |--------|-------------|-----------|
-| 4-fermion backgrounds | Compare generators (e.g., KORALW, grc4f, EXCALIBUR) for WW/ZZ/Weν | Irreducible 4-fermion processes are the dominant background for many LEP2 searches; generator differences are significant |
+| 4-fermion backgrounds | Compare generators (e.g., KORALW, grc4f, EXCALIBUR) for WW/ZZ/We+nu | Irreducible 4-fermion processes are the dominant background for many LEP2 searches; generator differences are significant |
 | Background normalization | Vary normalization within CR-constrained or theory uncertainty | Transfer factor or theory cross-section uncertainty propagates to the SR prediction |
 | Background shape | Alternative functional forms or MC generators | Mismodeled shape in the discriminant biases the limit |
-| qq̄(γ) modeling | Compare generators (Pythia, Herwig, KK2f) for 2-fermion backgrounds | Fragmentation and hadronization differences affect jet multiplicity and event shapes |
+| qqbar(gamma) modeling | Compare generators (Pythia, Herwig, KK2f) for 2-fermion backgrounds | Fragmentation and hadronization differences affect jet multiplicity and event shapes |
 | MC statistics | Barlow-Beeston (one NP per bin to absorb MC statistical uncertainty) or equivalent bin-by-bin MC stat terms | Finite MC sample size adds uncertainty to template shapes |
 
 ### Detector and reconstruction

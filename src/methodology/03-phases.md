@@ -98,6 +98,13 @@ comparison, the systematic breakdown, the theory overlay. These are
 defined here in the strategy and produced at the highest quality in
 Phase 5. The list propagates to the AN writing subagent.
 
+**Methodology diagrams.** Identify where conceptual diagrams would help
+a reader understand the analysis flow. Apply the figure-scrolling test:
+if a reader scrolling through the AN figures would encounter a non-trivial
+method (correction chain, sample merging, region definitions) with no
+visual explanation, plan a diagram. List planned diagrams with their
+target AN sections. These are produced in Phase 5.
+
 **Artifact:** `STRATEGY.md`. **Review:** 4-bot (§6).
 
 ---
@@ -114,7 +121,7 @@ foundation.
 - Survey discriminating variables, rank by separation power
 - **Data/MC agreement on candidate variables.** For every variable that
   may enter a classifier or selection, produce a data/MC comparison and
-  report the χ²/ndf. This survey is an input to Phase 3's variable
+  report the chi^2/ndf. This survey is an input to Phase 3's variable
   quality gate — variables with poor data/MC agreement should be flagged
   here so Phase 3 can decide to discard or calibrate them before
   training any MVA.
@@ -137,8 +144,9 @@ estimation. Measurements: selection, correction chain. Phase 3 executes
 the plan; it does not redesign it.
 
 **Selection:**
-- Default to MVA (BDT, NN) for multi-dimensional classification. Cuts
-  acceptable only for preselection, single-variable, or tiny samples (<1000).
+- For multi-dimensional selection, use a method that exploits correlations
+  between variables. Document why if using a simpler approach. Read how
+  reference analyses handled the same selection.
 - **Approach comparison (mandatory).** Phase 3 must try at least two
   selection approaches and compare them quantitatively before choosing one.
   The comparison must use a common figure of merit evaluated on the same
@@ -150,12 +158,12 @@ the plan; it does not redesign it.
   classifier, produce a variable survey table for all candidate input
   features:
 
-  | Variable | Flavour discrimination | Data/MC χ²/ndf | Decision |
+  | Variable | Flavour discrimination | Data/MC chi^2/ndf | Decision |
   |----------|----------------------|----------------|----------|
 
   Each candidate input must pass both a discrimination check (contributes
   to signal/background separation) and a modelling check (data/MC
-  agreement). Variables with data/MC χ²/ndf > 5 should be discarded
+  agreement). Variables with data/MC chi^2/ndf > 5 should be discarded
   unless (a) they provide exceptional discrimination AND (b) a
   data-driven calibration (reweighting, scale factor) is applied and
   validated. A poorly-modelled input that enters the classifier will
@@ -167,15 +175,15 @@ the plan; it does not redesign it.
   tried. But the AN documents the variable survey, the selection
   rationale, the final classifier, and the result — not every
   intermediate training attempt.
-- If MVA: train, validate, optimize. Train ≥1 alternative architecture.
+- If MVA: train, validate, optimize. Train >=1 alternative architecture.
   Try multiclass if >2 physics classes. Check data/MC on classifier output.
   Sub-delegate training to sub-agent (§3a.5). Diagnostic plots (ROC, score
   distributions, feature importance) are AN-bound — save as figures for
   Phase 5 aggregation.
 - Every cut must be motivated by a plot. N-1 distributions preferred
   (apply all cuts except the one being shown). Document sensitivity to
-  cut variation. Cutflow must be monotonically non-increasing
-  (Category A if violated).
+  cut variation. Cutflows should be monotonically non-increasing.
+  Unexplained increases warrant investigation.
 
 **Regions (searches):** Define CRs (enriched in backgrounds) and VRs
 (between CR and SR, statistically independent).
@@ -209,18 +217,11 @@ a **minimal-context subagent** — a fresh agent given only the problem
 statement and data, without the prior failed attempts in context, to get
 an unbiased perspective.
 
-Remediation hierarchy for unfolding:
-1. Adjust regularization (more/fewer iterations, different parameter)
-2. Modify binning (coarser, variable-width, restrict range to
-   well-populated region)
-3. Try a data-driven prior (use reco-level data shape as IBU starting
-   point instead of MC truth)
-4. Try an entirely different unfolding method
-5. Reduce dimensionality (2D → 1D projections)
-
-Only after 3+ remediation attempts have been tried and documented in the
-experiment log may the failure be accepted. Accepting a validation
-failure without remediation attempts is Category A at review.
+Attempt >=3 independent remediation approaches. Read how published analyses
+of the same or similar observable solved the problem. Document all attempts
+in the experiment log. Only after 3+ remediation attempts have been tried
+and documented may the failure be accepted. Accepting a validation failure
+without remediation attempts is Category A at review.
 
 **Wholesale bin exclusion is a red flag.** If a flat-prior gate or
 similar criterion excludes more than 50% of the measurement bins, this
@@ -235,18 +236,27 @@ that are simply poorly constrained.
 validates feasibility → Phase 3 builds estimation inputs for Phase 4.
 
 **Sensitivity optimization (when insufficient):** Maintain `sensitivity_log.md`.
-Progress through qualitatively different strategies (optimize current → more
-powerful discriminant → different inference strategy → revisit regions).
-Stop when goal met OR 3+ approaches tried with marginal improvement.
+Systematically explore qualitatively different strategies. Document each
+approach and its limiting factor. Stop when the goal is met or diminishing
+returns are evident (3+ approaches, <10% relative improvement).
 
 **Method health assessment (measurements).** The Phase 3 artifact must
 include an explicit "Is the method working?" section answering:
-1. Does the closure test converge to chi2/ndf ≈ 1 with a stable plateau
-   spanning ≥ 2 iterations/parameter values?
+1. Does the closure test converge to chi2/ndf ~ 1 with a stable plateau
+   spanning >= 2 iterations/parameter values?
 2. Does the stress test pass at the level of expected data/MC differences?
    (Not just at 50% tilt — characterize the resolving power.)
 3. Does the flat-prior test leave > 50% of bins with < 20% shift?
 4. Is the alternative method viable (closure chi2/ndf < 5)?
+5. Are the validation tests non-tautological? A closure test that applies
+   the correction to MC reco-level and compares to MC truth is legitimate
+   (it should give chi2/ndf ~ 1). But a test where the result is
+   *algebraically guaranteed* — e.g., applying BBB correction factors
+   derived from sample X back to sample X (identity), or a linearity
+   test whose residual is zero by construction — has no diagnostic power.
+   If any validation gives chi2/ndf < 0.1 or residuals exactly zero,
+   check whether the result follows from the algebra rather than from
+   the data. The test must be capable of failing to be informative.
 
 If ANY of these fail, the method needs redesign or the binning needs
 adjustment before proceeding to Phase 4. Document what was tried
@@ -313,10 +323,25 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
 - Validate: NP pulls small, fit converges, results sensible
 - Signal injection tests (searches) or closure tests (measurements)
 - GoF: chi2/ndf AND toy-based p-value (saturated model)
+- **Fit boundary check.** After every fit, verify that no fitted
+  parameter sits at or within 1% of its allowed boundary. A parameter
+  at a boundary means the fit wants to go further — the reported
+  uncertainty is a lower bound, not the true uncertainty. Either widen
+  the bounds and refit, or document the boundary saturation and flag the
+  affected uncertainty as a lower bound. This applies to physics
+  parameters (signal strength, coupling constants) and nuisance
+  parameters alike.
 - For measurements: expected result from MC pseudo-data, never real data.
   See `conventions/extraction.md` for extraction-specific protocol.
 - For measurements: full covariance matrix (stat + per-syst + total) +
-  comparison to ≥1 theory prediction using full covariance
+  comparison to >=1 theory prediction using full covariance
+- **MC-derived quantities require matching conditions.** Do not apply
+  MC-derived quantities (efficiencies, corrections, scale factors)
+  beyond the conditions they were derived from — whether different
+  data-taking periods, detector configurations, or kinematic regions —
+  without an uncertainty that reflects the extrapolation. If MC covers
+  only a subset of the data, either restrict the measurement to that
+  subset or justify applicability and size the uncertainty accordingly.
 
 - **Per-systematic documentation depth.** Each systematic source in the
   artifact must be described in running prose covering: the physical
@@ -329,19 +354,35 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
   natural prose — do NOT use bold-labeled paragraph headings like
   "**Origin:**", "**Method:**", "**Impact:**". These make the document
   read like a form rather than an analysis note.
+- **Phase 1 traceability.** Before finalizing the systematic table,
+  re-read STRATEGY.md and verify every committed systematic source and
+  variation was either implemented or formally downscoped (with a [D]
+  label in the experiment log). Systematics added beyond Phase 1 must
+  also be documented with justification. A systematic that was committed
+  in Phase 1 but silently absent in Phase 4 is Category A.
+- **Zero-impact sanity check.** If any systematic variation produces
+  an impact of exactly zero (or < 0.01% relative), verify that the
+  variation input is actually non-trivial: does the varied sample
+  differ from nominal? Does the relevant branch/weight exist? A
+  zero-impact systematic more often indicates a broken evaluation
+  (missing branch, identical files, no-op variation) than a genuinely
+  negligible effect. Document the verification or assign a conservative
+  literature-based value.
 
 **Artifact:** `INFERENCE_EXPECTED.md` + `ANALYSIS_NOTE_4a_v1.md` (complete
 AN with all detail using expected-only results; 4b/4c update numbers,
 Phase 5 polishes prose and typesets).
 
-**PDF compilation is mandatory at 4a.** After the AN writing subagent
-produces `ANALYSIS_NOTE_4a_v1.md`, the typesetting subagent must compile it
-through the standard typesetter workflow: convert markdown to `.tex`
-(via pandoc), improve the typesetting (float placement, figure grouping,
-table formatting — same workflow as Phase 5 §3), then compile the `.tex`
-to PDF. The compiled PDF is a review input — the 4-bot+bib review panel
-reads the PDF, not the markdown. A review that starts without a compiled
-PDF is a process failure.
+**PDF compilation is mandatory at 4a.** The AN must be compiled to a
+publication-quality PDF before review begins. Separate the concerns of
+statistical analysis, prose writing, and typesetting. The typesetting
+workflow converts markdown to `.tex` (via pandoc), runs
+`postprocess_tex.py` for deterministic structural fixes (margins, abstract,
+references, table spacing, FloatBarrier, needspace, duplicate headers,
+appendix, clearpage), then the typesetter does figure composition and
+longtable conversion before compiling the `.tex` to PDF. The compiled PDF
+is a review input — the 4-bot+bib review panel reads the PDF, not the
+markdown.
 
 **Review:** 4-bot+bib (§6).
 
@@ -372,7 +413,8 @@ all references resolve.
 
 **PDF compilation is mandatory at 4b.** The human gate requires a
 publication-quality draft AN as a compiled PDF. The typesetting
-subagent converts the updated markdown to `.tex`, improves typesetting,
+subagent converts the updated markdown to `.tex`, runs
+`postprocess_tex.py`, does figure composition and longtable conversion,
 and compiles to PDF before the review panel and before the human sees
 it. The human reviews the PDF, not markdown.
 
@@ -383,14 +425,14 @@ it. The human reviews the PDF, not markdown.
 **Goal:** Final results on full dataset.
 
 - Full chain, post-fit diagnostics
-- Compare to **both** 10% and expected. Flag >2σ disagreement with expected
+- Compare to **both** 10% and expected. Flag >2-sigma disagreement with expected
   or disagreement with 10% beyond statistical scaling.
 - Investigate anomalies (large NP pulls, poor GoF)
 - **Viability check (primary and derived quantities).** Before quoting
   any result — primary observable or derived quantity — verify the
   extraction is meaningful:
   - If the total uncertainty exceeds 50% of the central value, or
-    exceeds 10× the world-average precision, the measurement may lack
+    exceeds 10x the world-average precision, the measurement may lack
     resolving power. Document whether it can distinguish the SM from
     alternatives at any meaningful confidence.
   - If the central value deviates from a well-measured reference by
@@ -401,7 +443,7 @@ it. The human reviews the PDF, not markdown.
   - If intermediate steps produce unphysical values (negative widths,
     imaginary couplings), the quantity should be documented as "not
     reliably extractable" rather than quoted with an inflated uncertainty.
-  Quoting a result with a > 3σ pull OR > 50% relative deviation from a
+  Quoting a result with a > 3-sigma pull OR > 50% relative deviation from a
   well-measured value without a quantitative explanation is not
   acceptable (§6.8).
 
@@ -416,11 +458,11 @@ prose artifacts.
 **Artifact:** `INFERENCE_OBSERVED.md` + `ANALYSIS_NOTE_4c_v1.md`.
 
 **AN update is mandatory at 4c.** The AN writing subagent updates the
-AN with full data results (replacing 10% numbers from 4b). PDF
-compilation is recommended but not required at 4c — the Phase 5
-typesetter will do the final compilation. However, if the 4c review
-finds issues in the AN text, a compilation may be needed to verify
-fixes.
+AN with full data results (replacing 10% numbers from 4b). **PDF
+compilation is mandatory at 4c** — the AN must be compiled to PDF
+before review, matching the pattern at 4a and 4b (pandoc →
+`postprocess_tex.py` → typesetter → tectonic). Every AN-producing
+phase (4a, 4b, 4c, 5) compiles to PDF.
 
 **Review:** 1-bot (§6).
 
@@ -430,65 +472,60 @@ fixes.
 
 **Goal:** Final analysis note — publication-quality, self-contained, 50-100 pages.
 
-Phase 5 has three distinct sub-tasks that should be handled by **separate
-subagents** (the AN is context-intensive and must not compete for context
-with figure generation or data processing):
+Phase 5 requires figure production, AN prose writing, and PDF typesetting.
+These are separate concerns that depend on each other (figures → prose →
+PDF). They may be separate agents or combined as context pressure requires.
 
-1. **Figures subagent.** Produces any remaining AN-specific figures not
-   already generated in Phases 2-4 (e.g., per-cut distributions, per-
-   systematic impact plots). Reads data files, runs plotting scripts,
-   saves to `phase5_documentation/outputs/figures/`. This is a code-writing
-   agent. **Flagship figures** (defined in Phase 1 strategy) receive
-   extra attention: tighter axis limits, careful legend placement,
-   considered color choices. These are the figures that would appear in
-   a journal paper.
+**Figure production.** Produces any remaining AN-specific figures not
+already generated in Phases 2-4 (e.g., per-cut distributions, per-
+systematic impact plots). Reads data files, runs plotting scripts,
+saves to `phase5_documentation/outputs/figures/`. **Flagship figures**
+(defined in Phase 1 strategy) receive extra attention: tighter axis
+limits, careful legend placement, considered color choices. These are
+the figures that would appear in a journal paper. **Methodology
+diagrams** planned in Phase 1 (correction chains, region schematics,
+analysis flow charts) are also produced here — see `appendix-plotting.md`
+for production guidelines.
 
-2. **AN writing subagent.** Reads ALL phase artifacts (strategy, exploration,
-   selection, inference) and the figures directory. Writes the complete AN
-   text to `phase5_documentation/outputs/ANALYSIS_NOTE_5_v1.md`. This agent does
-   NOT read data files or write code — it reads artifacts and writes prose.
-   It must produce a document that meets the completeness test: a physicist
-   unfamiliar with the analysis can reproduce every number from the AN alone.
+**AN writing.** Reads ALL phase artifacts (strategy, exploration,
+selection, inference) and the figures directory. Writes the complete AN
+text to `phase5_documentation/outputs/ANALYSIS_NOTE_5_v1.md`. This concern
+does NOT involve reading data files or writing code — it reads artifacts
+and writes prose. The document must meet the completeness test: a physicist
+unfamiliar with the analysis can reproduce every number from the AN alone.
 
-3. **Typesetting subagent.** Runs AFTER the AN writing subagent. This agent
-   is a LaTeX typesetting expert. It:
-   - Runs `pandoc` to convert the markdown AN to `.tex` (not PDF):
-     `pandoc ANALYSIS_NOTE_5_v1.md -o ANALYSIS_NOTE_5_v1.tex --standalone
-     --include-in-header=../../conventions/preamble.tex
-     --number-sections --toc --filter pandoc-crossref --citeproc`
-   - Reads the generated `.tex` file and improves the typesetting:
-     - **Combine related figures** into `\begin{figure}` environments
-       with `\subfloat` or side-by-side `\includegraphics` where
-       applicable (e.g., data/MC comparisons for related variables,
-       systematic shift maps for similar sources, reco vs gen Lund
-       plane). Use `\begin{figure*}` for full-width composites.
-     - **Fix float placement** — ensure no figure overflows the page,
-       add `\clearpage` before dense figure sequences if needed.
-     - **Adjust table formatting** — ensure no column overflow, use
-       `\resizebox` or `\small` for wide tables, add `\toprule`,
-       `\midrule`, `\bottomrule` from booktabs if pandoc didn't.
-     - **Verify every section has prose** — no bare headings before
-       figures.
-     - **Check caption quality** — flag any caption under 2 sentences.
-     - **Optimize page breaks** — prevent awkward orphaned section
-       headings at the bottom of pages.
-     - **Add `\FloatBarrier`** at section boundaries to prevent figures
-       from drifting too far from their text.
-   - Compiles the `.tex` to PDF via `tectonic ANALYSIS_NOTE_5_v1.tex` (or
-     `pdflatex`). Fixes any compilation errors.
-   - Reads the compiled PDF and verifies: no broken figures, no
-     unresolved cross-references, no overflow, no cut-off content.
-   - The final PDF is the deliverable, not the pandoc output.
+**Typesetting.** Runs AFTER the AN is written. The typesetting concern:
+- Runs `pandoc` to convert the markdown AN to `.tex` (not PDF):
+  `pandoc ANALYSIS_NOTE_5_v1.md -o ANALYSIS_NOTE_5_v1.tex --standalone
+  --include-in-header=../../conventions/preamble.tex
+  --number-sections --toc --filter pandoc-crossref --citeproc`
+- Runs `postprocess_tex.py` which handles all deterministic structural
+  fixes automatically: margins, abstract→environment, references
+  unnumbering, table spacing, FloatBarrier insertion, needspace,
+  duplicate header removal, duplicate label removal, appendix insertion,
+  and clearpage placement.
+- The typesetter then reads the `.tex` and does judgment-requiring work:
+  - **Combine related figures** into `\begin{figure}` environments
+    with `\subfloat` or side-by-side `\includegraphics` where
+    applicable (e.g., data/MC comparisons for related variables,
+    systematic shift maps for similar sources). Use `\begin{figure*}`
+    for full-width composites.
+  - **Convert longtable to table** — ensure no column overflow, use
+    `\resizebox` or `\small` for wide tables.
+  - **Verify every section has prose** — no bare headings before
+    figures.
+  - **Check caption quality** — flag any caption under 2 sentences.
+- Compiles the `.tex` to PDF via `tectonic ANALYSIS_NOTE_5_v1.tex` (or
+  `pdflatex`). Fixes any compilation errors.
+- Reads the compiled PDF and verifies: no broken figures, no
+  unresolved cross-references, no overflow, no cut-off content.
+- The final PDF is the deliverable, not the pandoc output.
 
-   **The typesetting agent does NOT modify physics content.** It changes
-   only layout, formatting, and figure grouping. It never changes
-   numbers, captions (except to fix grammar), or section structure. If
-   it finds a physics issue (e.g., missing figure, inconsistent number),
-   it flags it for the AN writing agent rather than fixing it.
-
-The execution order is: figures → AN writing → typesetting → 5-bot review.
-The orchestrator should spawn each in sequence since each depends on the
-previous output.
+**Typesetting does NOT modify physics content.** It changes only layout,
+formatting, and figure grouping. It never changes numbers, captions
+(except to fix grammar), or section structure. If it finds a physics
+issue (e.g., missing figure, inconsistent number), it flags it for the
+AN writer rather than fixing it.
 
 See `analysis-note.md` for full AN specification.
 

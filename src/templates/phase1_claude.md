@@ -79,6 +79,27 @@ These are the critical actionable items for Phase 1. See
   systematic breakdown, the theory comparison overlay. These are defined
   here and produced at the highest quality in Phase 5.
 
+## Pre-review self-check
+
+Before submitting for review, verify:
+
+- [ ] Corpus queries executed — at least 3 searches, all results cited
+- [ ] Backgrounds classified (irreducible, reducible, instrumental)
+- [ ] >=2 selection approaches identified with comparison plan (or
+      documented infeasibility with Phase 1 review validating)
+- [ ] Systematic plan enumerates EVERY source in applicable conventions
+      files: "Will implement" or "Not applicable because [reason]"
+- [ ] Reference analysis table: 2-3 analyses with systematic programs
+- [ ] Method parity: if references used a more sophisticated method,
+      committed to matching it or implementing as cross-check
+- [ ] Constraint [A], limitation [L], and decision [D] labels defined
+- [ ] For measurements: flagship figures (~6) identified, correction
+      strategy defined, theory comparison independence verified
+
+**Your reviewer will check** (§6.4): Backgrounds complete? Systematic
+plan covers conventions? Reference analyses tabulated? >=2 selection
+approaches planned? Method parity with published analyses?
+
 ## Review
 
 **4-bot review** — see `methodology/06-review.md` for protocol.

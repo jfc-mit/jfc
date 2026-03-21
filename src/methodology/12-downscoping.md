@@ -33,6 +33,15 @@ try it first. If it fails, document why and downscope with evidence.
 1. **Document** the constraint in the experiment log.
 2. **Choose best achievable method.** Fall back along complexity ladder
    (GNN → BDT → cut-based) or reduce scope.
+
+   **Label the status change.** When a method's role changes (e.g.,
+   "co-primary" → "cross-check", "primary unfolding" → "abandoned"),
+   record the transition in the experiment log with a [D] label:
+   `[D] SVD unfolding: co-primary → cross-check (diagonal fraction 24.7%,
+   below 30% threshold)`. The Phase 3/4 artifact must use the updated
+   status label. Silent status changes — where a method quietly
+   disappears or is relabeled without documentation — are Category A
+   at review.
 3. **Quantify impact.** Estimate what the missing resource would contribute.
 4. **Carry to the AN.** Every downscoping → method section + systematic
    table + Future Directions. A limitation only in the experiment log is
@@ -40,7 +49,7 @@ try it first. If it fails, document why and downscope with evidence.
 
 ### Key scenarios
 
-- **Missing MC:** Omit if small, or estimate from theory (σ × ε from similar
+- **Missing MC:** Omit if small, or estimate from theory (sigma * epsilon from similar
   process).
 - **Low MC stats:** Coarser binning, merged regions, cut-and-count. Include
   MC stat uncertainty (Barlow-Beeston).

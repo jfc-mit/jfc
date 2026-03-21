@@ -68,6 +68,34 @@ These are the critical actionable items for Phase 2. See
   "see what's there."
 - Append findings to experiment_log.md as you go.
 
+## Pre-review self-check
+
+Before submitting for review, verify:
+
+- [ ] Sample inventory: every file with tree names, branches, events
+- [ ] Data quality: no pathologies, outliers, unphysical values
+- [ ] Object definitions applied from corpus and cited
+- [ ] Variable survey with data/MC comparisons for all candidates
+- [ ] Baseline yields after preselection
+- [ ] PDF build test passed
+- [ ] Experiment log updated with discoveries
+- [ ] All figures pass plotting rules (see quick reference below)
+
+### Plotting quick reference
+
+These are the rules most commonly caught at review. Full spec in
+`methodology/appendix-plotting.md`.
+
+1. `figsize=(10, 10)` always — never custom sizes
+2. `mpl_magic(ax)` after all plotting to prevent legend-data overlap
+3. 2D colorbars: `make_square_add_cbar(ax)` or `cbarextend=True` —
+   never `fig.colorbar(im)` or `fig.colorbar(im, ax=ax)`
+4. `mh.histplot()` for all binned data — never `ax.step()`, `ax.bar()`
+5. No absolute `fontsize=N` — use `'x-small'` etc.
+6. `exp_label()` on every independent axes, NEVER on ratio panels
+7. Separate matplotlib outputs composed in LaTeX — only use multi-panel
+   matplotlib for ratio plots with `sharex=True`
+
 ## Review
 
 **Self-review + plot validator.** Explicitly check: sample inventory

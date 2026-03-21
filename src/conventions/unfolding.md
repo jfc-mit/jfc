@@ -33,7 +33,7 @@ particle-level result — regardless of the correction method used
 
 ## Literature requirement
 
-**Before choosing a correction method, read how ≥2 published analyses
+**Before choosing a correction method, read how >=2 published analyses
 of the same or a similar observable handled the correction.** Query the
 RAG corpus for published measurements. For each reference analysis,
 document:
@@ -70,7 +70,7 @@ them is the analyst's choice.
    dominant systematic for shape measurements.
 
 4. **Covariance validation.** Positive semi-definite (all eigenvalues
-   ≥ 0). Condition number < 10^10. Visualize the correlation matrix.
+   >= 0). Condition number < 10^10. Visualize the correlation matrix.
 
 5. **Data/MC input validation.** Before building any correction, produce
    data/MC comparisons for all kinematic variables entering the

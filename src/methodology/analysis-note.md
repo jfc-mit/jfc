@@ -55,10 +55,65 @@ lineshape, residuals, profiles, correlations, systematics, comparisons).
 
 ---
 
+### Change log
+
+The AN must include a **Change Log** section as the first content after the
+table of contents, before the Introduction. It is unnumbered
+(`# Change Log {-}`) and does not appear in section numbering. The change
+log is maintained incrementally — each phase that modifies the AN appends
+entries at the top (reverse chronological order). Entries are grouped by
+phase/version and use bulleted summaries describing what changed and why.
+
+The first AN version (Phase 4a) initializes the change log with a single
+entry: "Initial AN version (Phase 4a)." Subsequent phases (4b, 4c, 5) and
+review-fix cycles each add a dated group summarizing the changes made.
+
+Example format:
+```
+# Change Log {-}
+
+**Phase 5 v2 (review fixes)**
+- Expanded systematic §5.3 (tracking efficiency) with per-bin impact figure
+- Fixed cross-reference to response matrix in §4.2
+
+**Phase 5 v1**
+- Final prose polish, typesetting, flagship figure updates
+
+**Phase 4c v1**
+- Updated all results to full dataset (was 10% in 4b)
+- Added observed/expected comparison figures
+
+**Phase 4a v1**
+- Initial AN version (Phase 4a)
+```
+
+---
+
 ### Required sections
 
 1. **Introduction** — motivation, observable definition, prior measurements
-2. **Data samples** — experiment, √s, luminosity, MC generators, event counts
+2. **Data samples** — experiment, sqrt(s), luminosity, MC generators, event
+   counts. This section must include **structured sample tables** (not
+   free-form prose or file listings):
+
+   **Data summary table** — one row per data-taking era/period:
+
+   | Period | $\sqrt{s}$ [GeV] | Events (pre-sel) | $\mathcal{L}$ [pb$^{-1}$] |
+   |--------|-------------------|------------------|---------------------------|
+   | 1992   | 91.2              | 450k             | 10.0                      |
+   | ...    | ...               | ...              | ...                       |
+
+   **MC sample table** — one row per physics process:
+
+   | Process | Generator | $\sigma$ [nb] | $N_\text{gen}$ | $k$-factor | Notes |
+   |---------|-----------|---------------|----------------|------------|-------|
+   | $q\bar{q}$ | PYTHIA 6.1 | 30.5 | 4.0M | 1.0 | hadronic Z |
+   | ...     | ...       | ...           | ...            | ...        | ...   |
+
+   These are **summary-level tables** — one row per era or per physics
+   process, not per-file inventories. For open/archived data, document
+   what is known and mark unknowns explicitly (e.g., "cross-section not
+   published — estimated from generator-level counting").
 3. **Event selection** — every cut with motivation, distribution plot
    (N-1 preferred), efficiency (per-cut and cumulative), sensitivity to
    cut variation
@@ -114,6 +169,24 @@ aggregates them. Missing diagnostics are Category A at review.
 - **Fit diagnostics.** Nuisance parameter pulls (pre-fit and post-fit),
   goodness-of-fit (chi2/ndf, p-value), post-fit data/model comparisons,
   corrected result vs theory or prior expectation.
+- **Conceptual and methodology diagrams.** Where the analysis methodology
+  involves non-trivial multi-step procedures (correction chains, sample
+  merging strategies, region definitions, tagging logic), embed a
+  schematic diagram in the relevant section — not in a standalone chapter.
+  A correction-chain diagram belongs in the Corrections section; a
+  region-definition diagram belongs in Event Selection. These diagrams are
+  part of the narrative flow, not appendix material.
+
+  The guiding principle is the **figure-scrolling test**: the entire
+  physics story should be understandable by scrolling through the figures
+  alone, even if not in the same detail as the text. If a reader scrolling
+  through figures encounters a non-trivial method with no visual
+  explanation, a diagram is missing. Conceptual diagrams fill the gaps
+  where data plots alone don't convey the methodology.
+
+  Diagrams are encouraged, not mandatory — but the figure-scrolling test
+  gives reviewers a concrete criterion. See `appendix-plotting.md` §D for
+  production guidelines.
 
 ---
 
@@ -131,10 +204,12 @@ aggregates them. Missing diagnostics are Category A at review.
 
 ### LaTeX compilation
 
-Markdown → PDF via **pandoc** (≥3.0) + tectonic (or xelatex). The
-`build-pdf` pixi task runs pandoc with
-`--number-sections --toc --filter pandoc-crossref --citeproc
---include-in-header=../../conventions/preamble.tex`. The preamble
+Markdown → PDF via a three-step pipeline: **pandoc** (>=3.0) produces a
+`.tex` file, **`postprocess_tex.py`** applies deterministic structural
+fixes (margins, abstract→environment, references unnumbering, table
+spacing, FloatBarrier, needspace, duplicate headers/labels, appendix,
+clearpage), then **tectonic** (or xelatex) compiles to PDF. The
+`build-pdf` pixi task runs this full pipeline. The preamble
 (`conventions/preamble.tex`, symlinked from `src/conventions/`) sets:
 default figure **height** `0.45\linewidth` (height-based, not width-based,
 so figures with colorbars render at the same plot-area size as plain
@@ -162,6 +237,19 @@ These patterns cause mangled output and must be avoided:
 - **Section headers must not contain complex LaTeX.** Use plain text
   for headers: "Gamma-Z interference" not
   `$\gamma$-Z interference ($j_{had} = 0.14$)"`.
+- **The abstract must not be a numbered section.** Pandoc converts
+  `# Abstract` to `\section{Abstract}`, producing "1 Abstract" in the
+  PDF. Auto-fixed by `postprocess_tex.py` (converts to
+  `\begin{abstract}...\end{abstract}` and moves before
+  `\tableofcontents`).
+- **References must be unnumbered.** Pandoc produces
+  `\section{References}`. Auto-fixed by `postprocess_tex.py` (converts
+  to `\section*{References}\addcontentsline{toc}{section}{References}`).
+- **Tables need spacing from preceding text.** Pandoc places
+  `\begin{longtable}` directly after the preceding paragraph with no
+  visual break, causing table captions to collide with paragraph text.
+  Auto-fixed by `postprocess_tex.py` (inserts `\vspace{1em}` before
+  each `\begin{longtable}`).
 
 ### Table formatting
 
@@ -208,5 +296,13 @@ for these common rendering defects. All are Category A findings:
 - **Overfull hbox warnings.** These indicate content (usually tables)
   extending past margins. Every overfull hbox warning must be
   investigated and resolved.
+- **Abstract formatting.** The abstract must appear before the table of
+  contents as an unnumbered block, not as "Section 1: Abstract." This
+  is a pandoc structural issue that the typesetter must fix in the
+  `.tex` before compilation.
+- **Table-caption collision.** Table captions must be visually separated
+  from preceding paragraph text. If a table caption reads as a
+  continuation of the preceding paragraph (no vertical gap), add
+  `\vspace{1em}` before the table environment.
 
 ---

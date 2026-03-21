@@ -31,7 +31,7 @@ review finding if absent:
 - [ ] `pixi.toml` has an `all` task reproducing the full chain
 - [ ] Experiment log is non-empty
 - [ ] All intermediate phase artifacts exist on disk
-- [ ] **No empty sections:** every heading has ≥1 paragraph of prose before
+- [ ] **No empty sections:** every heading has >=1 paragraph of prose before
   any figure or table. A bare heading followed by only a figure reference
   produces an empty-looking section in the rendered PDF.
 
