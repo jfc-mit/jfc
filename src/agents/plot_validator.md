@@ -81,20 +81,20 @@ PROGRAMMATIC FIGURE CHECKS:
       names, not code variable names (grep for underscored identifiers in
       label strings)
 
-PHYSICS SANITY CHECKS (load histogram data where available):
-- [ ] All yields are non-negative
-- [ ] All efficiencies lie in [0, 1]
-- [ ] Data/MC ratios in control regions fall within [0.5, 2.0]
-- [ ] Uncertainties scale approximately as sqrt(N) for statistical-only bins
-- [ ] pT and mass distributions fall off at high values (no unphysical plateaus)
-- [ ] Cutflow yields are monotonically non-increasing
-- [ ] Background composition fractions sum to approximately 100%
-- [ ] No NaN or Inf values in any histogram bin
+DERIVED-QUANTITY ERROR BAR TRAP:
+- [ ] Search for `.view()[:] =` or `.view()[:] +=` in plotting scripts.
+      If found near `histtype="errorbar"` without an explicit `yerr=`
+      parameter, this is Category A. mplhep applies sqrt(bin_content)
+      as error bars, which is nonsensical for non-count values (correction
+      factors, normalized distributions, derived quantities). The fix is
+      to pass `yerr=sigma` explicitly — either to `mh.histplot(h,
+      yerr=sigma, histtype="errorbar")` or to `ax.errorbar(x, y,
+      yerr=sigma)`.
+- [ ] Search for `data=False` combined with `llabel=` — this stacks
+      "Simulation" (from data=False) with the llabel text. Always use
+      `data=True` and control the label via `llabel=`.
 
-CONSISTENCY CHECKS (cross-validate across scripts and outputs):
-- [ ] Same process has consistent yields across different plots
-- [ ] Pre-fit and post-fit yields are consistent with the fit result
-- [ ] Nuisance parameter impact ranking matches the uncertainty breakdown table
+CONSISTENCY CHECKS (file-level):
 - [ ] Figures referenced in the artifact actually exist in outputs/figures/
 - [ ] No duplicate figure filenames with different content
 
@@ -132,22 +132,19 @@ LAYOUT (Category A for ratio panel issues, B otherwise):
       whitespace, no clipped content.
 - [ ] Ratio panel has no visible gap from main panel.
 
-PHYSICAL SENSE (Category B):
-- [ ] Distribution shapes match expectations (peaked where expected,
-      falling where expected, no unphysical features).
-- [ ] Error bars are reasonable (not suspiciously uniform, not missing).
+ERROR BAR VISUAL CHECK (Category A if wrong):
+- [ ] Error bars look reasonable in magnitude relative to the plotted
+      values. Giant error bars (>100% of the value) on derived quantities
+      (correction factors, normalized spectra, ratios) almost always
+      indicate the sqrt(N) trap — mplhep applied sqrt(bin_content) to
+      non-count values. Flag as Category A.
+- [ ] Error bars are not suspiciously uniform (all identical height) or
+      missing entirely on data points.
 
-RED FLAGS (automatic Category A — arbiter may NOT downgrade):
-- [ ] Negative event yields in any bin
-- [ ] Efficiencies outside [0, 1]
-- [ ] Data/MC ratio outside [0.2, 5.0] in a control region
-- [ ] Zero uncertainty on a non-zero prediction
-- [ ] Non-converged fit (fit status != 0)
-- [ ] Nuisance parameter pulls > 3 sigma
-- [ ] chi2/ndf > 5.0 in any goodness-of-fit test
-- [ ] Systematic variation exceeding 100% of the nominal
-- [ ] Identical outputs from independent parallel processing (fork bug)
+RENDERING RED FLAGS (automatic Category A — arbiter may NOT downgrade):
 - [ ] Missing experiment label on any figure
+- [ ] Spurious text artifacts (e.g., "Axis 0" in ratio panels from
+      mplhep exp_label interaction with sharex subplots)
 
 === REPORTING ===
 

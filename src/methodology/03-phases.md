@@ -74,7 +74,13 @@ measurements substitute: fiducial region, sidebands, purity optimization.
 - **Systematic plan:** read applicable `conventions/` document, enumerate
   every required source with "Will implement" or "Not applicable because
   [reason]." This is binding — Phase 4a reviews against it.
-- Identify 2-3 reference analyses, tabulate their systematic programs
+- Identify 2-3 reference analyses, tabulate their systematic programs.
+  **Extract published numerical results** (central values and uncertainties
+  at representative kinematic points) from the reference analyses and record
+  them in the strategy artifact. These become binding comparison targets at
+  Phase 4c review (per §6.8). Do not defer literature data extraction to
+  Phase 5 — the comparison values must be available before Phase 4a so the
+  executor can include quantitative comparison plots from the start.
 - **Constraint and limitation labels.** Throughout the strategy, label
   known constraints [A1], [A2], ..., known limitations [L1], [L2], ...,
   and key design decisions [D1], [D2], .... These labels propagate to
@@ -126,6 +132,26 @@ foundation.
   here so Phase 3 can decide to discard or calibrate them before
   training any MVA.
 - Establish baseline yields after preselection
+- **Published yield cross-check (pre-selected data).** When the data has
+  been pre-selected at ntuple production ("aftercut", "skimmed", or
+  similar), the pre-selection efficiency is an unmeasured correction
+  that will propagate to the cross-section. Characterize it in Phase 2:
+  1. From cited references, obtain the published luminosity and
+     cross-section at each energy point.
+  2. Compute expected event counts: N_exp = L_pub × sigma_pub.
+  3. Compare to observed event counts in the ntuples: N_obs.
+  4. The ratio f_presel = N_obs / N_exp is the pre-selection efficiency.
+  5. Tabulate f_presel per energy point and per year. Flag any
+     energy dependence — if f_presel varies by more than 2% across
+     energy points, it will bias lineshape/shape measurements unless
+     corrected. This is a Phase 4 input, not a curiosity.
+  6. If f_presel cannot be computed (no published luminosity), document
+     this as a limitation and plan for Phase 4.
+
+  This cross-check catches two problems early: (a) energy-dependent
+  pre-selection that would distort the lineshape, and (b) mismatched
+  data periods (archived files containing events from unpublished
+  sub-periods for which no luminosity is available).
 
 **Data discovery:** Metadata first → small slice (~1000 events) → identify
 jagged structure → document schema.
@@ -534,6 +560,33 @@ it. The human reviews the PDF, not markdown.
   This gate applies even if the executor already acknowledges the
   circularity. Acknowledgment is not remediation. A measurement
   that is circular when non-circular inputs exist is Category A.
+
+- **Poor GoF → investigate calibration (mandatory).** When a fit
+  produces chi2/ndf >> 1 (e.g., > 10) after introducing a correction
+  that was previously absent (switching from derived to published
+  luminosities, adding an efficiency correction, changing the
+  background model), the first hypothesis is a **missing calibration**
+  — an energy-dependent, time-dependent, or sample-dependent detector
+  effect that was previously absorbed by the derived quantity and is
+  now exposed.
+
+  Do NOT conclude "the correction doesn't work" or revert to the
+  uncorrected (possibly circular) approach. Instead:
+  1. Examine the residuals per data point. Which points drive the chi2?
+  2. Check whether the problematic points share a common property
+     (energy region, data-taking year, detector configuration).
+  3. Compute the ratio of observed to expected yields at each point.
+     A smooth, non-flat ratio indicates an unmeasured efficiency
+     that varies with the relevant dimension.
+  4. Calibrate the missing efficiency using published reference values
+     (cross-sections, event counts) at each point. This is a standard
+     detector calibration — using a known candle to measure response.
+  5. Refit with the calibrated corrections. The chi2 should improve
+     dramatically. If it doesn't, the problem is elsewhere.
+
+  This pattern — "correct result appears only after calibrating an
+  effect that was hidden by a circular derivation" — is common in
+  precision measurements with archived or reprocessed data.
 
 - **Viability check (every reported measurement).** Before quoting
   any result — primary observable, secondary observable, or derived

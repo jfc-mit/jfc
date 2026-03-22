@@ -62,14 +62,32 @@ Comparison section of the AN, not buried in an appendix.
 
 **Dead-end approaches.** The experiment log records all approaches
 tried, including failures. The AN presents the variable survey, the
-selection rationale, the final method, and the result. A failed
-approach gets at most one sentence and optionally one figure
-demonstrating why it fails — not a dedicated section with multiple
-plots. The number of potential failure modes is infinite; documenting
-each one adds noise without physics value. The exception is a failure
-mode that teaches a generalizable lesson (e.g., a subtle resolution
-definition error that others would likely repeat) — these deserve a
-brief methodological discussion.
+selection rationale, the final method, and the result.
+
+Any approach that was seriously attempted and rejected (e.g., a BDT
+tagger rejected for data/MC disagreement, an alternative unfolding
+method that failed closure) must be documented with **evidence** in
+an appendix subsection:
+1. What was tried (1-2 sentences)
+2. Why it failed — with a quantitative criterion (e.g., "data/MC
+   chi2/ndf > 5 on 3 of 13 input variables", "closure test bias
+   of 15% in forward bins")
+3. At least one diagnostic figure showing the failure mode (e.g.,
+   the data/MC comparison on the BDT score, the failed closure
+   test residuals). The figure must be produced and saved during
+   the phase that rejected the approach.
+4. What the analysis uses instead and why it's better (1 sentence)
+
+"Rejected due to data/MC disagreement" without showing the
+disagreement is Category B — the reader and reviewer cannot
+assess whether the rejection was justified without seeing the
+evidence. The diagnostic figures are produced in Phase 3 (where
+approaches are compared) and must be preserved for the AN.
+
+Purely exploratory dead ends (e.g., trying a cut value that gave
+worse S/B) do not need appendix subsections — a sentence in the
+experiment log suffices. The threshold: if the approach involved
+writing and running code, its failure deserves a figure.
 
 **Numerical self-consistency.** Every numerical value in the AN must
 appear consistently wherever it is quoted — per-section tables, summary

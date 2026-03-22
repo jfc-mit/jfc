@@ -47,7 +47,7 @@ py = "python"
 # subagent invokes pandoc directly with the specific versioned filename
 # (e.g., ANALYSIS_NOTE_4a_v1.md) rather than using this task.
 build-pdf = "cd phase5_documentation/outputs && EXTRA_PREAMBLE=''; [ -f analysis_preamble.tex ] && EXTRA_PREAMBLE='--include-in-header=analysis_preamble.tex'; pandoc ANALYSIS_NOTE_5_v1.md -o ANALYSIS_NOTE_5_v1.tex --standalone --include-in-header=../../conventions/preamble.tex $EXTRA_PREAMBLE --number-sections --toc --filter pandoc-crossref --citeproc && python ../../conventions/postprocess_tex.py ANALYSIS_NOTE_5_v1.tex && tectonic ANALYSIS_NOTE_5_v1.tex"
-lint-plots = """find . -path '*/src/*.py' -newer pixi.toml | head -100 | xargs grep -n -E '(ax\\.set_title\\(|fontsize=[0-9]|plt\\.colorbar\\(|fig\\.colorbar\\(.*ax=|ax\\.step\\(|ax\\.bar\\(|ax\\.text\\(|ax\\.annotate\\(|tight_layout\\()' || echo 'No plotting violations found.'"""
+lint-plots = "python conventions/lint_plots.py ."
 # --- Analysis tasks: add as you write scripts ---
 # Each script gets an independently runnable task.
 # The "all" task chains the full sequence — this is the reproducibility contract.

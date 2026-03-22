@@ -207,6 +207,39 @@ aggregates them. Missing diagnostics are Category A at review.
 - **BibTeX:** `[@key]` with `references.bib`. Entries must include `doi`,
   `url`, `eprint`. Use `unsrt`-style. Use `get_paper` for RAG papers.
 
+### Literature requirements
+
+- **Foundational citations (Category A if missing).** The AN must cite the
+  original theoretical papers that defined the observable being measured
+  (e.g., Basham, Brown, Ellis, Love 1978 for EEC; Ellis, Georgi, Machacek
+  et al. for event shapes). "Mentioned by name but not cited" is Category A.
+- **Published data overlay.** When prior measurements of the same observable
+  exist at the same or similar energy, the Results section must include a
+  quantitative comparison figure: overlay the published data points on the
+  corrected result, or show a ratio/pull plot. Stating "consistent with
+  published values" without showing the comparison is Category B. If
+  published data points are not available in machine-readable form, state
+  this explicitly and provide a table comparing values at representative
+  bins/points.
+- **Cross-experiment context.** The Introduction must cite at least 2
+  measurements of the same or closely related observable from other
+  experiments (LEP, Tevatron, LHC) where they exist. For a first
+  measurement, cite the closest precursor measurements and explain
+  what is new.
+- **Reference citation count diagnostic.** A 50+ page AN with fewer than
+  15 references almost certainly has citation gaps — missing foundational
+  theory, missing prior measurements, missing methodology references, or
+  missing detector papers. This is not a hard floor, but the BibTeX
+  reviewer should flag it and investigate.
+- **Phase 1 data extraction (binding).** When reference analyses are
+  identified in Phase 1, the executor must extract not just the systematic
+  list but also the **published numerical results** (central values and
+  uncertainties at specific kinematic points) for use as quantitative
+  comparison targets in Phase 4. These become binding comparison points
+  at Phase 4c review (per the validation target rule §6.8). Ad-hoc
+  literature lookup at Phase 5 is too late — the comparison data must
+  be on disk before Phase 4a.
+
 ---
 
 ### LaTeX compilation
@@ -319,5 +352,13 @@ for these common rendering defects. All are Category A findings:
   from preceding paragraph text. If a table caption reads as a
   continuation of the preceding paragraph (no vertical gap), add
   `\vspace{1em}` before the table environment.
+- **Figure overflow (mandatory post-compilation check).** After PDF
+  compilation, run `grep "Overfull.*hbox" *.log` on the TeX log. Any
+  overfull hbox involving a figure or table environment is Category A.
+  The typesetter must verify that 2D plots with colorbars and multi-panel
+  figures fit within `\linewidth`. Figures taller than `0.7\textheight`
+  will push captions to the next page — add explicit `height=` attributes
+  to oversized figures. The `build-pdf` task should be run and the log
+  checked before submitting for review.
 
 ---

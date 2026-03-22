@@ -63,6 +63,11 @@ Before producing your artifact, self-check:
       measurement, cited coefficient) cannot be found via RAG, escalate
       the lookup (get_paper → fetch PDF → orchestrator blocker). Do NOT
       silently substitute a derived value for a committed published value.
+- [ ] No algebraic circularity: trace each input to the cross-section
+      or fit formula (luminosity, efficiency, background). If ANY input
+      was derived from the same observable the fit is measuring, the
+      result is tautological. Common trap: L = N/(eps*sigma_theory)
+      makes sigma_meas = sigma_theory identically. Use published values.
 - [ ] Every validation test failure has 3+ documented remediation attempts
 - [ ] Every systematic is propagated through the chain (not flat borrowed)
 - [ ] Every section heading has prose content (not just figures)

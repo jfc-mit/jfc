@@ -108,6 +108,22 @@ If a systematic seems missing, check what reference analyses included.
 Cite specific papers and sections when the corpus provides relevant
 precedent.
 
+PHYSICS SANITY CHECKS ON FIGURES (mandatory — these belong in physics
+review, not formatting review):
+- [ ] All yields are non-negative
+- [ ] All efficiencies lie in [0, 1]
+- [ ] Data/MC ratios in control regions fall within [0.5, 2.0]
+- [ ] Uncertainties scale approximately as sqrt(N) for statistical-only bins
+- [ ] Cutflow yields are monotonically non-increasing
+- [ ] No NaN or Inf values in any histogram bin
+- [ ] Same process has consistent yields across different plots
+- [ ] Pre-fit and post-fit yields are consistent with the fit result
+- [ ] Distribution shapes match expectations (peaked where expected,
+      falling where expected, no unphysical features)
+- [ ] Negative yields, efficiencies outside [0,1], non-converged fits,
+      nuisance parameter pulls > 3 sigma, chi2/ndf > 5.0, or systematic
+      variation exceeding 100% of nominal are all Category A red flags
+
 ADVERSARIAL STANCE: Assume the executor is unconsciously motivated to
 present its work favorably — not out of malice, but because LLMs
 naturally rationalize and frame limitations as acceptable. Your job is

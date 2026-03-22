@@ -66,6 +66,30 @@ append a short entry at each milestone (plan produced, section written,
 figure references verified). This is your crash-resilient lab notebook —
 write to it as you go, not at the end.
 
+FIGURE INVENTORY (mandatory before writing any text):
+Before planning sections, run `find */outputs/figures/ -name "*.pdf" | sort`
+to list ALL figures produced across phases 2-4. Classify each as:
+- **Required** — must appear in the AN (main text or appendix):
+  - [ ] Every selection variable has a data/MC comparison figure
+  - [ ] Every systematic has an impact figure showing how it shifts the result
+  - [ ] Every cross-check has a comparison plot (overlay/ratio/pull — not
+        just "PASS" text)
+  - [ ] Every discarded approach has at least one diagnostic figure showing
+        WHY it was discarded (e.g., data/MC disagreement on BDT score)
+  - [ ] Response matrix / migration matrix shown (if unfolding used)
+  - [ ] Fit diagnostics shown (NP pulls, GoF, postfit data/model)
+  - [ ] Per-cut N-1 distributions (or before/after)
+  - [ ] MVA diagnostics if classifier used (ROC, score, feature importance)
+- **Optional** — may be excluded with documented reason:
+  - Superseded exploratory plots (Phase 2 version replaced by Phase 3/4)
+  - Redundant variants of the same distribution
+  - Intermediate debugging plots
+
+Every "required" figure that does NOT appear in the AN is Category A.
+Every "optional" exclusion must be noted in the session log with reason.
+When in doubt, include it in an appendix — extra figures are free, missing
+figures lose information.
+
 QUALITY STANDARDS:
 - Target 50-100 rendered pages. Under 30 is Category A.
 - Every section heading must have at least one paragraph (2-3 sentences
