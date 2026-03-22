@@ -125,12 +125,59 @@ Example format:
    (N-1 preferred), efficiency (per-cut and cumulative), sensitivity to
    cut variation
 4. **Corrections / unfolding** (measurements) — full procedure, closure/stress
-   tests, response matrix, regularization
-5. **Systematic uncertainties** — one subsection per source: physical
-   origin, evaluation method (with justification of variation size),
-   numerical impact (table + figure), interpretation and caveats.
-   Document failed evaluation attempts. Summary budget table with
-   footnotes explaining any capped, excluded, or sub-leading terms.
+   tests, response matrix, regularization. **Key equations must be displayed**
+   as `$$...$$` — the correction/unfolding formula, the likelihood or chi2
+   used for fitting, and the systematic propagation formula. A reader should
+   be able to implement the method from the equations in the AN without
+   reading the code. "The correction is applied bin-by-bin" without showing
+   $C(\chi) = N_\text{gen}(\chi) / N_\text{reco}(\chi)$ is incomplete.
+
+   **Validation documentation standard.** Each validation test (closure,
+   stress, flat-prior, alternative method) must include ALL of:
+   (a) what was tested and why, (b) what the expected result is,
+   (c) what was observed (chi2/ndf, p-value, max deviation), (d) figure
+   showing the test result (not just a number), (e) interpretation —
+   does the test pass? If not, what was tried to fix it (3+ attempts
+   required)? What does this mean for the result's reliability?
+   "Closure test passes" without (a-e) is Category B.
+
+   **Stress test formula.** The AN must state the stress test reweighting
+   formula (e.g., $w = 1 + \alpha(T - \langle T \rangle)/\sigma_T$),
+   the variable used, the magnitudes tested (5%, 10%, 20%), and the
+   recovery accuracy at each level. A table showing magnitude vs max
+   bin deviation is the minimum. This tells the reader the method's
+   resolving power — "robust for expected data/MC differences of a
+   few percent" is useful; "stress test passes" is not.
+5. **Systematic uncertainties** — one subsection per source following
+   this template (the z_lineshape analysis is the model):
+   - **Physical origin** (1-2 sentences: what physical effect causes this)
+   - **Evaluation method** (how the variation is defined, what is varied,
+     through what chain it propagates — cite the formula or reference).
+     State the variation size and justify it with a measurement or
+     published uncertainty. "±50% on the background" is Category A
+     unless 50% IS the measured uncertainty.
+   - **Numerical impact** (table row + impact figure showing how the
+     result shifts bin-by-bin). Flat shifts on shape measurements are
+     Category A — see executor self-check.
+   - **Interpretation** (is this dominant? subdominant? correlated with
+     other sources? what would reduce it?)
+   A subsection that only states a number without explaining the
+   propagation chain is incomplete — the reader must understand HOW
+   the uncertainty was derived, not just its value. Document failed
+   evaluation attempts.
+
+   **Error budget narrative (required).** After the per-source
+   subsections and summary budget table, include a narrative paragraph
+   discussing: (a) which sources dominate and why, (b) whether the
+   measurement is statistically or systematically limited, (c) what
+   concrete improvements could reduce the dominant sources (better MC,
+   data-driven calibration, additional control regions), and (d) the
+   measurement's **resolving power** — can it distinguish the SM from
+   a ±20% deviation at 2σ? If chi2/ndf << 1 (all pulls < 0.5σ), the
+   AN must explicitly discuss whether the systematic uncertainties are
+   conservatively overestimated and what this means for the measurement's
+   discriminating power. An overcovered measurement is honest but should
+   acknowledge the cost.
 6. **Cross-checks** — each as a subsection within the section it validates
    (not a standalone section). Comparison plots (overlay, ratio, or pull —
    not just pass/fail), chi2/p-value, interpretation. Examples: run-period
@@ -141,6 +188,15 @@ Example format:
 8. **Results** — full uncertainties, per-bin tables, summary figures
 9. **Comparison to prior results and theory** — quantitative (chi2 with full
    covariance). "Qualitative consistency" insufficient when data exist.
+   Every comparison must state a number: chi2/ndf, pull in sigma, or
+   ratio with uncertainty. "Consistent with published values" without
+   a chi2 or pull is Category B. When prior measurements exist at the
+   same kinematic points, overlay them on the result figure or provide
+   a table with bin-by-bin comparison. The comparison section should
+   address: (a) how does this result compare to the best published
+   measurement? (b) is the precision competitive, comparable, or
+   exploratory? (c) what does the comparison tell us about the method's
+   validity?
 10. **Conclusions** — result, precision, dominant limitations
 11. **Future directions** — concrete roadmap (§12)
 12. **Appendices** — per-bin systematic tables, covariance matrices (as
