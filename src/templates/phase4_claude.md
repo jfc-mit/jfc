@@ -23,18 +23,63 @@ the artifact structure will be. Execute after the plan is set.
 - **4c:** Full data. Compare to 10% and expected. Executor (stats) →
   note writer (update AN with full results).
 
+**Note writer figure composition annotations.** When the note writer
+references groups of related figures (per-variable data/MC, per-systematic
+shifts, nominal + uncertainty pairs), it MUST annotate the grouping with
+`<!-- COMPOSE: NxM grid -->`, `<!-- COMPOSE: side-by-side -->`, or
+`<!-- FLAGSHIP -->` comments in the markdown. These annotations tell the
+typesetter what to merge, persist across AN versions, and save the
+typesetter from re-discovering groupings at each compilation. See
+`methodology/03-phases.md` → Phase 5 "Figure composition annotations."
+
 **Typesetting at 4a/4b/4c.** Spawn the typesetter agent (read
 `agents/typesetter.md` for the full prompt). The typesetter handles the
-entire pipeline: pandoc → postprocess_tex.py → figure combining → compile
-→ verify. Provide the phase-stamped filename (e.g.,
-`ANALYSIS_NOTE_4a_v1.md`). The 4a/4b/4c PDFs are review inputs — they
-must meet the same formatting standard as the final Phase 5 PDF.
+entire pipeline: pandoc → postprocess_tex.py → read composition
+annotations → figure combining → compile → verify. Provide the
+phase-stamped filename (e.g., `ANALYSIS_NOTE_4a_v1.md`). The 4a/4b/4c
+PDFs are review inputs — they must meet the same formatting standard as
+the final Phase 5 PDF.
 
 | Sub-phase | Artifact | Review |
 |-----------|----------|--------|
 | 4a | `outputs/INFERENCE_EXPECTED.md` + `outputs/ANALYSIS_NOTE_4a_v1.{md,tex,pdf}` | 4-bot+bib |
 | 4b | `outputs/INFERENCE_PARTIAL.md` + `outputs/ANALYSIS_NOTE_4b_v1.{md,tex,pdf}` | 4-bot+bib → human gate |
 | 4c | `outputs/INFERENCE_OBSERVED.md` + `outputs/ANALYSIS_NOTE_4c_v1.{md,tex,pdf}` | 1-bot |
+
+## Physics correctness gates (mandatory self-checks before review)
+
+These checks promote critical rules from the methodology spec. They are
+Category A at review — verify before submitting.
+
+1. **Full covariance chi2.** Every chi2 value in the artifact and AN uses
+   the full covariance matrix (not diagonal only). If the covariance matrix
+   is available, report chi2(full) as the primary metric. See
+   `methodology/analysis-note.md` → Statistical methodology standards.
+
+2. **Systematic variation sizing.** Every systematic variation is justified
+   by a measurement or published uncertainty. No arbitrary "±50%"
+   variations without documented motivation. See `methodology/03-phases.md`
+   → Systematic Variation Sizing.
+
+3. **Extraction method hierarchy.** If a corrected differential distribution
+   AND its covariance matrix are available, the differential fit is the
+   primary extraction method. Mean-value extraction is a cross-check. See
+   `methodology/03-phases.md` → Extraction Method Hierarchy.
+
+4. **Independent closure.** Closure tests use an MC sample statistically
+   independent from the one used to derive corrections. Self-consistent
+   closure (same sample) is an algebra check, not a validation. See
+   `conventions/extraction.md` → Required Validation Checks.
+
+5. **Per-systematic impact figures.** Every systematic source has a figure
+   showing how it shifts the result bin-by-bin. A summary table alone is
+   insufficient. See `methodology/analysis-note.md` → Systematic
+   uncertainties.
+
+6. **Resolving power statement.** After every result, state what deviations
+   the measurement can detect at 2-sigma. "Total uncertainty of 3.8% →
+   can distinguish predictions differing by ~8% at 2σ." See
+   `methodology/analysis-note.md` → Interpretive quality standards.
 
 ## Human gate (after 4b review)
 
@@ -132,6 +177,47 @@ additional required checks (independent closure test, parameter sensitivity
 table, operating point stability, per-subperiod consistency, 10% diagnostic
 sensitivity). These are technique-specific requirements defined in the
 conventions file — do not skip them.
+
+## COMMITMENTS.md (mandatory tracking artifact)
+
+At Phase 4a start, read `COMMITMENTS.md` (created at Phase 1 completion).
+Update every line's status:
+- `[x]` — resolved (with phase and brief description)
+- `[D]` — formally downscoped (with documented justification — "not
+  attempted" is not a justification)
+- `[ ]` — not yet addressed
+
+Any `[ ]` remaining at Phase 5 is Category A. This prevents Phase 1
+commitments from being silently dropped. See `methodology/03-phases.md`
+for the full specification.
+
+## Systematic implementation self-check (mandatory before submission)
+
+For each systematic variation, verify and document in the artifact:
+1. The varied quantity actually changes (print nominal vs varied values)
+2. The impact is non-zero in at least some bins
+3. The impact has the expected sign/direction
+4. The evaluation level is consistent (gen vs reco — don't mix)
+5. The variation was propagated through the chain, not borrowed as a flat %
+
+See `methodology/03-phases.md` → Phase 4a for the full specification.
+
+## Closure test alarm bands (mandatory)
+
+These apply at Phase 4a (same as Phase 3):
+- chi2/ndf < 0.1 → Category A (suspicious)
+- chi2/ndf > 3 or pull > 5-sigma → Category A (failure)
+- `passes: false` in JSON while text claims acceptable → Category A
+
+See `methodology/03-phases.md` for the full specification.
+
+## Number consistency gate (every AN compilation)
+
+Before compiling any AN version (4a, 4b, 4c), verify that all numerical
+values in the AN match the latest machine-readable outputs. Systematic
+uncertainties, central values, event counts — everything must be current.
+Any discrepancy > 1% relative is Category A. This gate prevents stale
+numbers from earlier phases propagating forward.
 
 ## Pre-review self-check
 

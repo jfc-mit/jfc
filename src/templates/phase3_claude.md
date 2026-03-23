@@ -107,6 +107,23 @@ approaches tried with diminishing returns (<10% relative improvement).
 Document each approach and its limiting factor.
 See `methodology/03-phases.md` → Phase 3 for full details.
 
+## Closure test alarm bands (mandatory)
+
+These apply to Phase 3 AND Phase 4a — read `methodology/03-phases.md`
+for the full specification. Summary:
+
+- **chi2/ndf < 0.1:** Category A — suspiciously good. Investigate
+  uncertainty inflation or tautological test construction.
+- **chi2/ndf > 3 OR any single pull > 5-sigma:** Category A — method
+  failure. Do not proceed. Fix the method, fix the test, or formally
+  abandon the measurement.
+- **`passes: false` in JSON while artifact text claims acceptable:**
+  Category A — misrepresentation. A closure failure means the method
+  does not work on the sample it was derived from. The first hypothesis
+  is always a code bug (wrong sign, wrong formula, wrong variable).
+
+Do NOT frame closure failures as "known limitations" or "acceptable bias."
+
 ## Pre-review self-check
 
 Before submitting for review, verify:

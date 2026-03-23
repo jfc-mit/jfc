@@ -72,6 +72,37 @@ them is the analyst's choice.
 4. **Covariance validation.** Positive semi-definite (all eigenvalues
    >= 0). Condition number < 10^10. Visualize the correlation matrix.
 
+   **Covariance construction.** The construction method must match the
+   correction method. Before choosing, consult how published analyses
+   of the same observable constructed their covariance — the literature
+   (arXiv, INSPIRE) is the best guide for method-specific pitfalls.
+   Common approaches:
+
+   - **Bootstrap** (preferred for bin-by-bin): resample events N times
+     (N ≥ 500), recompute the full correction chain for each replica,
+     compute sample covariance of corrected distributions. Must resample
+     at event level, not bin level.
+   - **Toy MC** (preferred for iterative unfolding): fluctuate the input
+     distribution according to Poisson statistics N times, unfold each,
+     compute sample covariance.
+   - **Analytical propagation** (acceptable for simple bin-by-bin):
+     propagate Poisson uncertainties through the correction formula.
+     Simpler but misses correlations from shared correction denominators.
+
+   The covariance must be computed on the full dataset. Scaling a
+   covariance from a subset by N/n is approximate — it assumes the
+   correlation structure is sample-size independent, which is often
+   false for unfolded distributions. If computational cost prevents
+   full-dataset bootstrap, document the approximation.
+
+   **Chi2 computation.** When a covariance matrix is available, chi2
+   must be computed using the full covariance (not diagonal only).
+   Diagonal chi2 ignores bin-to-bin correlations and underestimates
+   the true chi2 when bins are positively correlated. Report both
+   chi2/ndf (covariance) and chi2/ndf (diagonal) for transparency.
+   If the condition number exceeds 10^8, note that the covariance-based
+   chi2 may be unreliable due to ill-conditioning.
+
 5. **Data/MC input validation.** Before building any correction, produce
    data/MC comparisons for all kinematic variables entering the
    observable. Document discrepancies and their expected impact.
@@ -102,6 +133,21 @@ warnings, not a checklist.
   functions, Lund declusterings), matching individual sub-objects
   (1st reco ↔ 1st gen) can produce artificially terrible response
   matrices. Read how published analyses construct theirs.
+- **Observable redefinition is not a systematic.** Removing an entire
+  particle category (e.g., dropping all neutrals from energy-flow
+  thrust to get charged-only thrust) changes WHAT is measured, not
+  the uncertainty on the measurement. The resulting distribution is a
+  different observable with a different particle-level definition,
+  different correction factors, and potentially different theory
+  sensitivity. Treating the difference as a detector systematic
+  inflates the uncertainty with a physically meaningless number.
+  Instead: (a) keep the redefined observable as a cross-check that
+  validates the analysis chain with different detector inputs,
+  (b) evaluate detector-response uncertainties by varying the response
+  parameters (energy scale, efficiency) while keeping the particle-level
+  definition fixed, (c) run the full unfolding chain for both
+  definitions if both are physics-relevant, with separate covariance
+  matrices.
 
 ---
 

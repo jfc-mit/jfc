@@ -99,5 +99,22 @@ Run `pixi run lint-plots` to check mechanically. Fix all violations
 before committing. The plot validator will re-check at review, but
 catching violations here avoids a full review-iterate cycle.
 
+**Flag uncertain decisions.** When you face a physics judgment call where
+multiple reasonable options exist (regularization strength, operating
+point, systematic evaluation method, bin exclusion, endpoint treatment),
+document the decision AND your uncertainty in the experiment log:
+
+  DECISION: Selected kappa = 0.5 as primary working point
+  ALTERNATIVES: kappa = 0.3 (40% better stat, chi2/ndf = 12.0/3 = poor GoF)
+                kappa = 0.7 (20% worse stat, chi2/ndf = 1.2/3 = good GoF)
+  CONFIDENCE: MEDIUM — GoF vs precision tradeoff requires physicist judgment
+  FLAG FOR HUMAN: YES
+
+Decisions flagged as LOW or MEDIUM confidence will be highlighted at
+the human gate for explicit physicist review. This is not a weakness —
+it is the correct behavior. An agent that silently makes every decision
+with high confidence is overconfident. An agent that flags genuine
+ambiguity enables better human oversight.
+
 When complete, state what you produced and any open issues.
 ```

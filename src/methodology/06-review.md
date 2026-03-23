@@ -196,6 +196,19 @@ justification.
 verify they are overlaid on the measurement with chi2 — a measurement
 without comparison is incomplete.
 
+**Statistical methodology audit (Category A if violated):**
+- All chi2 values computed with full covariance matrix (not diagonal)?
+  Diagonal chi2 with all p-values = 1.000 is a red flag for missing
+  off-diagonal correlations.
+- Closure test uses independent MC sample (not the correction-derivation
+  sample)? Pull = 0.000 at all operating points indicates self-consistency,
+  not independent closure.
+- Every systematic variation justified by a measurement or published value
+  (not arbitrary "±50%")?
+- Per-systematic impact figures present (not just summary table)?
+- Extraction uses differential fit when differential distribution +
+  covariance are available?
+
 **Validation target check (§6.8).**
 
 #### Phase 4b (10% Validation) review focus
@@ -232,6 +245,20 @@ any pull > 3-sigma is Category A unless quantitatively explained (§6.8).
 **Number consistency:** do numerical values in the AN text/tables match the
 machine-readable JSON outputs? Any discrepancy > 1% relative is Category A
 (stale numbers).
+
+**Operating-point consistency:** If the primary configuration changed since
+Phase 4a (different kappa, different working point, different binning),
+verify: (a) the change is stated in the results section (not just the
+Change Log), (b) systematics are re-evaluated at the new operating point
+or quantitative transfer justification is provided, (c) the "primary"
+label is consistent throughout the AN. Pulls between results at different
+operating points must be flagged as approximate.
+
+**Known-underestimate check:** For each systematic, compare the assigned
+value to any independent cross-check value (e.g., generator comparison).
+If the cross-check variation is > 2× the assigned systematic, is the
+discrepancy discussed and the total uncertainty appropriately adjusted?
+See §3 known-underestimate protocol.
 
 **Conditional escalation to 4-bot.** Phase 4c normally gets 1-bot review
 (methodology already human-approved at 4b). However, if ANY of the
@@ -360,6 +387,57 @@ the "nodding physicist" test:
   deviations the measurement can detect at 2-sigma? A measurement without
   a resolving power statement is incomplete.
 
+**Rendering mechanical checks (Category A if failed).** The rendering
+reviewer must verify each of these on the compiled PDF — not the markdown:
+
+- Zero unresolved cross-references ("??" in the PDF text). Run
+  `grep '??' ANALYSIS_NOTE.log` and visually scan the PDF for "??" or
+  "Figure ??". The most common cause is lost `\label{}` entries when
+  the typesetter merged figures into composites.
+- **TOC page numbers match actual PDF pages.** Spot-check 3 entries
+  (one early section, one late section, one appendix). If any is off
+  by more than 1 page, the compilation did not run enough passes.
+- **No raw LaTeX or markdown visible** in rendered text (e.g., literal
+  `$\sqrt{s}$` with dollar signs, `\textbf{...}`, `@fig:name`).
+- **Title renders mathematical symbols correctly.** Check page 1 for
+  literal `sqrt(s)` or `$\sqrt{s}$` with visible dollar signs.
+- **No `$\pm$` with visible dollar signs** in body text or captions.
+  The postprocessor fixes these automatically, but verify in the PDF.
+- **All composite figure panels have legible axis labels** at the
+  rendered size. If zooming is required to read any text, the panel
+  is too small — Category A.
+
+**Consistency sweep (Category A if failed).** The physics reviewer must:
+
+- Verify the "primary" configuration label is consistent throughout
+  the AN. If Section 10 calls κ = 0.5 "primary" and Section 13 calls
+  κ = 0.3 "primary", this is Category A — the reader cannot determine
+  what the actual primary result is. Search the PDF for "primary" and
+  verify every occurrence refers to the same configuration.
+- Check that abstract numbers match conclusion numbers match results
+  table numbers to at least 2 significant figures. If the abstract
+  says "±0.018 (syst)" and a table says "±0.0180", that is acceptable.
+  If the abstract says "±0.01" and a table says "±0.011", flag it.
+- Verify event counts are consistent across cutflow table, body text,
+  and summary tables. For the same dataset, event counts must match
+  exactly (not approximately). If 2,889,000 appears in one place and
+  2,889,543 in another, the discrepancy must be explained.
+- Verify the chi-squared / covariance treatment is stated and
+  consistent. If chi-squared values use diagonal-only covariance,
+  this must be stated. If full covariance is available but not used,
+  flag as Category B — all chi-squared values should use the full
+  covariance matrix when it exists.
+
+**Figure-scrolling test (Category B if fails).** The rendering reviewer
+or physics reviewer must verify: can the complete physics story be
+understood by scrolling through the figures alone? Every major analysis
+step (data quality, selection, corrections, validation, results,
+comparison) should have at least one figure. Non-trivial methods without
+a visual explanation (diagram, flowchart, schematic) are gaps. A "yes"
+requires that the figure sequence tells a coherent narrative without
+reading the text. A "no" requires identifying which steps lack visual
+representation.
+
 **Tautological comparisons.** If the "comparison to theory/MC" is
 mathematically identical to the "comparison to expected" (e.g., the
 expected result was derived from the same MC that serves as the theory
@@ -450,6 +528,38 @@ validation results and the unblinding checklist.
 **APPROVE** means the human is satisfied that the methodology is correct
 and the 10% validation is clean. It does NOT mean the final result is
 approved — that comes after Phase 5 review.
+
+**Human review checklist.** The human should concretely verify:
+
+- [ ] **Event selection yields**: do cutflow numbers match expectations
+      from the published reference analysis (within ~10%)? Large
+      discrepancies indicate a selection bug, not a physics effect.
+- [ ] **Data/MC agreement**: are the key data/MC comparisons (selection
+      variables, observable inputs) acceptable? Is there any
+      distribution where MC is visibly 2× the data?
+- [ ] **Validation tests**: do closure/stress tests pass? If any fail,
+      is the failure understood and is the remediation adequate?
+- [ ] **Systematic completeness**: does the systematic table cover the
+      sources from the reference analyses? Any surprising omissions?
+- [ ] **Comparison to published result**: does the 10% result (or
+      expected result) agree with the reference within uncertainties?
+      If not, is the discrepancy understood?
+- [ ] **Figure quality**: are all figures interpretable? Do captions
+      accurately describe what is shown? Would you approve these
+      figures for a conference talk?
+- [ ] **Uncertainty honesty**: do the total uncertainties seem
+      reasonable? Are they comparable to (not vastly larger or smaller
+      than) published results? If much larger, is the source identified?
+- [ ] **"Where I wasn't sure" items**: did the agent flag any physics
+      decisions as uncertain? Review these explicitly — any analysis
+      step where the agent expressed doubt or tried multiple approaches
+      should be highlighted for human judgment.
+
+The last item is critical: agents should flag uncertainty rather than
+hide it. A flag that says "I chose κ = 0.5 based on GoF, but κ = 0.3
+gives 40% better statistical precision with worse GoF — this is a
+physics judgment I'm not confident about" is more valuable than a
+silent choice. The human gate exists precisely for these moments.
 
 **ITERATE** is for issues the executor can fix without changing the
 analysis approach: missing systematics, inadequate validation, prose

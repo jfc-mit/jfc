@@ -32,6 +32,135 @@ measurements substitute: fiducial region, sidebands, purity optimization.
 
 ---
 
+### Analysis Philosophy
+
+**Correctness above all else.** The single most important property of an
+analysis is that it produces the right answer with honest uncertainties.
+No amount of completeness, polish, or thoroughness compensates for a wrong
+result. Agents should spend as much time as needed — hours, iterations,
+multiple approaches — to be confident the result is correct. A slow,
+correct analysis is infinitely more valuable than a fast, wrong one.
+
+Concretely:
+- When two approaches exist and one is faster but less rigorous, use the
+  more rigorous one.
+- When a validation test gives an unexpected result, investigate until you
+  understand WHY — not just until you can rationalize it.
+- When a systematic seems too small or too large, verify it independently
+  before accepting it.
+- When the result disagrees with a published value, assume you are wrong
+  until you can prove otherwise.
+- When you're unsure whether an approximation is valid, compute both the
+  approximate and exact versions and compare.
+
+The goal is not to pass all review gates. It is to produce the most
+convincing and thorough physics result achievable with the available data
+and computational resources. Review gates catch errors; they do not define
+the ceiling of quality. An analysis that passes every gate but produces a
+mediocre result has failed in spirit.
+
+**The "nodding physicist" test.** At every phase — including Phase 4a —
+ask: "Would a physicist reading this artifact find every step
+well-motivated, every number well-supported, and every limitation
+honestly assessed with evidence that improvement was attempted?" If the
+answer is no, the artifact is not ready for submission. This test applies
+to artifacts, to the AN at every stage, and to individual systematic
+evaluations. A Phase 4a AN should already read like a draft physics
+paper, not a technical checkpoint.
+
+**Solve problems, don't accept limitations.** When you encounter a
+limitation (poor tagger purity, single generator, uncalibrated variable,
+missing published data, dominant systematic), your first response must
+be to try to solve it:
+
+- **Poor tagger purity** → try alternative tagging approaches: different
+  variables, different thresholds, PID-based truth labels, contamination
+  matrix correction. An AUC of 0.76 is workable with the right
+  correction framework.
+- **Single generator** → generate particle-level predictions from modern
+  generators. Running PYTHIA 8 Monash or HERWIG 7 at particle level for
+  e+e- → hadrons at the Z pole takes ~30 minutes (install, configure,
+  generate 1M events, compute observable). This is expected at Phase 4a,
+  not deferred to Phase 5. Downscoping this requires documented evidence
+  that installation or generation actually failed — not just that it
+  wasn't attempted.
+- **Uncalibrated variable** → attempt data-driven calibration before
+  assigning a flat systematic. Reweight, derive scale factors from
+  control samples, or use published measurements. Calibration directly
+  improves your result; a flat systematic just inflates your errors.
+- **Missing published data** → digitize from thesis or paper figures,
+  query the LEP corpus, extract from HEPData, read the actual paper.
+  Every measurement should be compared to something.
+- **Dominant systematic** → investigate whether a better evaluation
+  method exists. Decompose into components (normalization vs shape).
+  Check whether the variation is physically motivated or an artifact
+  of the evaluation procedure. A 10x-larger-than-published systematic
+  is almost always an evaluation problem, not a physics truth.
+- **Data/MC disagreement** → this is a calibration opportunity, not just
+  a "data quality finding." Identify the source, derive a correction,
+  verify it reduces the disagreement. An uncalibrated systematic is
+  always larger than a calibrated one.
+
+Accept a limitation ONLY when: (a) you have tried at least one concrete
+approach to solve it, (b) the approach failed for a documented, specific
+reason (not "it's hard" or "it would take too long"), and (c) solving
+it would genuinely require multi-day computation or external resources
+you don't have. Document what you tried and why it didn't work. A
+limitation with evidence of attempted improvement is honest. A
+limitation without evidence of attempted improvement is lazy — and
+reviewers should treat it as Category B.
+
+**Every measurement needs context.** A number without comparison is not
+a physics result. After presenting any measurement:
+
+1. Compare to the published reference or expectation
+2. State whether it is consistent, and if not, why
+3. State what physics question the measurement helps answer
+4. State what deviations the measurement could detect (resolving power)
+
+Example of insufficient prose: "The tracking efficiency systematic is
+0.95%." Example of adequate prose: "The tracking efficiency systematic
+is 0.95%, evaluated by randomly dropping 1% of tracks (conservative
+upper bound on ALEPH tracking inefficiency of ~0.3% per track, based on
+tracking resolution studies in [ref]). This is consistent with the
+0.5–1.5% range found in published ALEPH measurements [ref1, ref2]. The
+impact on the EEC is largest in the forward region where low-momentum
+tracks dominate."
+
+**Cross-checks are not overhead — they are the physics content.** A
+measurement with three independent cross-checks that all agree is far
+more convincing than a measurement with tighter error bars but no
+cross-checks. Proactively identify and implement:
+- Alternative unfolding/correction method (IBU vs bin-by-bin)
+- Alternative selection (tight vs loose cuts)
+- Subperiod stability (year-by-year, run-by-run)
+- Published result overlay with chi2
+- Theory prediction comparison (not just the generator used for
+  corrections)
+
+**Published result overlay is mandatory.** If published results exist
+for the same or similar observable, extract the numerical values and
+overlay them on your measurement plot with a chi2. A measurement
+presented in isolation — without comparison to any published result or
+theory prediction — is incomplete. The comparison IS the physics content.
+Phase 1 must extract published values; Phase 4a must overlay them.
+Deferring the overlay to Phase 5 is Category B.
+
+**Implement improvements, don't defer them.** When you identify a
+feasible improvement during the analysis — a better tagging method,
+a generator comparison, a calibration, a published overlay — the
+question is: "Can this be done in < 2 hours?" If yes, do it now. "Future
+Directions" is for genuinely infeasible items (new data, new algorithms,
+multi-day computation). It is NOT for tasks like running PYTHIA 8 at
+particle level (~30 min), trying a contamination matrix correction
+(~1 hour), or decomposing a systematic into components (~1 hour). These
+were all deferred to "Future Directions" in actual analyses and later
+implemented in ~1 hour during regression, producing large improvements.
+The analysis would have been stronger if they had been done originally.
+See §12 for the full policy.
+
+---
+
 ### Phase 1: Strategy
 
 **Goal:** Written analysis strategy a collaboration reviewer could approve.
@@ -156,6 +285,48 @@ foundation.
 **Data discovery:** Metadata first → small slice (~1000 events) → identify
 jagged structure → document schema.
 
+**Data archaeology protocol (archived/open data).** When working with
+archived data that was not produced by the analysis team, unexpected
+properties can fundamentally change what is feasible. Phase 2 must
+systematically discover these before Phase 3 begins:
+
+1. **Check all weight/flag branches for non-triviality.** Print unique
+   values, range, and mean for every branch that could be a weight,
+   flag, or quality indicator. Non-trivial weights (not all 1.0) must
+   be understood and documented — they affect every downstream
+   computation. Example: per-track `weight` ranging 0.08-4.5 discovered
+   in one analysis; ignoring it would bias the measurement.
+2. **Check what processing has been applied.** Compare event counts to
+   published cross-section × luminosity. If counts are significantly
+   lower, the data has been pre-selected at ntuple production level.
+   Determine what was cut (hadronic selection? quality flags? fiducial
+   cuts?) and document the impact on feasibility of planned
+   measurements. Example: one analysis discovered leptonic events were
+   entirely absent from "aftercut" ntuples, making per-channel leptonic
+   measurements impossible.
+3. **Check MC generation parameters.** Verify the generator, tune, beam
+   energy, and process match the data-taking conditions. If MC is limited
+   to a single energy point or year, document the coverage gap and plan
+   for Phase 4 uncertainty treatment.
+4. **Check for truth-level information.** What generator-level quantities
+   are available? What particle-level definition can be supported? Are
+   truth-matching variables present? If truth labels needed for tagging
+   or closure are absent, document alternatives.
+5. **Strategy revision gate.** If any discovery materially changes the
+   feasibility of a planned measurement (e.g., required branches absent,
+   truth labels unavailable, dominant weight not understood, leptonic
+   events pre-selected away), the exploration artifact must flag this as
+   a **strategy revision input** with a clear statement of what changed
+   and what the implications are. The orchestrator must then re-read the
+   Phase 1 strategy and update it before Phase 3 begins — revising
+   scope, adjusting the systematic plan, or formally downscoping
+   measurements that are no longer feasible. This is not a regression —
+   it is the normal flow when Phase 2 reveals that Phase 1 assumptions
+   were incorrect. The strategy revision follows the same format as the
+   original strategy (updated STRATEGY.md with a change log entry) and
+   receives a lightweight re-review (1-bot) focusing on the changed
+   sections.
+
 **PDF build test (independent):** Stub `pixi run build-pdf` to verify
 toolchain. Can run in parallel.
 
@@ -195,6 +366,22 @@ the plan; it does not redesign it.
   validated. A poorly-modelled input that enters the classifier will
   produce a biased result on data even if MC closure passes — the
   closure test cannot catch data/MC mismodelling by construction.
+
+  **When the majority of inputs fail the quality gate**, the MVA approach
+  may still be viable if: (1) the BDT output data/MC disagreement is
+  smaller than the input-level disagreement (classifiers compress
+  mismodeled inputs), AND (2) data-driven scale factors can be derived
+  for the BDT output in a control region with an appropriate systematic
+  uncertainty. This calibrate-then-use approach is standard practice for
+  b-tagging at the LHC and should be attempted before rejecting an MVA
+  that provides better discrimination than simpler alternatives.
+  Rejection of an MVA solely on the input quality gate — without
+  evaluating the output data/MC agreement or attempting calibration — is
+  Category B at review (limitation accepted without evidence of attempted
+  improvement). The AN must document either the calibration attempt and
+  its result, or a quantitative argument for why calibration is infeasible
+  (e.g., no independent control sample, single MC generator prevents
+  cross-check of calibration stability).
 
   Training alternative classifier architectures or feature combinations
   during exploration is expected — the experiment log records what was
@@ -288,6 +475,34 @@ If ANY of these fail, the method needs redesign or the binning needs
 adjustment before proceeding to Phase 4. Document what was tried
 (minimum 3 remediation attempts per failure) and what the resolution was.
 
+**Closure test alarm bands (mandatory, non-negotiable).** These apply at
+Phase 3 AND Phase 4a. The executor must not rationalize away failures:
+
+- **chi2/ndf < 0.1:** Category A — suspiciously good. Investigate
+  uncertainty inflation (common: loop accumulating variance across bins),
+  tautological test construction (applying correction back to derivation
+  sample), or accidentally using the same sample for derivation and
+  testing. A chi2/ndf of 0.01 is not "excellent closure" — it means
+  your uncertainties are 10x too large or your test has no diagnostic
+  power.
+- **chi2/ndf > 3 OR any single pull > 5-sigma:** Category A — method
+  failure. The method does not work on the sample it was derived from.
+  Do not proceed. The ONLY acceptable responses are: (a) find and fix
+  the bug, (b) redesign the method, (c) fix the test if it is flawed,
+  or (d) formally abandon the measurement with documentation.
+- **Closure `passes: false` in machine-readable output while artifact
+  text claims the result is acceptable:** Category A —
+  misrepresentation. If the closure test fails, say it fails. "Known
+  limitation" and "acceptable bias" are not valid framings for a method
+  that cannot reproduce the correct answer on its own training sample.
+  The first hypothesis for a closure failure is always a code bug
+  (wrong sign, wrong formula, wrong variable), not a physics effect.
+
+These alarm bands exist because agents consistently rationalize
+catastrophic closures: chi2/ndf = 0.01 called "good," -287 sigma called
+"known limitation," -12.6 sigma framed as "acceptable." The spec does
+not permit this. A closure test that fails is a method that doesn't work.
+
 **Artifact:** `SELECTION.md`. **Review:** 1-bot (§6).
 
 ---
@@ -374,6 +589,48 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
   missing systematics but never questions inflated ones is doing half the
   job.
 
+- **Overcoverage investigation (mandatory when pull RMS < 0.7).** If the
+  distribution of pulls (measured vs expected, or data vs MC) has RMS
+  significantly below 1.0 (< 0.7), the uncertainties are overestimated.
+  This is not automatically wrong, but it MUST be discussed:
+
+  1. Identify which systematic source dominates the overcoverage (usually
+     the largest one).
+  2. Estimate what the pull RMS would be without that source. If it rises
+     to ~1.0, that source is the culprit.
+  3. State explicitly: "The total uncertainty is dominated by [source],
+     which may be conservatively overestimated. The measurement's
+     resolving power is limited by this conservative assignment rather
+     than by the data."
+
+  Overcoverage erodes resolving power — a measurement that "agrees with
+  everything" because the error bars are enormous is not informative.
+  This is Category B at review; it becomes Category A if the overcoverage
+  is not discussed in the AN.
+
+- **Known-underestimate protocol.** When an independent cross-check
+  (generator comparison, alternative method, data-driven evaluation)
+  reveals that the true variation is N× larger than the assigned
+  systematic:
+
+  1. If N ≥ 2: the independent cross-check MUST either replace or inflate
+     the assigned systematic. "Lower bound" labeling is not sufficient —
+     the measurement's total uncertainty is wrong if a known-larger
+     variation is documented but not incorporated.
+  2. If the independent variation uses a different evaluation level (e.g.,
+     generator-level vs correction-factor-level), estimate the correction-
+     factor-level equivalent. If estimation is infeasible, assign the
+     generator-level difference as a conservative upper bound and document
+     the approximation.
+  3. The AN must state: "The [source] systematic of X% is a [lower bound /
+     central estimate]. An independent comparison using [method] shows Y%
+     variation. The total uncertainty [incorporates / does not incorporate]
+     this larger variation because [reason]."
+
+  This protocol exists because two pilot analyses documented generator
+  variations 4-5× larger than their assigned MC model systematic but used
+  the smaller value for the total uncertainty without inflating it.
+
 - **Extraction method hierarchy (parameter measurements).** When
   extracting a physical parameter (coupling constant, mass, width) from
   a measured distribution, the extraction method must use ALL available
@@ -450,9 +707,96 @@ Three sub-phases. **Both measurements and searches follow 4a → 4b → 4c.**
   negligible effect. Document the verification or assign a conservative
   literature-based value.
 
+- **Systematic implementation self-check (mandatory before submission).**
+  For each systematic variation, verify these properties and document the
+  verification in the artifact:
+  1. **The varied quantity actually changes:** Print `nominal_value` vs
+     `varied_value` for the underlying physics input. If identical → bug.
+  2. **The impact is non-zero in at least some bins.** Exactly zero
+     everywhere → bug or no-op variation (see zero-impact check above).
+  3. **The impact has the expected sign/direction.** Increasing
+     resolution should reduce correction factors. Dropping tracks should
+     reduce multiplicity. A systematic that moves in the wrong direction
+     likely has a sign error or is evaluating the wrong quantity.
+  4. **The evaluation level is consistent.** Gen-level systematics must
+     be evaluated at gen level; reco-level at reco level. Mixing levels
+     (e.g., reco-based tag but gen-level bins) conflates detector effects
+     with physics and produces uninterpretable shifts.
+  5. **The variation was propagated, not borrowed.** A systematic
+     assigned a flat percentage without running the varied input through
+     the analysis chain is a borrowed systematic. Mark it explicitly as
+     `[borrowed]` and justify per the no-borrowed-flat-systematics rule.
+
+  This self-check exists because 4 of 8 systematics in one analysis had
+  implementation bugs (flat assignment, missing entirely, no-op smearing,
+  wrong evaluation level). These were caught by reviewers, but the
+  executor should have caught them first.
+
+- **Generator comparison as concrete default action.** For analyses
+  measuring hadronic observables at the Z pole, generating standalone
+  particle-level predictions from at least one modern generator (PYTHIA 8
+  Monash, HERWIG 7, Sherpa) is an expected Phase 4a deliverable — not a
+  Phase 5 "nice to have" or a commitment to be silently downscoped.
+  Particle-level generation (no detector simulation) for 1M e+e- → Z →
+  hadrons events takes ~30 minutes: install the generator, write a
+  steering card, generate events, compute the observable at particle
+  level, and overlay on the corrected measurement. If the archived MC
+  is the only generator available for corrections, this standalone
+  comparison provides the only genuine hadronization model dependence
+  estimate. Downscoping to "literature-based hadronization systematic"
+  is acceptable ONLY if generator installation genuinely fails — with
+  documented error messages, not "it wasn't attempted."
+
+- **COMMITMENTS.md (mandatory tracking artifact).** At Phase 1 completion,
+  create `COMMITMENTS.md` listing every Phase 1 commitment — systematic
+  sources, cross-checks, validation tests, comparison targets, planned
+  figures — with a machine-readable status:
+  ```
+  - [x] D1: EEC self-pair convention (i<j) — resolved Phase 1
+  - [D] D11: PYTHIA 8/HERWIG 7 standalone — downscoped Phase 4a
+        (PYTHIA 8 installation failed: [error])
+  - [ ] A1: Published ALEPH EEC overlay — NOT YET ADDRESSED
+  ```
+  Update COMMITMENTS.md at every phase boundary. At Phase 5 review, the
+  reviewer MUST verify every line is either `[x]` (resolved) or `[D]`
+  (formally downscoped with documented justification). Any `[ ]`
+  remaining at Phase 5 is Category A. This prevents Phase 1 commitments
+  from being silently dropped — a pattern observed in 3 of 4 analyses.
+
+- **Phase 4a as draft physics result.** The Phase 4a artifact and AN
+  are not a technical checkpoint — they are a draft physics result. A
+  physicist picking up the Phase 4a AN should be able to understand:
+  - What is being measured and why (with equations defining the
+    observable and the extraction/correction procedure)
+  - How it compares to published values (with overlaid comparison and
+    chi2, not just a table of numbers)
+  - What the dominant uncertainties are and whether they are
+    well-motivated (with physical origin, not just "tracking: 0.95%")
+  - What limitations exist and what was attempted to address them (with
+    documentation of attempted improvements, not just acceptance)
+  - Whether the measurement is competitive with published results (with
+    explicit resolving-power statement)
+
+  The Phase 4a AN must contain at minimum: equations defining the
+  observable, the correction procedure, and the systematic evaluation;
+  a comparison overlay with published measurements; a systematic
+  completeness table with physical motivations; and a "money plot"
+  showing the expected measurement with total uncertainty band. If the
+  Phase 4a AN would not make a physicist nod along, it is not ready.
+
 **Artifact:** `INFERENCE_EXPECTED.md` + `ANALYSIS_NOTE_4a_v1.md` (complete
 AN with all detail using expected-only results; 4b/4c update numbers,
 Phase 5 polishes prose and typesets).
+
+**Number consistency gate (every AN compilation).** Before compiling any
+AN version (4a, 4b, 4c, or 5), the note writer must verify that all
+numerical values in the AN match the latest machine-readable outputs
+from the current phase's inference artifacts or `results/` directory.
+Systematic uncertainties, central values, event counts, selection
+efficiencies — everything must be current. Any discrepancy > 1% relative
+is Category A. This gate prevents stale numbers from earlier phases
+propagating forward — a problem observed when a systematic was revised
+from 9.3% to 1.7% but the AN abstract still quoted the old value.
 
 **PDF compilation is mandatory at 4a.** The AN must be compiled to a
 publication-quality PDF before review begins. Separate the concerns of
@@ -613,6 +957,30 @@ it. The human reviews the PDF, not markdown.
   well-measured value without a quantitative explanation is not
   acceptable (§6.8).
 
+- **Competitiveness assessment (multi-observable analyses).** When an
+  analysis extracts multiple quantities, each must be assessed not just
+  for viability but for competitiveness. If total uncertainty (stat ⊕
+  syst) exceeds the published reference precision by > 5×, the
+  measurement is non-competitive. This is not automatically a problem,
+  but it requires a decision:
+  - If the dominant systematic is methodological (not fundamental) and
+    an alternative method is feasible (< 2 hours of implementation),
+    the executor SHOULD attempt the improvement before Phase 4c. A
+    measurement that is non-competitive due to a methodological choice
+    when a better method exists is a missed opportunity.
+  - If the measurement is genuinely limited by the data or detector,
+    label it as "non-competitive" in the AN and state what it would
+    take to make it competitive (more data, better MC, different
+    detector).
+  - Non-competitive measurements may still be reported but must not be
+    presented as if they are competitive. "Consistent with the SM" is
+    vacuous when the error bars span the entire physically interesting
+    range.
+  This assessment exists because one analysis carried a 72% relative
+  uncertainty measurement through to Phase 5 before anyone questioned
+  whether improvement was feasible — and a 30-minute method change
+  produced a 10× improvement.
+
 **Machine-readable results (mandatory).** The Phase 4c executor must create
 `phase5_documentation/outputs/results/` and populate it with JSON files
 containing all numerical results: fitted parameters with uncertainties,
@@ -660,31 +1028,138 @@ does NOT involve reading data files or writing code — it reads artifacts
 and writes prose. The document must meet the completeness test: a physicist
 unfamiliar with the analysis can reproduce every number from the AN alone.
 
+**Interpretive quality.** The note writer must ensure every section passes
+the "nodding physicist" test. Concrete requirements:
+- **Minimum 4 equations:** observable definition, correction procedure,
+  systematic evaluation formula, fit/extraction model. Zero equations
+  is Category A.
+- **Every result has context:** after each results table or key figure,
+  2-3 sentences interpreting what the numbers mean physically. Compare
+  to published values. State whether consistent and why.
+- **Validation summary table:** tabulate every validation test (closure,
+  stress, stability, cross-checks) with chi2/ndf, p-value, and verdict.
+- **Resolving power statement:** after the final result, state what
+  deviations the measurement can detect at 2-sigma.
+- **Published overlay:** at least one figure overlaying measured values
+  with published results and chi2 annotation.
+
+**Number consistency gate.** Before PDF compilation, verify all numerical
+values in the AN match the machine-readable JSON outputs in `results/`.
+Systematic uncertainties, central values, event counts — everything must
+be current. Any discrepancy > 1% relative is Category A.
+
+**Figure composition annotations (mandatory).** The note writer knows
+which figures are related — it is writing the prose around them. When
+referencing a group of related figures (per-variable data/MC comparisons,
+per-systematic impact maps, per-cut distributions, nominal + uncertainty
+pairs), the note writer MUST annotate the grouping in the markdown using
+HTML comments that the typesetter reads:
+
+```markdown
+<!-- COMPOSE: 2x3 grid -->
+![Charged multiplicity...](figures/datamc_nch.pdf){#fig:datamc-a}
+![Visible energy...](figures/datamc_evis.pdf){#fig:datamc-b}
+![Thrust...](figures/datamc_thrust.pdf){#fig:datamc-c}
+![Sphericity...](figures/datamc_spher.pdf){#fig:datamc-d}
+![Aplanarity...](figures/datamc_aplan.pdf){#fig:datamc-e}
+![cos θ_T...](figures/datamc_costheta.pdf){#fig:datamc-f}
+
+Pre-selection data/MC comparisons for the six key kinematic variables.
+Agreement is within 5% across all variables...
+```
+
+Annotation syntax:
+- `<!-- COMPOSE: NxM grid -->` — merge the next N×M figures into a
+  single multi-panel figure with one shared caption
+- `<!-- COMPOSE: side-by-side -->` — merge the next 2 figures as
+  (a)/(b) panels (e.g., nominal + uncertainty maps)
+- `<!-- COMPOSE: 1xN row -->` — merge into a single-row layout
+- `<!-- FLAGSHIP -->` — this figure gets full-page standalone treatment
+
+The note writer has the physics context to decide what belongs together:
+data/MC for the same selection stage, systematic shifts for related
+sources, year-by-year stability comparisons. This grouping decision is
+a physics judgment, not a typesetting judgment.
+
+These annotations persist across AN versions (4a → 4b → 4c → 5) because
+the note writer updates the existing AN rather than rewriting from
+scratch. When new figures are added in later phases, the note writer
+adds them with appropriate annotations. The typesetter reads the
+annotations and converts them to side-by-side `\includegraphics` layouts
+with `\hspace` gaps — its merge scan becomes a safety net (catching
+ungrouped runs of 3+ sequential figures) rather than the primary grouping
+mechanism.
+
 **Typesetting.** Runs AFTER the AN is written. The typesetting concern:
 - Runs `pandoc` to convert the markdown AN to `.tex` (not PDF):
   `pandoc ANALYSIS_NOTE_5_v1.md -o ANALYSIS_NOTE_5_v1.tex --standalone
   --include-in-header=../../conventions/preamble.tex
   --number-sections --toc --filter pandoc-crossref --citeproc`
 - Runs `postprocess_tex.py` which handles all deterministic structural
-  fixes automatically: margins, abstract→environment, references
-  unnumbering, table spacing, FloatBarrier insertion, needspace,
-  duplicate header removal, duplicate label removal, appendix insertion,
-  and clearpage placement.
+  fixes automatically: title math (sqrt(s)→$\sqrt{s}$), escaped
+  standalone math ($\pm$→proper LaTeX), margins, abstract→environment,
+  references unnumbering, table spacing, short longtable→table
+  conversion, FloatBarrier insertion, needspace, duplicate header/label
+  removal, appendix insertion, clearpage placement, and stale phase
+  label warnings.
 - The typesetter then reads the `.tex` and does judgment-requiring work:
   - **Combine related figures** into `\begin{figure}` environments
-    with `\subfloat` or side-by-side `\includegraphics` where
-    applicable (e.g., data/MC comparisons for related variables,
-    systematic shift maps for similar sources). Use `\begin{figure*}`
-    for full-width composites.
+    with side-by-side `\includegraphics` calls separated by
+    `\hspace{0.01-0.02\linewidth}`. Do NOT use `\subfloat` — use
+    unified captions with (a)/(b)/(c) labels instead.
+    **Primary source: note writer annotations.** The note writer marks
+    figure groups with `<!-- COMPOSE: ... -->` comments in the
+    markdown. These annotations survive pandoc conversion as HTML
+    comments in the `.tex` (`%` lines or stripped — the typesetter
+    should search for `COMPOSE` in the markdown source). Convert each
+    annotated group to side-by-side `\includegraphics` layouts with
+    a shared caption.
+    Figures marked `<!-- FLAGSHIP -->` get standalone full-page
+    treatment. The typesetter's merge scan (below) is a safety net
+    for ungrouped figures, not the primary grouping mechanism.
+    **Mandatory merge candidates** (Category A if left standalone):
+    - Per-variable distribution surveys (e.g., data/MC for 8 input
+      variables → one 2x4 or 3x3 grid, not 8 separate figures)
+    - Per-systematic shift/impact maps for similar sources
+    - Per-cut before/after comparisons
+    - Per-subperiod or per-category comparisons
+    - Sequential figures of the same type differing only in one
+      parameter (bin, region, category, angular range)
+    - **Nominal + uncertainty pairs.** When a 2D map (migration
+      matrix, response matrix, correction map, efficiency map) is
+      followed by its associated uncertainty or relative-uncertainty
+      map, these MUST be placed side-by-side as (a)/(b) panels
+      within a single `\begin{figure}`. The nominal map is panel
+      (a), the uncertainty map is panel (b). This applies to any
+      quantity-plus-uncertainty pair sharing the same binning axes —
+      the reader needs them adjacent for interpretation.
+    The rule: if N consecutive figures share the same axes, layout,
+    and differ only in a label or parameter, they MUST be merged
+    into a single multi-panel figure. Scan the figure list for runs
+    of 3+ sequential related figures — these are merge candidates.
+    Additionally, scan for any figure immediately followed by its
+    uncertainty counterpart (look for captions or filenames
+    containing "uncertainty", "error", "sigma", "stat_unc",
+    "rel_unc") — these are mandatory pairs.
+    After merging, write one composite caption that describes the
+    variation across panels.
   - **Convert longtable to table** — ensure no column overflow, use
     `\resizebox` or `\small` for wide tables.
   - **Verify every section has prose** — no bare headings before
     figures.
   - **Check caption quality** — flag any caption under 2 sentences.
-- Compiles the `.tex` to PDF via `tectonic ANALYSIS_NOTE_5_v1.tex` (or
-  `pdflatex`). Fixes any compilation errors.
-- Reads the compiled PDF and verifies: no broken figures, no
-  unresolved cross-references, no overflow, no cut-off content.
+- **Compile → read → fix loop.** The typesetter iterates:
+  1. Compile the `.tex` to PDF via `tectonic` (or `pdflatex`). Fix
+     any compilation errors.
+  2. Read the compiled PDF and check for visual issues: broken
+     figures, unresolved cross-references, content overflow,
+     different-height panels in composites, unreadable text at
+     rendered size, cut-off content, awkward page breaks.
+  3. If issues found: fix the `.tex`, recompile, re-read.
+  4. Iterate until the PDF passes all visual checks (max 3
+     iterations before flagging to the orchestrator).
+  A single compile-and-ship pass is not acceptable — the typesetter
+  must visually verify the rendered output.
 - The final PDF is the deliverable, not the pandoc output.
 
 **Typesetting does NOT modify physics content.** It changes only layout,

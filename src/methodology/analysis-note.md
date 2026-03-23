@@ -79,6 +79,13 @@ The first AN version (Phase 4a) initializes the change log with a single
 entry: "Initial AN version (Phase 4a)." Subsequent phases (4b, 4c, 5) and
 review-fix cycles each add a dated group summarizing the changes made.
 
+**Change log length.** The change log must not exceed 1 rendered page.
+For multi-iteration analyses, condense earlier phases to one-line summaries
+and keep full detail only for the last 2 versions. Move the full change
+history to an appendix if needed. The change log is a navigation aid for
+what changed between versions, not a process diary — internal phase
+labels, Finding numbers, and agent debug details do not belong here.
+
 Example format:
 ```
 # Change Log {-}
@@ -107,7 +114,13 @@ Example format:
    counts. This section must include **structured sample tables** (not
    free-form prose or file listings):
 
-   **Data summary table** — one row per data-taking era/period:
+   **Data summary table** — one row per data-taking era/period.
+   **Integrated luminosity is mandatory.** Every data-taking period must
+   have a luminosity column. If the integrated luminosity is not published
+   for archived/open data, estimate it from the hadronic cross-section and
+   event count: $\mathcal{L} = N_\text{had} / \sigma_\text{had}$. State
+   the method used. An analysis note without luminosity figures is
+   **Category B**.
 
    | Period | $\sqrt{s}$ [GeV] | Events (pre-sel) | $\mathcal{L}$ [pb$^{-1}$] |
    |--------|-------------------|------------------|---------------------------|
@@ -152,6 +165,41 @@ Example format:
    bin deviation is the minimum. This tells the reader the method's
    resolving power — "robust for expected data/MC differences of a
    few percent" is useful; "stress test passes" is not.
+
+   **Statistical methodology standards (Category A if violated).**
+
+   - **Full covariance is mandatory.** When a covariance matrix exists
+     (statistical, systematic, or total), ALL chi-squared tests MUST use
+     the full covariance matrix: $\chi^2 = (\mathbf{d} - \mathbf{m})^T
+     C^{-1} (\mathbf{d} - \mathbf{m})$. Diagonal-only chi-squared may
+     be reported alongside for reference but MUST NOT be the primary
+     metric. Diagonal chi-squared systematically underestimates the true
+     chi-squared when bins are positively correlated (the common case for
+     systematic-dominated measurements), producing artificially good
+     p-values. If the covariance matrix is ill-conditioned (condition
+     number > $10^8$), note this and report both metrics with caveats.
+   - **Pull distribution diagnostics.** When reporting pull distributions:
+     state the expected number of bins with |pull| > 2σ (= 4.6%) and
+     > 3σ (= 0.27%). If actual >> expected: uncertainties are
+     underestimated or there is a genuine data-MC difference — state
+     which. If actual << expected (or pull RMS < 0.7): uncertainties are
+     overestimated — see overcoverage protocol in §3. Pull RMS must be
+     quoted: 1.0 ± 0.1 is healthy; < 0.7 is overcoverage; > 1.3 is
+     undercoverage. Both extremes require discussion.
+   - **Goodness-of-fit for the primary result.** The primary extraction
+     must have $\chi^2/\text{ndf} < 3$ ($p > 0.01$). A primary result
+     with $p < 0.01$ is Category A unless: (a) the source of poor GoF is
+     identified, (b) it is demonstrated not to bias the extracted
+     parameter, and (c) a configuration with acceptable GoF is shown as a
+     cross-check. Selecting the best-precision configuration while
+     ignoring fit quality is forbidden.
+   - **Closure test criteria.** Closure tests pass when chi-squared
+     $p > 0.05$. Ad hoc thresholds (e.g., "$\chi^2/\text{ndf} < 5$ is
+     acceptable") are not valid — they are ndf-dependent and can mask
+     genuine failures. When $p < 0.01$, the closure has failed and 3+
+     remediation attempts are required before the failure can be accepted
+     as a limitation.
+
 5. **Systematic uncertainties** — one subsection per source following
    this template (the z_lineshape analysis is the model):
    - **Physical origin** (1-2 sentences: what physical effect causes this)
@@ -203,9 +251,30 @@ Example format:
    validity?
 10. **Conclusions** — result, precision, dominant limitations
 11. **Future directions** — concrete roadmap (§12)
-12. **Appendices** — per-bin systematic tables, covariance matrices (as
-    tables), extended cutflow, auxiliary plots, **limitation index**.
-    Appendices are where the bulk of detail lives.
+12. **Known limitations and open questions** — a concise, honest
+    assessment of what remains imperfect. For each of the 3-5 most
+    significant limitations:
+    - What the limitation is (one sentence)
+    - Whether it was attempted to be solved (what was tried, what
+      failed — per the "solve problems, don't accept limitations"
+      philosophy in §3)
+    - What its impact is on the result (quantitative: "shifts the
+      central value by < X%" or "inflates the total uncertainty by Y%")
+    - What would fix it (concrete next action, not "future work")
+
+    This section is distinct from the Limitation Index (appendix).
+    The Limitation Index is a complete registry of ALL constraints,
+    limitations, and decisions with labels [A1], [L1], [D1] for audit.
+    Known Limitations is a physicist-facing narrative that highlights
+    the most significant open issues and their implications for
+    interpreting the result. It answers: "what should I keep in mind
+    when using these numbers?" An AN that hides all limitations in an
+    appendix but has no honest assessment in the main body is
+    Category B.
+13. **Appendices** — per-bin systematic tables, covariance matrices,
+    extended cutflow, auxiliary plots, **limitation index**,
+    **reproduction contract**. Appendices are where the bulk of detail
+    lives.
 
 The **limitation index** (in appendices) collects all constraints [A1],
 limitations [L1], and design decisions [D1] introduced in Phase 1 and
@@ -213,6 +282,74 @@ propagated through the analysis. Each entry has: label, one-line
 description, where introduced, impact on result, mitigation. This enables
 a reviewer to see the full scope of known issues in one place and verify
 each was properly addressed.
+
+The **reproduction contract** (required appendix) documents the exact
+command sequence to reproduce the full analysis from raw data to final
+result. This goes beyond "pixi run all exists" — it is a self-contained
+recipe with:
+- Environment setup (`pixi install`, any required data paths)
+- The exact pixi task sequence in execution order, with expected
+  outputs at each step
+- A workflow diagram showing the execution DAG: inputs → processing
+  steps → outputs, with systematic variation branches shown
+- Any manual steps or configuration that cannot be automated
+- Expected runtime estimates per step
+
+The reproduction contract must be sufficient for a physicist who has
+never seen the analysis to reproduce every number by following the
+commands verbatim.
+
+**Covariance matrix presentation.** Covariance matrices in the appendix
+must include:
+- **Per-source correlation matrices** — one panel per uncertainty
+  component (statistical, regularization, experimental, theory/model,
+  and any analysis-specific corrections), all on the same color scale
+  for direct comparison. Interpret each matrix's structure physically:
+  what pattern of correlations does each source produce, and why?
+- **Total covariance and correlation matrices.** State the maximum
+  off-diagonal correlation $|\rho_{ij}|$ and identify which component
+  dominates the off-diagonal structure.
+- **Recommendation for downstream use.** If certain bins or regions
+  have unreliable covariance (edge bins, low-statistics tails),
+  recommend a fit window for downstream extractions.
+
+### Number and configuration consistency across phases
+
+When a primary operating point, configuration, or method changes between
+Phase 4a (expected) and Phase 4c (observed), the AN must:
+
+1. **State the change explicitly** in the relevant results section (not
+   only in the Change Log). Example: "The primary working point was
+   changed from κ = 0.5 (Phase 4a expected) to κ = 0.3 (full data)
+   based on the multi-WP fit performance on observed data."
+2. **Re-evaluate ALL systematics at the new operating point**, or
+   document quantitatively why the original evaluation transfers (e.g.,
+   "the tracking systematic varies by < 5% across κ values, so the
+   κ = 0.5 evaluation is used").
+3. **Ensure label consistency**: if Section 10 says "primary κ = 0.5"
+   but Section 13 says "primary κ = 0.3", the earlier section must be
+   updated or clearly labeled as "expected results at the Phase 4a
+   operating point (κ = 0.5)". The Phase 5 note writer must search the
+   AN body for the old operating-point label and update or annotate
+   every occurrence. A reader who encounters conflicting "primary"
+   labels will lose trust in the analysis.
+4. **Never compute pulls between results at different operating points**
+   without flagging the comparison as approximate. A pull of 0.04σ
+   between κ = 0.5 (expected) and κ = 0.3 (observed) is not a
+   meaningful consistency check — it compares apples to oranges.
+
+**Event count consistency.** A single dataset must have a single
+post-selection event count used consistently in the cutflow table, body
+text, and summary tables. If different counts appear (e.g., 2,889,000
+in a table vs 2,889,543 in text), the discrepancy must be explained
+(rounding, subset, additional quality cut). Unexplained event count
+mismatches are **Category B**.
+
+**Rounding consistency.** Uncertainties must be rounded consistently:
+if the abstract says "±0.01" and a table says "±0.011", choose one
+precision and use it everywhere. When displaying component uncertainties
+and a total, verify that $\sqrt{\sigma_1^2 + \sigma_2^2}$ matches the
+displayed total to the displayed precision — a reader will check this.
 
 ### Standard diagnostic figures
 
@@ -222,6 +359,14 @@ aggregates them. Missing diagnostics are Category A at review.
 
 - **Per-variable data/MC comparisons.** Every selection variable and every
   MVA training feature. Group into grids in appendix when numerous.
+- **Per-category validation grids.** When the observable combines multiple
+  reconstructed object types (energy-flow categories, charged vs neutral,
+  different particle species), produce a complete kinematic validation
+  grid (angular acceptance, momentum, quality variables, data/MC ratio)
+  FOR EACH CATEGORY separately. A single aggregate data/MC comparison
+  can hide category-specific mismodeling that propagates into the
+  detector response. Missing per-category validation for a category
+  that enters the observable is Category B.
 - **Per-cut distributions.** N-1 distributions preferred (apply all cuts
   except the one being shown). Include sensitivity to cut variation
   (e.g., ±10% shift in cut value).
@@ -254,6 +399,30 @@ aggregates them. Missing diagnostics are Category A at review.
   Diagrams are encouraged, not mandatory — but the figure-scrolling test
   gives reviewers a concrete criterion. See `appendix-plotting.md` §D for
   production guidelines.
+
+- **Mandatory comparison overlay.** The Results section must contain at
+  least one figure that overlays the measurement with published values
+  from reference analyses on the SAME axes (not separate panels, not a
+  table). This overlay IS the core physics deliverable — it shows what
+  the measurement adds to existing knowledge. Requirements: published
+  data points with their uncertainties, this measurement with its total
+  uncertainty band, a ratio or pull panel showing the quantitative
+  comparison, and a chi2/ndf annotation (using full covariance if
+  available). If no published measurement exists at the exact kinematic
+  points, use the closest available and explain the differences in the
+  caption. A results section without a comparison overlay is Category B.
+  A results section that says "consistent with published values" without
+  showing the comparison is Category A.
+
+- **Systematic breakdown figure.** The systematic uncertainties section
+  must contain a figure showing the relative contribution of each source
+  to the total. Acceptable formats: waterfall chart (cumulative quadrature
+  addition), horizontal bar chart (per-source fractional contribution),
+  or stacked bar chart (per-bin breakdown). This figure makes the error
+  budget visually assessable — a reader should see at a glance which
+  source dominates and by how much. A summary table alone is insufficient
+  because tables do not convey relative magnitudes as effectively as
+  visualizations.
 
 ---
 
@@ -299,11 +468,13 @@ aggregates them. Missing diagnostics are Category A at review.
 - **Reference citation count diagnostic.** A 50+ page AN with fewer than
   25 references almost certainly has citation gaps — missing foundational
   theory, missing prior measurements, missing methodology references, or
-  missing detector papers. Fewer than 20 references in a 50+ page AN is
-  Category B. This is guidance, not a hard floor, but experience shows
-  that a thorough AN cites foundational theory (~3-5), reference analyses
-  (~3-5), detector papers (~2-3), methodology references (~3-5), and
-  PDG/world-average sources (~3-5) — 15-25 is typical.
+  missing detector papers. **Fewer than 15 references in a 50+ page AN is
+  Category A** — all four pilot analyses had 6-11 references, which is
+  unacceptable. Fewer than 20 is Category B. A thorough AN cites
+  foundational theory (~3-5), reference analyses (~3-5), detector papers
+  (~2-3), methodology references (~3-5), and PDG/world-average sources
+  (~3-5) — 15-25 is typical. The note writer must verify the reference
+  count exceeds 15 before submitting for typesetting.
 - **Phase 1 data extraction (binding).** When reference analyses are
   identified in Phase 1, the executor must extract not just the systematic
   list but also the **published numerical results** (central values and
@@ -319,9 +490,11 @@ aggregates them. Missing diagnostics are Category A at review.
 
 Markdown → PDF via a three-step pipeline: **pandoc** (>=3.0) produces a
 `.tex` file, **`postprocess_tex.py`** applies deterministic structural
-fixes (margins, abstract→environment, references unnumbering, table
-spacing, FloatBarrier, needspace, duplicate headers/labels, appendix,
-clearpage), then **tectonic** (or xelatex) compiles to PDF. The
+fixes (title math, escaped standalone math, margins, abstract→environment,
+references unnumbering, table spacing, short longtable→table conversion,
+FloatBarrier, needspace, duplicate headers/labels, appendix, clearpage,
+stale phase label warnings), then **tectonic** (or xelatex) compiles to
+PDF. The
 `build-pdf` pixi task runs this full pipeline. The preamble
 (`conventions/preamble.tex`, symlinked from `src/conventions/`) sets:
 default figure **height** `0.45\linewidth` (height-based, not width-based,

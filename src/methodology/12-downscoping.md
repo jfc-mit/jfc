@@ -70,9 +70,48 @@ infeasibility documented with evidence? (2) is the quantified impact
 credible? (3) is the limitation documented in the AN? Downscoping
 without evidence of attempting the stronger method is Category A.
 
-### Future Directions
+### Future Directions — implement, don't defer
 
-Phase 5 AN must include a Future Directions section: what was descoped, what
-resources needed, expected improvement, priority order.
+**The default response to a feasible improvement is to implement it, not
+to write it in Future Directions.** When an agent identifies an
+improvement during the analysis — a better tagging method, a generator
+comparison, a calibration that would reduce a dominant systematic — the
+question is: "Can this be done in < 2 hours of implementation + compute?"
+If yes, do it now. If no, document it in Future Directions with a
+specific explanation of what makes it infeasible.
+
+**"Future Directions" is for genuinely infeasible improvements:**
+- Collecting more data (requires new running)
+- Developing a new algorithm architecture (requires R&D)
+- Running full detector simulation (requires multi-day compute + expertise)
+- Obtaining external inputs not available (requires other groups)
+- Implementing methods that require software not installable in the
+  current environment (after documented installation failure)
+
+**"Future Directions" is NOT for:**
+- Running PYTHIA 8 at particle level (~30 min)
+- Trying a contamination matrix correction on an existing tagger (~1 hour)
+- Decomposing a systematic into normalization vs shape components (~1 hour)
+- Overlaying published measurements from a thesis (~1 hour)
+- Implementing a per-hemisphere truth label using available gen-level info
+  (~1 hour)
+- Attempting a data-driven calibration of an uncalibrated variable (~2 hours)
+
+These are all tasks that were deferred to "Future Directions" in actual
+analyses but were later implemented (sometimes during regression) in ~1
+hour, producing significant improvements. The analysis would have been
+stronger if they had been attempted during the original phase execution.
+
+**Practical test:** When writing a Future Directions item, ask: "If the
+human reading this said 'do it now,' would the agent be able to complete
+it within the current session?" If yes, it should not be in Future
+Directions — it should be in the current plan. The orchestrator should
+monitor Future Directions items as they accumulate and trigger their
+implementation when feasible.
+
+Phase 5 AN must include a Future Directions section for genuinely
+infeasible items: what was downscoped, what resources are needed, expected
+improvement, and priority order. Each item must pass the feasibility test
+above — reviewers should flag any item that could have been implemented.
 
 ---

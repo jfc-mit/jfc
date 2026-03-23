@@ -96,9 +96,48 @@ Then read the compiled PDF and inspect across these dimensions:
    - No empty sections (heading followed immediately by another heading)
 
 For each issue, classify as:
-- (A) Must resolve — broken rendering, missing figures, unresolved refs
-- (B) Should address — layout problems, formatting issues
-- (C) Suggestion — aesthetic improvements
+- (A) Must resolve — this is the DEFAULT for rendering issues. Broken
+  rendering, missing figures, unresolved refs, figures cropped or
+  overflowing, stale TOC, raw LaTeX visible, composite panels too small
+  to read, table overflow, orphaned headings, large (>1/3 page)
+  whitespace gaps — ALL are Category A. A rendering defect that a
+  journal referee would notice is Category A.
+- (B) Should address — reserved for genuinely minor aesthetic preferences
+  (e.g., slightly uneven spacing between paragraphs, font choice in
+  code blocks). Use sparingly — when in doubt, classify as A.
+- (C) Suggestion — almost never used. Only for subjective style opinions
+  that have no impact on readability or professionalism.
 
-Do NOT comment on physics content, numerical results, or analysis methodology.
+**Bias toward A.** The cost of an unresolved rendering defect is high
+(the PDF is the final product a referee reads). The cost of investigating
+and fixing a rendering issue is low. When in doubt, flag as A and let
+the arbiter make the final call — never self-censor by downgrading to B.
+
+9. FIGURE QUALITY (rendering reviewer reads figures too)
+   - Read every figure in the PDF. At the rendered size (~0.45\linewidth
+     for standalone, ~0.32-0.44\linewidth for composites), is ALL text
+     (axis labels, tick marks, legend entries, annotations) legible
+     without zooming? If not → Category A.
+   - Do any legend entries overlap data points or each other? → Category A.
+   - Are error bars visibly reasonable? Giant error bars (>100% of the
+     value) on derived quantities (correction factors, ratios, normalized
+     spectra) almost always indicate a plotting bug → Category A.
+   - Do all figures have experiment labels? → Category A if missing.
+   - Are composite figure panels consistent in sizing and style? →
+     Category A if visibly mismatched.
+
+10. INVESTIGATE, DON'T JUST FLAG.
+    When you find a rendering issue, investigate its cause:
+    - Unresolved "??" → check which \label{} is missing in the .tex and
+      identify whether compositing dropped it
+    - Stale TOC → check whether tectonic ran enough passes
+    - Figure overflow → check the \includegraphics dimensions in the .tex
+    - Table overflow → check column widths and suggest \small or \resizebox
+    Report both the symptom (what the reader sees) and the cause (what needs
+    to change in the .tex). A finding without a root cause is incomplete.
+
+Do NOT comment on physics methodology — but DO flag figures where the
+physics content is visually wrong (data/MC mismatch, insane error bars,
+empty distributions). These are rendering findings that happen to have
+physics implications.
 ```

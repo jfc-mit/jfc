@@ -100,6 +100,13 @@ CONSISTENCY CHECKS (file-level):
 
 === PART 2: VISUAL VALIDATION ===
 
+IMPORTANT: Practically ALL plotting issues are Category A. A figure in the
+AN is a physics deliverable seen by referees. Layout problems, readability
+issues, overlap, wrong labels, misleading axis ranges — these are not
+cosmetic. They affect whether the reader can evaluate the physics. When
+in doubt, classify as Category A. The arbiter can downgrade if truly
+cosmetic; you should not self-censor.
+
 Read every PNG in outputs/figures/. For EACH figure, assess:
 
 READABILITY (Category A if fails):
@@ -123,7 +130,7 @@ LABEL QUALITY (Category A if violated):
       Must be "Energy-dep. efficiency" or similar.
 - [ ] Axis labels include units where applicable.
 
-LAYOUT (Category A for ratio panel issues, B otherwise):
+LAYOUT (Category A — all layout issues affect readability):
 - [ ] Subplot layout suits the content. Horizontal bar charts with long
       labels crammed into narrow panels → flag for redesign.
 - [ ] Ratio plots: experiment label appears on MAIN panel only.

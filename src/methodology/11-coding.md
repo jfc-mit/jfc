@@ -93,6 +93,18 @@ Phase 3 onward, the separation is mandatory.
 from raw data. Task names are human-readable. Scripts are idempotent (fixed
 seeds, fixed output paths).
 
+The `all` task is the reproducibility backbone. It must:
+- Run every script in the correct order (not just the final step)
+- Be idempotent (running twice produces the same output)
+- Include systematic variation reruns, not just the nominal
+- Produce all figures, tables, and machine-readable outputs
+- Complete without manual intervention
+
+Document the `all` task's execution graph in the AN reproduction
+contract appendix (see `analysis-note.md` → Reproduction contract).
+The reproduction contract makes the `all` task legible to a new user
+who needs to understand what it does and why, not just run it.
+
 Split scripts exceeding ~5 min into stages with intermediate outputs.
 Update `pixi.toml` whenever scripts are added or removed.
 

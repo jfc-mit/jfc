@@ -85,6 +85,25 @@ Ask yourself: "If I strip away all the framing, does this analysis
 produce a correct number with honest uncertainties? Or does it
 produce a wrong number and explain why it's wrong?"
 
+STATISTICAL METHODOLOGY CHECK (mandatory):
+The physics reviewer must also verify:
+- Are chi2 values computed with the full covariance matrix? If all
+  p-values are 1.000 or all pulls are < 0.5σ, the uncertainties are
+  likely inflated or the chi2 uses diagonal-only covariance. Either is
+  a finding.
+- Is the primary result extracted with an appropriate method? If a
+  corrected differential distribution exists with a covariance matrix,
+  using only the mean value discards information — flag as Category B.
+- Are closure tests genuinely independent? If the closure test uses
+  the same MC sample as the correction derivation, the test is
+  self-consistent by construction — this is Category A if presented
+  as validation.
+- For each systematic: is the assigned value justified by a measurement,
+  or is it an arbitrary round number? Is the impact figure showing
+  bin-dependent shifts, or is it suspiciously flat?
+- Does the measurement have resolving power? Can it distinguish the SM
+  from a ±20% deviation at 2σ? If not, is this stated?
+
 DEEP INVESTIGATION: If you see something in a figure or result that
 doesn't make physical sense and want to understand why (e.g., "why does
 the efficiency drop at high pT?" or "is the data/MC discrepancy in

@@ -198,6 +198,12 @@ plt.close(fig)
   PDF is physically wider. This works because all figures are square
   (`figsize=(10, 10)`), so height = plot-area width.
 
+  Note: `postprocess_tex.py` applies a `height=0.35\textheight` cap to
+  pandoc-wrapped figures to prevent overflow. This is tighter than the
+  preamble default and may reduce figure size slightly in the compiled
+  PDF — this is intentional to prevent captions from being pushed to the
+  next page.
+
   | Plot type | matplotlib figsize | AN height | Example |
   |-----------|-------------------|-----------|---------|
   | Single panel | `(10, 10)` | `0.45\linewidth` (default) | Distribution, spectrum |
@@ -218,8 +224,9 @@ plt.close(fig)
   `sharex=True` and `hspace=0`. Panels with different x-axis
   variables (e.g., ln(k_t) and ln(1/Delta_theta) projections of the same 2D
   observable) should be produced as separate `(10, 10)` matplotlib
-  figures and composed into a single AN figure via `\subfloat` in
-  LaTeX — they are semantically related (one caption) but not
+  figures and composed into a single AN figure via side-by-side
+  `\includegraphics` in LaTeX — they are semantically related (one
+  caption with (a)/(b) labels) but not
   axis-coupled. The test: if you cannot use `sharex=True`, produce
   separate matplotlib outputs.
 

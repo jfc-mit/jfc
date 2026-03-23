@@ -57,10 +57,14 @@ Read ANALYSIS_NOTE.tex. Improve it:
    ```bash
    python ../../conventions/postprocess_tex.py ANALYSIS_NOTE.tex
    ```
-   This handles: margins, abstract→environment, references unnumbering,
-   table spacing, FloatBarrier insertion, needspace, duplicate header
-   removal, duplicate label removal, appendix insertion, and clearpage
-   placement. Verify the summary output reports fixes applied.
+   This handles: title math (sqrt(s)→$\sqrt{s}$), escaped standalone
+   math ($\pm$→proper LaTeX), margins, abstract→environment, references
+   unnumbering, table spacing, short longtable→table conversion,
+   FloatBarrier insertion, needspace, duplicate header/label removal,
+   appendix insertion, clearpage placement, and stale phase label
+   warnings. Verify the summary output reports fixes applied. Check
+   stderr for phase-label warnings and fix any internal labels (e.g.,
+   "(4a)", "Phase 3") in captions/headers before proceeding.
 
 2. COMBINE RELATED FIGURES — with guardrails. The default is
    individual full-width figures. Combination is an optimization that
@@ -99,22 +103,65 @@ Read ANALYSIS_NOTE.tex. Improve it:
                print(f"{f.name}: {w:.0f}x{h:.0f} aspect={w/h:.3f}")
    ```
 
-   Then for each composite, compute the height that fills the page:
-   - For N figures side-by-side at the same height h:
-     total_width = h * (aspect_1 + aspect_2 + ... + aspect_N)
-     We want total_width <= 0.95\linewidth (leave 5% for \hfill gaps)
-     So: h = 0.95 / sum(aspects)
-   - **MINIMUM HEIGHT: 0.3\linewidth per panel.** If the computed height
-     is below 0.3\linewidth, do NOT combine — use individual figures.
-     At 0.3\linewidth, axis tick labels are approximately 6pt, which is
-     the minimum readable size.
-   - Round DOWN slightly (e.g., 0.288 -> 0.28) to ensure no wrapping.
+   **Figure sizing rules by layout type:**
 
-   Use HEIGHT (not width) so figures with different aspect ratios
-   appear at the same visual size. Use \hfill between figures.
+   - **3×N composites (3 panels side-by-side):** Must span the full text
+     width like the main text. Use `width=0.32\linewidth` per panel with
+     `\hspace{0.01\linewidth}` gaps. Total: 3×0.32 + 2×0.01 = 0.98.
+     These panels are small, so maximizing width is critical for
+     readability. No whitespace on the sides.
 
-   Use \begin{figure*} for full-width composites. Rewrite captions to
-   describe all sub-panels: "(a) ..., (b) ..., (c) ...".
+   - **2×N composites (2 panels side-by-side):** Use `width=0.44\linewidth`
+     per panel with `\hspace{0.02\linewidth}` gap. Total: 2×0.44 + 0.02
+     = 0.90. These don't need to be full-width but should be generous.
+
+   - **Single standalone figures:** Use `height=0.36\linewidth` (about 20%
+     smaller than the default `0.45\linewidth`). The default pandoc/preamble
+     height makes single figures unnecessarily large. The reduced size
+     improves page flow without sacrificing readability.
+
+   Use WIDTH (not height) for composites so panels fill the available
+   space predictably. Use height for standalone figures. Use a small
+   fixed horizontal gap between figures — do NOT use `\hfill`
+   indiscriminately, as it pushes figures to the edges with a random
+   gap in the middle, which is bad formatting. Center the group with
+   `\centering`.
+
+   **MINIMUM SIZE:** If any panel would be below `0.25\linewidth` wide,
+   do NOT combine — use individual figures. At that size, axis tick
+   labels become illegible.
+
+   **COMPOSITES ARE DONE IN LATEX, NEVER IN PYTHON.** Use multiple
+   `\includegraphics[width=X\linewidth]{original_figure.pdf}` calls
+   separated by `\hspace{...}` inside a single `\begin{figure}` environment.
+   Add `\textbf{(a)}` / `\textbf{(b)}` labels as `\raisebox` overlays
+   or in the caption text. NEVER import rendered PNGs into matplotlib
+   to create a derivative composite image — this rasterizes vector
+   graphics, loses quality, and breaks reproducibility. The original
+   per-panel PDFs are the source of truth; the .tex file arranges them.
+
+   Rewrite captions to describe all sub-panels: "(a) ..., (b) ..., (c) ...".
+
+   Since pandoc generates one `\includegraphics` per markdown `![...](...)`
+   line, the typesetter must edit the .tex file post-pandoc to merge
+   adjacent figure environments into composites. This is the typesetter's
+   core job — LaTeX layout, not image manipulation.
+
+   **CROSS-REFERENCE PRESERVATION (mandatory when merging figures).**
+   When merging two or more figure environments into one composite,
+   EVERY original `\label{fig:...}` must be preserved. This is the #1
+   source of broken cross-references ("??") in rendered PDFs. Protocol:
+   - Keep the first figure's `\label` on the composite `\begin{figure}`
+   - For each subsequent merged figure, insert
+     `\phantomsection\label{fig:original_label}` immediately before its
+     `\includegraphics` command
+   - After compilation, run:
+     ```bash
+     grep -c '??' ANALYSIS_NOTE.log
+     ```
+     Any unresolved reference is Category A — do not submit for review.
+   - Also check for "multiply defined" label warnings (duplicate labels
+     from copy errors)
 
    **READABILITY VERIFICATION (mandatory after combining).** After
    compiling, read the PDF and check every combined figure. If any
@@ -123,16 +170,24 @@ Read ANALYSIS_NOTE.tex. Improve it:
    Readability at rendered size is non-negotiable — a compact layout
    that cannot be read is worse than a longer document.
 
-3. FIX TABLES. Tables should NOT split across pages. Pandoc generates
-   \begin{longtable} which splits by default. Convert each longtable to
-   a regular \begin{table}[htbp]\begin{tabular} float unless the table
-   genuinely cannot fit on one page (e.g., a 50-row per-bin table).
-   Use booktabs (\toprule, \midrule, \bottomrule). Apply \small or
-   \resizebox to wide tables. No column overflow.
+3. FIX TABLES. The postprocessor now auto-converts short longtables
+   (< 15 data rows) to `\begin{table}[htbp]\begin{tabular}` floats.
+   Verify the conversions look correct. For remaining longtables (≥ 15
+   rows), confirm they genuinely need page-splitting. Use booktabs
+   (\toprule, \midrule, \bottomrule). Apply \small or \footnotesize
+   to wide tables. Apply \resizebox{\linewidth}{!}{...} as a last
+   resort. No column overflow.
 
-4. COMPILE AND CHECK TEX LOG. Run tectonic (or pdflatex) and fix errors.
-   After compilation, check for:
-   - Unresolved references (??) and citations ([?])
+4. COMPILE AND CHECK TEX LOG. Run tectonic (which auto-reruns for
+   cross-references) or pdflatex TWICE (two passes required for correct
+   TOC page numbers). After compilation, check for:
+   - **Unresolved references** — run `grep '??' ANALYSIS_NOTE.log`.
+     Any "??" is Category A. The most common cause is lost labels from
+     figure compositing (see step 2 cross-reference preservation).
+   - **Stale TOC** — spot-check 3 TOC entries against actual PDF pages.
+     If any are off by more than 1 page, the compilation did not run
+     enough passes. Re-run tectonic or add a third pdflatex pass.
+   - **Unresolved citations** — grep for `[?]` in the log/PDF.
    - **Overfull hbox warnings** — run `grep "Overfull.*hbox" *.log`.
      Any overfull hbox involving a figure or table is Category A. Fix by
      adding explicit `width=` or `height=` to oversized figures, or
@@ -151,10 +206,12 @@ Read ANALYSIS_NOTE.tex. Improve it:
    grep -q '\\section{Abstract}' "$TEX" && echo "FAIL: Abstract is a numbered section"
    # 2. References must not be a numbered section
    grep -q '\\section{References}' "$TEX" && echo "FAIL: References is a numbered section"
-   # 3. Figure combining ratio (informational — not a hard gate)
+   # 3. No subfloat (use side-by-side includegraphics instead)
+   grep -c '\\subfloat' "$TEX" && echo "FAIL: \\subfloat found — use side-by-side \\includegraphics with \\hspace"
+   # 4-alt. Figure combining ratio (informational — not a hard gate)
    STANDALONE=$(grep -c '\\begin{figure}' "$TEX")
-   SUBFLOAT=$(grep -c '\\subfloat\|\\subcaptionbox\|\\begin{subfigure}' "$TEX" || true)
-   echo "Standalone figure environments: $STANDALONE, Sub-figures: $SUBFLOAT"
+   COMPOSITES=$(grep -c '\\phantomsection\\label\|\\hspace{0\.0[12]' "$TEX" || true)
+   echo "Standalone figure environments: $STANDALONE, Composite markers: $COMPOSITES"
    echo "NOTE: Combine where readability permits, but never sacrifice legibility for ratio."
    # 4. FloatBarrier coverage
    SECTIONS=$(grep -c '\\section{' "$TEX")

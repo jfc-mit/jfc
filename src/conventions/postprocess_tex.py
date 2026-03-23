@@ -13,6 +13,152 @@ import sys
 from pathlib import Path
 
 
+def fix_title_math(lines):
+    r"""Replace literal sqrt(s) with $\sqrt{s}$ in \title{...}.
+
+    Pandoc's YAML title: field is plain text, so $\sqrt{s}$ renders
+    literally.  This fix catches the common sqrt(s) pattern in titles
+    and converts it to proper LaTeX math.
+    """
+    count = 0
+    for i, line in enumerate(lines):
+        if '\\title{' in line:
+            # Replace literal sqrt(s) with $\sqrt{s}$
+            new_line = re.sub(r'sqrt\(s\)', r'$\\sqrt{s}$', line)
+            # Also catch $\sqrt{s}$ that pandoc escaped to \$\\sqrt\{s\}\$
+            new_line = re.sub(r'\\\$\\sqrt\{s\}\\\$', r'$\\sqrt{s}$', new_line)
+            # Also catch literal $\sqrt{s}$ (dollar signs as text)
+            new_line = re.sub(r'\$\\sqrt\{s\}\$', r'$\\sqrt{s}$', new_line)
+            if new_line != line:
+                lines[i] = new_line
+                count += 1
+    return f'{count} title-math' if count else None
+
+
+def fix_escaped_pm(lines):
+    r"""Fix pandoc-escaped $\pm$ that renders with visible dollar signs.
+
+    When markdown contains $\pm$ as standalone math, pandoc sometimes
+    produces \$\\pm\$ in the .tex output, rendering with visible $
+    characters.  Replace with proper $\pm$.  Also fix escaped < > ~.
+    """
+    count = 0
+    for i, line in enumerate(lines):
+        new_line = line
+        # \$\pm\$ or \$±\$ -> $\pm$
+        new_line = re.sub(r'\\\$\\pm\\\$', r'$\\pm$', new_line)
+        new_line = re.sub(r'\\\$±\\\$', r'$\\pm$', new_line)
+        # \$<\$ -> $<$  and \$>\$ -> $>$
+        new_line = re.sub(r'\\\$<\\\$', r'$<$', new_line)
+        new_line = re.sub(r'\\\$>\\\$', r'$>$', new_line)
+        # \$\sim\$ -> $\sim$
+        new_line = re.sub(r'\\\$\\sim\\\$', r'$\\sim$', new_line)
+        if new_line != line:
+            lines[i] = new_line
+            count += 1
+    return f'{count} escaped-math' if count else None
+
+
+def fix_longtable_short(lines):
+    r"""Convert short longtables (< 15 rows) to table+tabular floats.
+
+    Pandoc generates \begin{longtable} for all tables, but short tables
+    should not split across pages.  This converts longtables with fewer
+    than 15 data rows to regular table floats.
+    """
+    count = 0
+    text = ''.join(lines)
+
+    # Find each longtable block
+    pattern = re.compile(
+        r'(\\begin\{longtable\}(?:\[[^\]]*\])?)(\{[^}]*\})(.*?)(\\end\{longtable\})',
+        re.DOTALL)
+
+    def convert_if_short(match):
+        nonlocal count
+        header = match.group(1)
+        col_spec = match.group(2)
+        body = match.group(3)
+        # Count data rows (lines with \\ that aren't header/rule lines)
+        data_lines = [
+            l for l in body.split('\n')
+            if '\\\\' in l
+            and '\\toprule' not in l
+            and '\\midrule' not in l
+            and '\\bottomrule' not in l
+            and '\\endhead' not in l
+            and '\\endfoot' not in l
+            and '\\endlastfoot' not in l
+        ]
+        if len(data_lines) >= 15:
+            return match.group(0)  # keep as longtable
+
+        # Remove longtable-specific commands
+        new_body = body
+        new_body = re.sub(r'\\endhead\s*\n?', '', new_body)
+        new_body = re.sub(r'\\endfoot\s*\n?', '', new_body)
+        new_body = re.sub(r'\\endlastfoot\s*\n?', '', new_body)
+
+        # Extract caption if present
+        caption_match = re.search(
+            r'\\caption\{.*?\}(?:\\label\{[^}]*\})?\\\\',
+            new_body, re.DOTALL)
+        caption = ''
+        if caption_match:
+            # Remove trailing \\ from caption line
+            caption = caption_match.group(0).rstrip('\\').rstrip() + '\n'
+            new_body = new_body.replace(caption_match.group(0), '')
+
+        # Build table float
+        result = '\\begin{table}[htbp]\n\\centering\n\\small\n'
+        if caption:
+            result += caption
+        result += f'\\begin{{tabular}}{col_spec}\n'
+        result += new_body.strip() + '\n'
+        result += '\\end{tabular}\n\\end{table}'
+        count += 1
+        return result
+
+    new_text = pattern.sub(convert_if_short, text)
+    if count:
+        lines.clear()
+        lines.extend(new_text.splitlines(keepends=True))
+        # Ensure last line has newline
+        if lines and not lines[-1].endswith('\n'):
+            lines[-1] += '\n'
+    return f'{count} longtable-conversions' if count else None
+
+
+def fix_stale_phase_labels(lines):
+    r"""Warn about internal phase labels in table headers and captions.
+
+    Prints warnings to stderr for patterns like "(4a)", "Phase 4b",
+    "Expected (4a)" in captions and table headers.  Does not modify
+    the file — this is a diagnostic.
+    """
+    warnings = []
+    past_changelog = False
+    for i, line in enumerate(lines):
+        if '\\section' in line and 'Introduction' in line:
+            past_changelog = True
+        if not past_changelog:
+            continue
+        # Check captions and table content for phase labels
+        if re.search(r'\\caption\{', line) or re.search(r'\\toprule|\\midrule', line):
+            if re.search(r'\(4[abc]\)|Phase\s+[1-5]\b', line):
+                warnings.append(
+                    f"  line {i+1}: internal phase label in: "
+                    f"{line.strip()[:80]}")
+    if warnings:
+        sys.stderr.write(
+            f"WARNING: {len(warnings)} internal phase label(s) found "
+            f"in captions/headers:\n")
+        for w in warnings:
+            sys.stderr.write(w + '\n')
+        return f'{len(warnings)} phase-label-warnings'
+    return None
+
+
 def fix_margins(lines):
     """Ensure margin=0.75in geometry. Insert if absent."""
     target = '\\usepackage[margin=0.75in]{geometry}\n'
@@ -510,13 +656,19 @@ def postprocess(path):
 
     # Order matters: abstract before clearpage (abstract removal shifts lines),
     # needspace before float barriers (needspace goes before FloatBarrier),
-    # duplicate fixes before structural changes.
+    # duplicate fixes before structural changes.  Title math and escaped-pm
+    # run early (before structural rearrangement).  Longtable conversion runs
+    # after table spacing (which targets longtables that survive).  Phase
+    # label warnings run last (diagnostic only, no modifications).
     for fix_fn in [
+        fix_title_math,
+        fix_escaped_pm,
         fix_margins,
         fix_abstract,
         fix_references,
         fix_crossref_prefixes,
         fix_table_spacing,
+        fix_longtable_short,
         fix_figure_placement,
         fix_float_barriers,
         fix_needspace,
@@ -526,6 +678,7 @@ def postprocess(path):
         fix_appendix,
         fix_clearpage,
         fix_references_placement,
+        fix_stale_phase_labels,
     ]:
         result = fix_fn(lines)
         if result:

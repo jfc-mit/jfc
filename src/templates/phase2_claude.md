@@ -62,6 +62,31 @@ These are the critical actionable items for Phase 2. See
 - **PDF build test.** Run a stub `pixi run build-pdf` at the end of this
   phase to catch toolchain issues early.
 
+## Data archaeology (archived/open data — mandatory)
+
+When working with archived data, unexpected properties can fundamentally
+change what is feasible. You MUST systematically discover these:
+
+1. **Check all weight/flag branches for non-triviality.** Print unique
+   values, range, and mean for every branch that could be a weight, flag,
+   or quality indicator. Non-trivial weights (not all 1.0) must be
+   understood and documented.
+2. **Check what processing has been applied.** Compare event counts to
+   published cross-section × luminosity. If counts are lower, the data
+   has been pre-selected. Determine what was cut and document the impact.
+3. **Check MC generation parameters.** Verify generator, tune, beam
+   energy, and process match data-taking conditions. Document coverage
+   gaps (single energy, single year, etc.).
+4. **Check for truth-level information.** What gen-level quantities are
+   available? What truth-matching variables exist? What particle-level
+   definition can be supported?
+5. **Strategy revision gate.** If any discovery materially changes
+   feasibility of a planned measurement, flag it as a **strategy revision
+   input** in the artifact. State clearly: "Phase 1 assumed X. Phase 2
+   found Y. Implications: Z." The orchestrator will then revise the
+   Phase 1 strategy before Phase 3 begins. This is not a regression —
+   it is the normal flow when exploration reveals incorrect assumptions.
+
 ## Rules
 
 - Prototype on small subsets (~1000 events). Do not process full data to
