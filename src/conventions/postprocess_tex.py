@@ -135,6 +135,49 @@ def fix_table_spacing(lines):
     return f'{count} table-spacings' if count else None
 
 
+def fix_figure_placement(lines):
+    r"""Add [!htbp] to bare \begin{figure} and strip \pandocbounded wrapper.
+
+    Pandoc >=3.8 wraps every includegraphics in \pandocbounded{...} which
+    scales images to fill \textheight — leaving no room for captions and
+    defeating LaTeX's float placement.  We strip the wrapper and let the
+    preamble's default figure height (0.45\linewidth) handle sizing.
+
+    Also adds [!htbp] placement so LaTeX can use float pages when a
+    figure doesn't fit on the current page.
+    """
+    count = 0
+    for i, line in enumerate(lines):
+        stripped = line.rstrip('\n')
+        if stripped == '\\begin{figure}':
+            lines[i] = '\\begin{figure}[htbp]\n'
+            # Insert \needspace before the figure to prevent starting a
+            # figure that won't fit.  0.4\textheight matches our height cap.
+            lines.insert(i, '\\needspace{0.4\\textheight}\n')
+            count += 1
+    # Add height= to pandocbounded includegraphics calls so LaTeX knows
+    # the size before float placement.  Also neuter pandocbounded to no-op.
+    for i, line in enumerate(lines):
+        # Add height constraint to pandocbounded figures
+        if '\\pandocbounded{\\includegraphics[keepaspectratio' in line and \
+           'height=' not in line:
+            lines[i] = line.replace(
+                '\\includegraphics[keepaspectratio',
+                '\\includegraphics[height=0.35\\textheight,keepaspectratio')
+            count += 1
+    # Redefine pandocbounded as identity (passthrough) — the height=
+    # constraint above makes the scaling unnecessary.
+    for i, line in enumerate(lines):
+        if '\\newcommand*\\pandocbounded[1]{% scales' in line:
+            for j in range(i, min(i + 12, len(lines))):
+                if lines[j].strip() == '}' and j > i:
+                    lines[i:j+1] = ['\\newcommand*\\pandocbounded[1]{#1}%\n']
+                    count += 1
+                    break
+            break
+    return f'{count} figure-placements' if count else None
+
+
 def fix_float_barriers(lines):
     """Insert \\FloatBarrier before each \\section{ (not \\section*)."""
     count = 0
@@ -306,14 +349,102 @@ def fix_references_placement(lines):
     return 'references-placement'
 
 
-def fix_table_crossref(lines):
-    """Fix 'Table tbl.~\\ref{...}' to 'Table~\\ref{...}'."""
+def fix_crossref_prefixes(lines):
+    r"""Strip redundant pandoc-crossref prefixes.
+
+    pandoc-crossref inserts 'fig.~\ref{...}', 'sec.~\ref{...}', etc.
+    When the author writes 'Figure @fig:name', pandoc produces
+    'Figure fig.~\ref{fig:name}' — strip the redundant lowercase prefix.
+    Also handles Table/Section/Equation variants, and bare prefixes at
+    line starts or after punctuation.
+    """
     count = 0
+    # Regex-based approach: match prefix patterns at word boundaries.
+    # Each tuple: (regex_pattern, replacement_string)
+    patterns = [
+        # "Figure fig.~\ref{" or "Figures fig.~\ref{" -> keep word + ~\ref{
+        (r'(Figure[s]?)\s+fig\.~\\ref\{', r'\1~\\ref{'),
+        (r'(figure[s]?)\s+fig\.~\\ref\{', r'Figure~\\ref{'),
+        (r'(Section[s]?)\s+sec\.~\\ref\{', r'\1~\\ref{'),
+        (r'(section[s]?)\s+sec\.~\\ref\{', r'Section~\\ref{'),
+        (r'(Table[s]?)\s+tbl\.~\\ref\{', r'\1~\\ref{'),
+        (r'(table[s]?)\s+tbl\.~\\ref\{', r'Table~\\ref{'),
+        (r'(Equation[s]?)\s+eq\.~\\ref\{', r'\1~\\ref{'),
+        (r'(equation[s]?)\s+eq\.~\\ref\{', r'Equation~\\ref{'),
+        # Same with space instead of tilde before \ref
+        (r'(Figure[s]?)\s+fig\.\s*\\ref\{', r'\1~\\ref{'),
+        (r'(Section[s]?)\s+sec\.\s*\\ref\{', r'\1~\\ref{'),
+        (r'(Table[s]?)\s+tbl\.\s*\\ref\{', r'\1~\\ref{'),
+        (r'(Equation[s]?)\s+eq\.\s*\\ref\{', r'\1~\\ref{'),
+        # Bare prefixes (at line start, after punctuation, after parentheses)
+        # These appear when pandoc-crossref outputs just "fig.~\ref{}" without
+        # a preceding word like "Figure"
+        (r'(?<![A-Za-z])fig\.~\\ref\{', r'Figure~\\ref{'),
+        (r'(?<![A-Za-z])sec\.~\\ref\{', r'Section~\\ref{'),
+        (r'(?<![A-Za-z])tbl\.~\\ref\{', r'Table~\\ref{'),
+        (r'(?<![A-Za-z])eq\.~\\ref\{', r'Equation~\\ref{'),
+        # Same bare prefixes with space instead of tilde
+        (r'(?<![A-Za-z])fig\.\s*\\ref\{', r'Figure~\\ref{'),
+        (r'(?<![A-Za-z])sec\.\s*\\ref\{', r'Section~\\ref{'),
+        (r'(?<![A-Za-z])tbl\.\s*\\ref\{', r'Table~\\ref{'),
+        (r'(?<![A-Za-z])eq\.\s*\\ref\{', r'Equation~\\ref{'),
+    ]
+    # Also fix double-word artifacts like "Figures Figure" from earlier passes
+    cleanup = [
+        (r'Figures\s+Figure~', r'Figures~'),
+        (r'Figure\s+Figure~', r'Figure~'),
+        (r'Sections\s+Section~', r'Sections~'),
+        (r'Section\s+Section~', r'Section~'),
+        (r'Tables\s+Table~', r'Tables~'),
+        (r'Table\s+Table~', r'Table~'),
+    ]
     for i, line in enumerate(lines):
-        if 'tbl.~\\ref{' in line:
-            lines[i] = line.replace('tbl.~\\ref{', '~\\ref{')
+        new_line = line
+        for pat, repl in patterns + cleanup:
+            new_line = re.sub(pat, repl, new_line)
+        if new_line != line:
             count += 1
-    return f'{count} table-crossrefs' if count else None
+            lines[i] = new_line
+
+    # Cross-line pass: pandoc sometimes breaks "Figure\nFigure~\ref{}"
+    # across lines.  Join, deduplicate, split back.
+    text = ''.join(lines)
+    cross_line = [
+        (r'(Figure)\s+(Figure~\\ref\{)', r'\2'),
+        (r'(Figures)\s+(Figure~\\ref\{)', r'Figures~\\ref{'),
+        (r'(Section)\s+(Section~\\ref\{)', r'\2'),
+        (r'(Table)\s+(Table~\\ref\{)', r'\2'),
+        (r'(Equation)\s+(Equation~\\ref\{)', r'\2'),
+    ]
+    for pat, repl in cross_line:
+        text, n = re.subn(pat, repl, text)
+        count += n
+    lines.clear()
+    lines.extend(text.splitlines(keepends=True))
+
+    return f'{count} crossref-prefixes' if count else None
+
+
+def fix_subfig_package(lines):
+    """Add \\usepackage{subfig} if \\subfloat is used anywhere in the file."""
+    text = ''.join(lines)
+    if '\\subfloat' not in text:
+        return None
+    # Check if already present
+    for line in lines:
+        if re.search(r'\\usepackage.*\{subfig\}', line):
+            return None
+    # Insert after geometry line
+    for i, line in enumerate(lines):
+        if '\\usepackage' in line and 'geometry' in line:
+            lines.insert(i + 1, '\\usepackage{subfig}\n')
+            return 'subfig'
+    # Fallback: insert after \documentclass
+    for i, line in enumerate(lines):
+        if line.strip().startswith('\\documentclass'):
+            lines.insert(i + 1, '\\usepackage{subfig}\n')
+            return 'subfig'
+    return None
 
 
 def fix_appendix(lines):
@@ -384,12 +515,14 @@ def postprocess(path):
         fix_margins,
         fix_abstract,
         fix_references,
-        fix_table_crossref,
+        fix_crossref_prefixes,
         fix_table_spacing,
+        fix_figure_placement,
         fix_float_barriers,
         fix_needspace,
         fix_duplicate_headers,
         fix_duplicate_labels,
+        fix_subfig_package,
         fix_appendix,
         fix_clearpage,
         fix_references_placement,
