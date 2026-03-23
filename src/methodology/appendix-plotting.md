@@ -521,7 +521,7 @@ whitespace, and small panels. Instead, use simple side-by-side
 ```latex
 \begin{figure}[!htbp]
 \centering
-\includegraphics[height=0.38\linewidth]{figures/left.pdf}\hfill
+\includegraphics[height=0.38\linewidth]{figures/left.pdf}\hspace{1em}
 \includegraphics[height=0.38\linewidth]{figures/right.pdf}
 \caption{The ln(1/Delta-theta) projection (left) and ln(kt) projection
   (right) of the unfolded Lund plane density from Figure X, compared to
@@ -534,9 +534,9 @@ whitespace, and small panels. Instead, use simple side-by-side
 ```latex
 \begin{figure}[!htbp]
 \centering
-\includegraphics[height=0.32\linewidth]{figures/tl.pdf}\hfill
+\includegraphics[height=0.32\linewidth]{figures/tl.pdf}\hspace{1em}
 \includegraphics[height=0.32\linewidth]{figures/tr.pdf}\\[0.5em]
-\includegraphics[height=0.32\linewidth]{figures/bl.pdf}\hfill
+\includegraphics[height=0.32\linewidth]{figures/bl.pdf}\hspace{1em}
 \includegraphics[height=0.32\linewidth]{figures/br.pdf}
 \caption{Shift maps for four sub-dominant sources: angular resolution
   (top left), non-closure (top right), thrust axis (bottom left), and
@@ -563,14 +563,45 @@ pointer, then describe the joint conclusion:
 - The caption is a single paragraph synthesizing both panels, not a
   concatenation of individual captions.
 
+**All compositing MUST be done in LaTeX.** Never use PIL, matplotlib
+grid stitching, or any external image-combining tool to create composite
+figures. LaTeX `\includegraphics` with `\hspace{1em}` and `\\[0.5em]` gives
+correct sizing, centering, and spacing. External stitching produces
+inconsistent DPI, wrong font sizes, visual artifacts, and figures that
+look qualitatively different from the rest of the document. If LaTeX
+compositing cannot achieve the desired layout, that is a signal to
+simplify the layout, not to reach for an external tool.
+
+**Visual appeal check (mandatory for composites).** After compositing,
+inspect the rendered PDF for visual consistency:
+- Are all panels the same size? Different aspect ratios (e.g., 2D
+  colormesh vs 1D with ratio panel) produce different-sized panels at
+  the same `height=` setting. When mixing types, adjust per-panel
+  heights individually or group same-type panels together.
+- Is the grid symmetric and centered? No ragged edges.
+- Is the overall figure centered on the page with uniform small gaps
+  between panels?
+- Would a reviewer find the layout professional? If it looks like
+  images were haphazardly pasted together, redo it.
+
 **Sizing reference:**
 
-| Grid | Per-panel height | Example |
-|------|-----------------|---------|
-| 1x2 (pair) | `0.38\linewidth` | Projection comparisons |
+| Grid | Per-panel height | Use case |
+|------|-----------------|----------|
+| 1x2 (pair) | `0.38\linewidth` | Projection comparisons, matrix pairs |
 | 2x2 | `0.32\linewidth` | Sub-dominant shift maps |
+| 1x3 (row) | `0.30\linewidth` | Simple data/MC surveys |
+| 2x3 | `0.30\linewidth` | Per-subperiod or per-cut comparisons |
 | 3x3 | `0.28\linewidth` | Full input variable survey |
-| 2x3 | `0.30\linewidth` | Per-subperiod comparisons |
+
+**Data/MC comparison surveys.** Simple data/MC distributions (one
+main panel + one ratio panel, same axis style) are highly compressible.
+Use **3 columns** spanning the full page width — these plots are
+visually simple and remain legible at `0.30\linewidth` height. A 7-plot
+track variable survey becomes a 3+3+1 or 4+3 grid; a 5-plot event
+variable survey becomes a 3+2 grid. Do NOT use 2-column layout for
+simple data/MC — it wastes page space and produces unnecessarily large
+panels for figures that carry little visual complexity.
 
 **Variable survey and per-cut compositions.** When presenting N
 related distributions (input variable data/MC comparisons, per-cut
