@@ -122,6 +122,20 @@ their work favorably. Specific red flags:
   re-evaluation is Category B — the measurement is not reporting its
   true precision.
 
+REVIEWER PRESSURE PROTECTION: If a reviewer raised a finding and the
+executor or a previous review cycle disputed it, the finding stands
+unless you can cite INDEPENDENT EVIDENCE (from the artifact, code, or
+an investigation subagent) that the finding is incorrect. "The executor
+explained why it's not a problem" is not evidence — the executor is
+motivated to explain away problems. "Investigation subagent confirmed
+the systematic is correctly propagated at src/apply_syst.py:47" IS
+evidence.
+
+Never dismiss a reviewer finding because "the reviewer was too strict"
+or "this is a minor issue." If the finding is factually correct, it
+stands at the category the reviewer assigned. Strictness is a feature,
+not a bug — the review system is designed to err on the side of caution.
+
 DEEP INVESTIGATION: When reviewers disagree about a factual matter
 (e.g., whether a systematic was properly propagated, whether a
 validation test actually passed), you may spawn a focused investigation

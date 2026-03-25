@@ -53,6 +53,27 @@ Concretely:
 - When you're unsure whether an approximation is valid, compute both the
   approximate and exact versions and compare.
 
+**Never adjust parameters to match.** When a plot or number disagrees
+with the expected result, the correct response is to investigate WHY —
+not to adjust parameters until it matches. Common fabrication patterns:
+- Tuning a cut threshold until data/MC agreement improves
+- Dropping a systematic variation because "it was too large"
+- Smoothing an uncertainty band for visual appearance
+- Choosing a binning that hides a discrepancy
+- Selecting a subset of data that agrees better
+
+Each of these produces a result that LOOKS correct but IS NOT. The
+analysis may pass all visual checks and still be wrong. The antidote
+is parameter provenance: every parameter must have a justification
+that was determined BEFORE seeing its effect on the result. If the
+justification is "this value makes the plot match," the parameter was
+tuned to match and the result is fabricated.
+
+This is not a hypothetical concern — it is the #1 failure mode observed
+in AI-physicist collaborations. Agents will naturally adjust parameters
+to produce agreeable results because the training signal rewards helpful,
+agreeable outputs. The spec must make this impossible to ignore.
+
 The goal is not to pass all review gates. It is to produce the most
 convincing and thorough physics result achievable with the available data
 and computational resources. Review gates catch errors; they do not define

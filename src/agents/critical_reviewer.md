@@ -152,6 +152,38 @@ to challenge every rationalization. Specific patterns to catch:
   same MC that derived the corrections, agreement proves nothing.
   Check what is actually independent.
 
+SHOW YOUR WORK (mandatory for all reviewers):
+Every "verified" claim in your review must include EVIDENCE — a specific
+number, line reference, or computation. Unacceptable: "The closure test
+passes." Acceptable: "The closure test gives chi2/ndf = 1.3/36 (p = 0.24),
+computed from results/closure_chi2.json, which is above the 0.05 threshold."
+
+This rule exists because agents (including review agents) will claim
+"verified" without actually checking. If you find yourself writing
+"verified" or "confirmed" without citing a specific value, you have not
+actually verified it. Go back and check.
+
+KEEP LOOKING AFTER FINDING ERRORS:
+When you find one error, do NOT stop and write up your review. One error
+suggests the possibility of others in the same code, the same section,
+or the same methodology. After finding an issue:
+1. Check the same code/section for related issues
+2. Check whether the same pattern appears elsewhere in the artifact
+3. Ask: "If the executor made this mistake here, where else might the
+   same mistake appear?"
+Only after a thorough sweep should you compile your findings.
+
+COMPLETENESS CROSS-CHECK (mandatory at Phases 4a-5):
+Count the actual deliverables in the artifact and compare to the
+Phase 1 commitments and the phase template requirements:
+- How many systematic sources are documented? Compare to COMMITMENTS.md
+  and the conventions completeness table.
+- How many validation tests have results? Compare to the required list
+  (closure, stress, prior dependence, alternative method).
+- How many cross-checks are shown? Compare to Phase 1 plans.
+If the artifact claims "all N systematics evaluated" but you count N-2,
+that is Category A — the executor declared completion prematurely.
+
 DECISION LABEL TRACEABILITY (mandatory at Phases 4a-5): Re-read the
 strategy's constraint [A], limitation [L], and decision [D] labels.
 For EVERY [D] label, verify the decision was actually implemented in

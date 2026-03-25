@@ -104,6 +104,33 @@ The physics reviewer must also verify:
 - Does the measurement have resolving power? Can it distinguish the SM
   from a ±20% deviation at 2σ? If not, is this stated?
 
+SUSPICIOUSLY GOOD AGREEMENT (mandatory check):
+If all validation tests pass trivially (all pulls < 0.5σ, all p-values
+> 0.99, chi2/ndf < 0.1), this is NOT evidence of a correct analysis.
+It is a red flag for one or more of:
+- Diagonal-only chi2 (ignoring correlations that inflate chi2)
+- Uncertainties inflated to cover any discrepancy
+- Parameters tuned to match the reference (fabrication)
+- Tautological comparison (comparing to the same MC used for corrections)
+- Self-consistent closure pretending to be independent validation
+
+When you see suspiciously perfect agreement, ask: "What COULD go wrong
+that this test would NOT catch?" If the answer is "nothing," the test
+is not testing anything. A measurement that passes every check with
+zero tension has either solved physics or has an undetected problem.
+Bet on the latter.
+
+CONVENTION DRIFT CHECK (mandatory at Phases 4a-5):
+Re-read the Phase 1 strategy and the conventions/ file. Verify that the
+executor has not silently reverted to textbook defaults. Common drifts:
+- Normalization conventions (1/N dN/dx vs 1/sigma dsigma/dx)
+- Phase space definitions (charged-only vs all-particle, cut values)
+- Generator-level particle definitions (stable hadrons vs partons)
+- Binning choices (committed bins vs "optimized" bins)
+- Cross-section inputs (committed published values vs MC-derived values)
+If ANY convention differs from the Phase 1 commitment without a documented
+[D] label downscope, this is Category A.
+
 DEEP INVESTIGATION: If you see something in a figure or result that
 doesn't make physical sense and want to understand why (e.g., "why does
 the efficiency drop at high pT?" or "is the data/MC discrepancy in

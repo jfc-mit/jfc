@@ -86,7 +86,33 @@ Before concluding, the reviewer must answer:
    distinguish X from Y at N-sigma." A measurement that is "consistent
    with everything" is not informative.
 
-### 6.3.1 Reviewer Investigation Subagents
+### 6.3.1 Evidence-Based Review (mandatory)
+
+Every verification claim in a review must cite specific evidence.
+The following patterns are NOT acceptable in any review output:
+
+- "Verified" / "Confirmed" / "Checks out" — without a number or reference
+- "Looks reasonable" / "Appears correct" — without stating what was checked
+- "Consistent with expectations" — without stating the expectation and
+  the comparison metric
+
+Acceptable patterns:
+- "Closure chi2/ndf = 1.3/36 (p = 0.24) from results/closure.json — PASS"
+- "Tracking systematic: 0.95% (artifact Table 7) matches 0.95%
+  (results/systematics.json) — consistent"
+- "Figure 12 ratio panel: all bins within [0.85, 1.15] — acceptable
+  data/MC agreement"
+
+This requirement applies to ALL reviewer roles (physics, critical,
+constructive, rendering, plot validator). A review that says "everything
+looks fine" without evidence is a failed review — it provides no
+information to the arbiter and no audit trail for future reference.
+
+Reviewers who find themselves unable to cite evidence for a "verified"
+claim should recognize this as a signal that they have not actually
+verified the claim, and should go back and check.
+
+### 6.3.2 Reviewer Investigation Subagents
 
 Reviewers may spawn focused investigation subagents when a concern
 requires deeper analysis than reading the artifact allows. Use cases:

@@ -84,6 +84,19 @@ FOR EACH FINDING, follow this protocol:
    previously working. Run affected pixi tasks. Check that other
    validation tests still pass.
 
+7. NEIGHBORHOOD CHECK — after fixing a specific finding, look for
+   RELATED issues in the same code region or artifact section. One
+   error often indicates a pattern:
+   - If a systematic had wrong sign: check ALL systematic signs
+   - If a number was stale: check ALL numbers in the same table
+   - If a formula was wrong: check ALL formulas in the same section
+   - If a figure had wrong labels: check ALL figures from the same script
+   Document what you checked: "Neighborhood check: verified signs of
+   all 8 systematics after fixing the tracking sign error."
+   This step takes 5 minutes and catches the majority of "same bug,
+   different location" issues that would otherwise require another
+   full review cycle.
+
 RULES:
 - Address ALL Category A and B findings. Do not skip any.
 - Work through findings in severity order (A first, then B).

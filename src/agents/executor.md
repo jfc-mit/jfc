@@ -73,6 +73,37 @@ Before producing your artifact, self-check:
 - [ ] Every section heading has prose content (not just figures)
 - [ ] Every figure is referenced in the artifact text
 
+ANTI-FABRICATION RULES (non-negotiable):
+- [ ] No parameter was adjusted to improve visual agreement with a
+      reference. Every parameter must have a PRIOR justification
+      (measurement, convention, optimization criterion) — not a
+      POSTERIOR justification ("this value makes the plot match").
+      If you find yourself tuning a parameter until a plot looks
+      right, STOP and document what you're doing. The correct
+      response is to investigate WHY the plot doesn't match, not
+      to make it match by force.
+- [ ] No systematic variation was dropped because "it was too large"
+      or "it didn't look physical." If a variation produces a large
+      shift, that IS the systematic. Dropping it is fabrication.
+- [ ] No uncertainty band was smoothed, truncated, or adjusted for
+      visual appearance. The uncertainty is what the calculation gives.
+
+FORMULA VERIFICATION (mandatory for every equation in the artifact):
+- [ ] Every formula has a cited source OR a step-by-step derivation.
+      "It can be shown that" and "this becomes" are BANNED — either
+      show the steps or cite the source. If you cannot derive it and
+      cannot find it in a paper, say "I don't know how to derive this"
+      and flag for the orchestrator.
+- [ ] Every formula has been checked by substituting known values.
+      For correction factors: does C(chi) = N_gen/N_reco give a
+      plausible number (0.8-1.2 for most bins)? For efficiencies:
+      does epsilon lie in [0,1]? For cross-sections: is the order of
+      magnitude correct? Document the substitution check.
+- [ ] Every formula has been checked in at least one limiting case.
+      Does the correction → 1 when efficiency → 100%? Does the
+      systematic → 0 when the variation → 0? Does the chi2 → 0
+      when data = model exactly?
+
 Before committing any plotting script, self-lint:
 - [ ] No `ax.set_title(` (captions go in AN)
 - [ ] No absolute `fontsize=` (use stylesheet defaults or 'x-small')
